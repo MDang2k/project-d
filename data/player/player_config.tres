@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="PlayerConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+walk_speed = 2.8
+sprint_speed = 5.2
+crouch_speed = 1.6
+crouch_sprint_speed = 3.0
+prone_speed = 0.7
+acceleration = 10.0
+deceleration = 14.0
+air_control = 0.2
+jump_velocity = 4.2
+jump_stamina_cost = 12.0
+stand_height = 1.8
+crouch_height = 1.2
+prone_height = 0.6
+capsule_radius = 0.3
+stand_eye_height = 1.65
+crouch_eye_height = 1.1
+prone_eye_height = 0.4
+eye_height_speed = 4.0
+tier_thresholds_kg = PackedFloat32Array(20, 35, 50)
+tier_speed_mult = PackedFloat32Array(1, 0.9, 0.7, 0.3)
+tier_accel_mult = PackedFloat32Array(1, 0.8, 0.55, 0.35)
+tier_turn_mult = PackedFloat32Array(1, 0.9, 0.75, 0.5)
+tier_stamina_drain_mult = PackedFloat32Array(1, 1.4, 1.8, 2.5)
+tier_stamina_recovery_mult = PackedFloat32Array(1, 0.8, 0.6, 0.4)
+sprint_max_tier = 1
+legs_max = 100.0
+arms_max = 100.0
+sprint_drain_per_s = 9.0
+recovery_per_s = 8.0
+recovery_delay_s = 1.0
+resume_threshold = 20.0
+mouse_sensitivity = 0.0022
+sprint_turn_mult = 0.6
+pitch_limit_deg = 85.0
