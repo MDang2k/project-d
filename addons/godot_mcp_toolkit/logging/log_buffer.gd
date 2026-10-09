@@ -292,6 +292,7 @@ static func _setup_logger() -> void:
 
 
 const _LOGGER_SOURCE := '
+@warning_ignore_start("untyped_declaration", "unsafe_method_access", "unsafe_property_access", "unsafe_call_argument", "unsafe_cast")
 extends Logger
 
 func _log_message(message: String, error: bool) -> void:
