@@ -1,15 +1,19 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/player/player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/player/Player.cs" id="1"]
 [ext_resource type="Resource" path="res://data/player/player_config.tres" id="2"]
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1")
-config = ExtResource("2")
+Config = ExtResource("2")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 
-[node name="Head" type="Node3D" parent="."]
+[node name="LeanPivot" type="Node3D" parent="."]
 
-[node name="Camera" type="Camera3D" parent="Head"]
+[node name="Head" type="Node3D" parent="LeanPivot"]
+
+[node name="FreeLook" type="Node3D" parent="LeanPivot/Head"]
+
+[node name="Camera" type="Camera3D" parent="LeanPivot/Head/FreeLook"]
 current = true
