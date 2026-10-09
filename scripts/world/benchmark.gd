@@ -154,9 +154,9 @@ func _process(delta: float) -> void:
 		_move_free(delta)
 	else:
 		_fly_path(delta)
-		if _t < RUN_SECONDS:
+		if _result == "":
 			_frame_ms.append(delta * 1000.0)
-			if _t + delta >= RUN_SECONDS:
+			if _t >= RUN_SECONDS:
 				_finish()
 	_update_label()
 
