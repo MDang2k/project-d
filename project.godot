@@ -3,6 +3,8 @@ config_version=5
 
 [application]
 
+run/main_scene="res://scenes/maps/benchmark.tscn"
+
 config/name="Project D"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
