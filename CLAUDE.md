@@ -38,7 +38,7 @@ You cannot see the Godot editor, playtest, or judge "feel". So:
 - Keep scripts focused; split once a script passes roughly 400 lines.
 - Units: meters, kilograms, seconds, m/s. Damage and HP are floats.
 - Autoloads are limited to: `GameState` (profile, stash, reputation, skills), `SaveManager`, `ItemDb` (resource registry), `Events` (global signal bus, only for cross-system events). Ask before adding more.
-  Dev-tooling exception: `MCPRuntimeServer` (from `addons/godot_mcp_toolkit`, Godot MCP Toolkit). Not game code; must be excluded from release exports.
+  Dev-tooling exception: `MCPRuntimeServer` (from `addons/godot_mcp_toolkit`, Godot MCP Toolkit). Not game code; the addon's export plugin strips it and the autoload self-disables outside the editor. Verify the PCK on the first export.
 - Everything player-facing that is text goes through a single place so it can be localized later (`tr()` keys are fine).
 
 ## Project structure
