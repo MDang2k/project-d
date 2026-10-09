@@ -22,10 +22,37 @@ public partial class M1Playground : Node3D
 		_player.Position = SpawnPoint;
 		AddChild(_player);
 
+		ApplyShotArgs();
+
 		var layer = new CanvasLayer();
 		_label = new Label { Position = new Vector2(12f, 12f) };
 		layer.AddChild(_label);
 		AddChild(layer);
+	}
+
+	/// <summary>
+	/// Dev screenshots: godot ... -- --shot=user://a.png [--pitch=-60] [--stance=crouch|prone]
+	/// saves the viewport after a few frames and quits.
+	/// </summary>
+	private async void ApplyShotArgs()
+	{
+		string? shot = null;
+		foreach (var arg in OS.GetCmdlineUserArgs())
+		{
+			if (arg.StartsWith("--shot="))
+				shot = arg["--shot=".Length..];
+			else if (arg.StartsWith("--pitch=") && float.TryParse(arg["--pitch=".Length..], out var deg))
+				_player.DebugSetPitchDeg(deg);
+			else if (arg == "--stance=crouch")
+				_player.DebugSetStance(Stance.Crouch);
+			else if (arg == "--stance=prone")
+				_player.DebugSetStance(Stance.Prone);
+		}
+		if (shot is null)
+			return;
+		await ToSignal(GetTree().CreateTimer(1.0), SceneTreeTimer.SignalName.Timeout);
+		GetViewport().GetTexture().GetImage().SavePng(shot);
+		GetTree().Quit();
 	}
 
 	private void BuildWorld()

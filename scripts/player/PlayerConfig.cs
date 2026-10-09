@@ -82,6 +82,23 @@ public partial class PlayerConfig : Resource
 	[Export] public float MantleDurationS { get; set; } = 0.7f;
 	[Export] public float MantleStaminaCost { get; set; } = 15f;
 
+	[ExportGroup("Body (placeholder)")]
+	/// <summary>Hips-to-eye distance when upright; keeps the head under the camera.</summary>
+	[Export] public float TorsoToEyeHeight { get; set; } = 0.70f;
+	[Export] public float UpperArmLength { get; set; } = 0.32f;
+	[Export] public float ForearmLength { get; set; } = 0.30f;
+	[Export] public float ProneHipsHeight { get; set; } = 0.15f;
+	/// <summary>How far behind the camera the hips sit when prone (body lies forward).</summary>
+	[Export] public float ProneBodyBack { get; set; } = 0.7f;
+	[Export] public float CrouchThighDeg { get; set; } = 80f;
+	[Export] public float CrouchShinDeg { get; set; } = 100f;
+	/// <summary>Held item position relative to the head (camera pitch node).</summary>
+	[Export] public Vector3 HeldItemOffset { get; set; } = new(0.08f, -0.22f, -0.36f);
+	[Export] public Vector3 GripRightOffset { get; set; } = new(0f, -0.04f, 0.12f);
+	[Export] public Vector3 GripLeftOffset { get; set; } = new(0f, -0.03f, -0.15f);
+	[Export] public Vector3 ElbowHintRight { get; set; } = new(0.45f, -0.55f, 0.05f);
+	[Export] public Vector3 ElbowHintLeft { get; set; } = new(-0.45f, -0.55f, 0.05f);
+
 	[ExportGroup("Look")]
 	[Export] public float MouseSensitivity { get; set; } = 0.0022f;
 	[Export] public float SprintTurnMult { get; set; } = 0.6f;

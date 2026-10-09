@@ -33,6 +33,7 @@ public partial class Player : CharacterBody3D
 	private Node3D _pivot = null!;
 	private Node3D _head = null!;
 	private Node3D _free = null!;
+	private PlayerBody _body = null!;
 
 	private float _gravity = 9.8f;
 	private float _eyeY = 1.65f;
@@ -62,6 +63,10 @@ public partial class Player : CharacterBody3D
 		_collision.Shape = _capsule;
 		ApplyStanceShape();
 		_eyeY = _move.EyeHeight(Stance);
+		_body = new PlayerBody { Name = "Body" };
+		AddChild(_body);
+		_body.Build(_cfg, _head);
+		GetNode<Camera3D>("LeanPivot/Head/FreeLook/Camera").Near = 0.03f;
 		UpdateRig(0f);
 		Input.MouseMode = Input.MouseModeEnum.Captured;
 	}
@@ -80,6 +85,21 @@ public partial class Player : CharacterBody3D
 				Input.MouseMode = Input.MouseModeEnum.Visible;
 				break;
 		}
+	}
+
+	/// <summary>Debug/screenshot helper: switches stance without input or headroom checks.</summary>
+	public void DebugSetStance(Stance stance)
+	{
+		Stance = stance;
+		ApplyStanceShape();
+	}
+
+	/// <summary>Debug/screenshot helper: sets camera pitch directly.</summary>
+	public void DebugSetPitchDeg(float degrees)
+	{
+		var rot = _head.Rotation;
+		rot.X = Mathf.DegToRad(degrees);
+		_head.Rotation = rot;
 	}
 
 	private void Look(Vector2 rel)
@@ -174,6 +194,7 @@ public partial class Player : CharacterBody3D
 		if (!Input.IsActionPressed("free_look"))
 			_freeLook = LookModel.FreeLookReturn(_freeLook, _cfg.FreeLookReturnDegS, delta);
 		_free.Rotation = new Vector3(Mathf.DegToRad(_freeLook.Y), Mathf.DegToRad(_freeLook.X), 0f);
+		_body.Pose(_eyeY, _pivot.Rotation.Z, shift);
 	}
 
 	/// <summary>Shortens a lean so the head never ends up inside a wall.</summary>
