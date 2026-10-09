@@ -8,7 +8,7 @@ Hobby project. The user is the designer, playtester and (later) 3D artist. You w
 
 ## Tech stack
 
-- **Engine:** Godot 4.x, one pinned version for the whole project. Record it here once chosen: `GODOT_VERSION = 4.7.2-stable` (mono build, used for GDScript only; exe `D:Godot_v4.7.2-stable_mono_win64Godot_v4.7.2-stable_mono_win64_console.exe`).
+- **Engine:** Godot 4.x, one pinned version for the whole project. Record it here once chosen: `GODOT_VERSION = 4.7.2-stable` (mono build, used for GDScript only; exe `D:/Godot_v4.7.2-stable_mono_win64/Godot_v4.7.2-stable_mono_win64_console.exe`).
 - **Language:** GDScript only, with strict static typing. In Project Settings → Debug → GDScript, set untyped declarations, unsafe property access, unsafe method access and unsafe call arguments to **Error**.
 - **Renderer:** Forward+ (tentative). Milestone M0 includes a benchmark on the user's weakest target machine; fall back to the Mobile renderer if needed.
 - **Physics:** Jolt (built into Godot 4.4+; select under Physics → 3D → Physics Engine). Verify it exists in the pinned version.
