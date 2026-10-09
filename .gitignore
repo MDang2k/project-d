@@ -3,3 +3,9 @@ export/
 build/
 *.translation
 .mono/
+
+# .NET
+bin/
+obj/
+.godot/mono/
+*.user

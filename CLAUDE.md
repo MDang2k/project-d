@@ -8,11 +8,11 @@ Hobby project. The user is the designer, playtester and (later) 3D artist. You w
 
 ## Tech stack
 
-- **Engine:** Godot 4.x, one pinned version for the whole project. Record it here once chosen: `GODOT_VERSION = 4.7.2-stable` (mono build, used for GDScript only; exe `D:/Godot_v4.7.2-stable_mono_win64/Godot_v4.7.2-stable_mono_win64_console.exe`).
-- **Language:** GDScript only, with strict static typing. In Project Settings → Debug → GDScript, set untyped declarations, unsafe property access, unsafe method access and unsafe call arguments to **Error**.
+- **Engine:** Godot 4.x, one pinned version for the whole project. Record it here once chosen: `GODOT_VERSION = 4.7.2-stable` (mono build, C#; exe `D:/Godot_v4.7.2-stable_mono_win64/Godot_v4.7.2-stable_mono_win64_console.exe`).
+- **Language:** C# (.NET 8, `net8.0`, nullable enabled) for all game code. Third-party addons (GUT, Godot MCP Toolkit) stay GDScript. Project file `Project D.csproj`, solution `Project D.sln`, namespace `ProjectD`. NuGet restore uses the Godot-bundled packages through `NuGet.Config` (per-machine path, same install as the Godot exe above). Build: `dotnet build "Project D.csproj"`.
 - **Renderer:** Forward+ (tentative). Milestone M0 includes a benchmark on the user's weakest target machine; fall back to the Mobile renderer if needed.
 - **Physics:** Jolt (built into Godot 4.4+; select under Physics → 3D → Physics Engine). Verify it exists in the pinned version.
-- **Tests:** GUT (Godot Unit Test) in `addons/gut`. Run headless:
+- **Tests:** xUnit in `tests/ProjectD.Tests` (pure logic, no engine). Run: `dotnet test tests/ProjectD.Tests/ProjectD.Tests.csproj`. GUT stays in `addons/gut` for engine-level smoke tests only (`tests/test_smoke.gd`):
   `godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit`
 - **Platform:** PC (Windows first, Linux nice-to-have). No web export.
 - **Performance target:** 60 fps at 1080p on lowest settings on a dedicated GPU with 6 GB VRAM (reference card: GTX 1060 6GB class). CPU target TBD. Keep this in mind for draw calls, shadows, AI tick rates and physics.
@@ -23,7 +23,7 @@ Hobby project. The user is the designer, playtester and (later) 3D artist. You w
 You cannot see the Godot editor, playtest, or judge "feel". So:
 
 1. **Data-driven by default.** Weapons, ammo, armor, items, traders, quests, skills and AI presets are custom `Resource` classes saved as `.tres` files you can author as text. Gameplay tuning numbers belong in these resources, never hard-coded.
-2. **Logic is testable without scenes.** Put rules (inventory fitting, damage resolution, armor penetration, skill XP, reputation, quest state, insurance rolls, save serialization) in plain classes that extend `RefCounted` and cover them with GUT tests. Nodes are thin wrappers that call into them.
+2. **Logic is testable without scenes.** Put rules (inventory fitting, damage resolution, armor penetration, skill XP, reputation, quest state, insurance rolls, save serialization) in plain C# classes (no `GodotObject`, Godot math types are fine) and cover them with xUnit tests. Config `Resource`s expose small `record` tuning types so logic can be tested without the engine. Nodes are thin wrappers that call into them.
 3. **Keep scenes simple.** Build `.tscn` files with few nodes and add complexity in code where reasonable. Never hand-edit `.import` files or anything under `.godot/`.
 4. **Hand off editor and feel work explicitly.** When a task needs the editor (placing level geometry, tweaking collision visually, importing art) or a playtest, finish what you can and end with a short checklist: what to do in the editor, what to test in-game, and what to report back.
 5. **Tuning.** Expose feel-related values (sway, recoil, inertia, speeds) in resources and, where cheap, in a debug overlay so the user can tune without code changes.
@@ -31,9 +31,9 @@ You cannot see the Godot editor, playtest, or judge "feel". So:
 
 ## Code conventions
 
-- Files and folders `snake_case`; `class_name` in `PascalCase`; constants `UPPER_SNAKE_CASE`; private members prefixed `_`.
-- Type every variable, parameter and return value. Use `@export` with types for resource fields.
-- Signals are named in past tense (`magazine_emptied`, `limb_destroyed`).
+- C# conventions: files named after their class (`PascalCase.cs`, required by Godot); folders `snake_case`; types, methods, properties, constants `PascalCase`; private fields `_camelCase`; non-exported data files and scenes `snake_case`.
+- Nullable reference types are enabled; avoid `null!` outside `_Ready` node lookups. Use `[Export]` properties with explicit types for resource fields (`.tres` keys use the C# property names).
+- Events and signals are named in past tense (`MagazineEmptied`, `LimbDestroyed`). Prefer C# `event Action<T>` between C# classes; use `[Signal]` only when the editor must connect it.
 - Prefer composition: small component nodes (`HealthComponent`, `InventoryComponent`, `WeightComponent`) over deep inheritance.
 - Keep scripts focused; split once a script passes roughly 400 lines.
 - Units: meters, kilograms, seconds, m/s. Damage and HP are floats.
@@ -45,7 +45,7 @@ You cannot see the Godot editor, playtest, or judge "feel". So:
 
 ```
 res://
-  addons/            # gut and other approved addons
+  addons/            # gut, godot_mcp_toolkit and other approved addons
   assets/            # models, textures, audio (placeholders: Kenney / Quaternius CC0)
     CREDITS.md       # source + license of every third-party asset
   data/              # .tres resources: weapons/, ammo/, armor/, items/, traders/, quests/, skills/, ai/
@@ -53,9 +53,9 @@ res://
   scenes/            # player/, weapons/, ai/, maps/, ui/, hub/
   scripts/
     core/            # autoloads, save system, shared utils
-    systems/         # pure-logic RefCounted classes (inventory, damage, skills, quests...)
+    systems/         # pure-logic plain C# classes (inventory, damage, skills, quests...)
     player/  weapons/  ai/  ui/  world/
-  tests/             # GUT tests, mirroring scripts/ layout
+  tests/             # ProjectD.Tests (xUnit, mirrors scripts/ layout); test_smoke.gd (GUT)
 ```
 
 ## Key technical decisions
@@ -79,4 +79,4 @@ Work milestone by milestone (details in GDD §Milestones). Do not start systems 
 
 **Current milestone: M0 — project setup and renderer benchmark.**
 
-Definition of done for any task: code is typed, GUT tests for logic pass headless, no new warnings, and you have told the user what to playtest.
+Definition of done for any task: `dotnet build` has no warnings, xUnit tests for logic pass, GUT smoke passes, and you have told the user what to playtest.
