@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/health/ArmorData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "flak_vest_t2"
+NameKey = "armor.flak_vest_t2"
+Tier = 2
+MaxDurability = 60.0
+WeightKg = 4.5
+ProtectsHead = false
+ProtectsThorax = true
+ProtectsStomach = true
+ProtectsArms = false
+ProtectsLegs = false

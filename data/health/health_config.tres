@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="HealthConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/health/HealthConfig.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+HeadHp = 35.0
+ThoraxHp = 85.0
+StomachHp = 70.0
+ArmHp = 60.0
+LegHp = 65.0
+DestroyedSpreadMultiplier = 0.6
+SpreadHitsHead = false
+PenetratedDamageMultiplier = 0.8
+BluntDamageFraction = 0.25
+DurabilityPerDamagePenetrated = 0.1
+DurabilityPerDamageStopped = 0.08

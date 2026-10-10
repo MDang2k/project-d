@@ -17,6 +17,11 @@ public partial class M2Range : Node3D
 		"res://data/weapons/em2.tres",
 		"res://data/weapons/mg_type.tres",
 	};
+	private static readonly BodyPart[] DebugParts =
+	{
+		BodyPart.Head, BodyPart.Thorax, BodyPart.Stomach, BodyPart.LeftArm, BodyPart.RightArm,
+		BodyPart.LeftLeg, BodyPart.RightLeg,
+	};
 	private static readonly float[] TargetDistances = { 15f, 50f, 100f, 200f };
 	private static readonly Vector3 SpawnPoint = new(0f, 0.1f, 0f);
 
@@ -44,6 +49,7 @@ public partial class M2Range : Node3D
 		_player = scene.Instantiate<Player>();
 		_player.Position = SpawnPoint;
 		AddChild(_player);
+		AddDummies();
 		_player.WeaponMessage += text =>
 		{
 			_message = text;
@@ -79,6 +85,25 @@ public partial class M2Range : Node3D
 			while (c.IsBusy)
 				await ToSignal(GetTree().CreateTimer(0.1), SceneTreeTimer.SignalName.Timeout);
 			GD.Print($"DONE {a}: total rounds {c.State.RoundsAvailable}, mag {c.State.Magazine?.Count}, spares {c.Pouch.Count}");
+		}
+	}
+
+	/// <summary>Armored and unarmored humanoid targets 10 m out (M3 damage testing).</summary>
+	private void AddDummies()
+	{
+		var cfg = GD.Load<HealthConfig>("res://data/health/health_config.tres");
+		static ArmorData Armor(string id) => GD.Load<ArmorData>($"res://data/armor/{id}.tres");
+		var specs = new (string Title, Vector3 Pos, string[] Armor)[]
+		{
+			("Unarmored", new Vector3(-3f, 0f, -10f), System.Array.Empty<string>()),
+			("Flak vest T2", new Vector3(0f, 0f, -10f), new[] { "flak_vest_t2" }),
+			("Helmet T1 + proto vest T4", new Vector3(3f, 0f, -10f), new[] { "steel_helmet_t1", "prototype_vest_t4" }),
+		};
+		foreach (var (title, pos, armor) in specs)
+		{
+			var d = DummyTarget.Create(title, cfg, System.Array.ConvertAll(armor, Armor));
+			d.Position = pos;
+			AddChild(d);
 		}
 	}
 
@@ -276,6 +301,8 @@ public partial class M2Range : Node3D
 		GetTree().CreateTimer(8.0).Timeout += marker.QueueFree;
 
 		_lastImpact = $"{hit.TravelDistance:0} m, speed {hit.Velocity.Length():0} m/s";
+		if (hit.Hit is { } r)
+			_lastImpact += $"  {r.Part} {r.Damage:0} dmg{(r.ArmorHit ? (r.Penetrated ? " (penetrated)" : " (stopped)") : "")}";
 		if (hit.Collider is Node node && node.HasMeta("target"))
 		{
 			_hits++;
@@ -295,6 +322,12 @@ public partial class M2Range : Node3D
 		}
 		switch (k.PhysicalKeycode)
 		{
+			case Key.F5 or Key.F6 or Key.F7 or Key.F8 or Key.F9 or Key.F10 or Key.F11:
+				_player.Health.ReceiveDamage(DebugParts[(int)k.PhysicalKeycode - (int)Key.F5], 20f, 1);
+				break;
+			case Key.F12:
+				_player.Health.Reset();
+				break;
 			case Key.F3:
 				SetTrajectoryDebug(!_showTrajectory);
 				break;
@@ -308,6 +341,16 @@ public partial class M2Range : Node3D
 		}
 	}
 
+	private string PlayerHealthLine()
+	{
+		var b = _player.Health.Body;
+		if (b.IsDead)
+			return "YOU: DEAD (F12 reset)";
+		return $"YOU  H {b.Hp(BodyPart.Head):0}  T {b.Hp(BodyPart.Thorax):0}  S {b.Hp(BodyPart.Stomach):0}  " +
+			$"LA {b.Hp(BodyPart.LeftArm):0}  RA {b.Hp(BodyPart.RightArm):0}  " +
+			$"LL {b.Hp(BodyPart.LeftLeg):0}  RL {b.Hp(BodyPart.RightLeg):0}   [F5-F11 damage 20 head..rleg, F12 reset]";
+	}
+
 	public override void _Process(double delta)
 	{
 		var w = _player.Weapon;
@@ -319,6 +362,7 @@ public partial class M2Range : Node3D
 			$"rest {_player.RestAmount * 100f:0}%{(float.IsNaN(_player.RestSurfaceHeight) ? "" : $" (surface {_player.RestSurfaceHeight:0.00} m)")}{(_player.BipodDeployed ? "  BIPOD" : "")}  " +
 			$"ADS {_player.AdsAmount * 100f:0}%{(_player.IsHoldingBreath ? "  BREATH HELD" : "")}  sway {_player.SwayAmplitudeDeg:0.00} deg  " +
 			$"recoil {_player.RecoilOffsetDeg.Y:0.0} deg  arms {_player.Arms.Fraction * 100f:0}%{(_player.Arms.IsExhausted ? " EXHAUSTED" : "")}\n" +
+			$"{PlayerHealthLine()}\n" +
 			$"last impact: {_lastImpact}   target hits {_hits}\n" +
 			$"{(Time.GetTicksMsec() / 1000.0 < _messageUntil ? _message : "")}{(w is { Controller.IsBusy: true } ? $"   [{w.Controller.Action} {w.Controller.Progress * 100f:0}%]" : "")}\n" +
 			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  hold C+wheel height  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";

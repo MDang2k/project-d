@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/health/ArmorData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "prototype_vest_t4"
+NameKey = "armor.prototype_vest_t4"
+Tier = 4
+MaxDurability = 120.0
+WeightKg = 7.0
+ProtectsHead = false
+ProtectsThorax = true
+ProtectsStomach = true
+ProtectsArms = false
+ProtectsLegs = false

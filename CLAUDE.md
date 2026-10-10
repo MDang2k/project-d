@@ -54,7 +54,7 @@ res://
   scripts/
     core/            # autoloads, save system, shared utils
     systems/         # pure-logic plain C# classes (inventory, damage, skills, quests...)
-    player/  weapons/  ai/  ui/  world/
+    player/  weapons/  health/  ai/  ui/  world/
   tests/             # ProjectD.Tests (xUnit, mirrors scripts/ layout); test_smoke.gd (GUT)
 ```
 

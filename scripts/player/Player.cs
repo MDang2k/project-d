@@ -17,6 +17,7 @@ public partial class Player : CharacterBody3D
 	[Export] public float CarriedWeightKg { get; set; } = 15f;
 	[Export] public float StrengthBonusKg { get; set; }
 	[Export] public WeaponData? StartWeapon { get; set; }
+	[Export] public HealthConfig? HealthConfig { get; set; }
 
 	public Stance Stance { get; private set; } = Stance.Stand;
 	public WeightTier Tier { get; private set; } = WeightTier.Light;
@@ -31,6 +32,9 @@ public partial class Player : CharacterBody3D
 	public event Action<string>? WeaponMessage;
 
 	public WeaponNode? Weapon => _body.HeldItem;
+
+	/// <summary>Per-limb health and worn armor (hitboxes for AI shots arrive with M5).</summary>
+	public HealthComponent Health => _health ??= CreateHealth();
 
 	/// <summary>0 deepest crouch .. 1 standing height (prone 0).</summary>
 	public float HeightLevel => _heights.LevelFor(Stance);
@@ -65,6 +69,7 @@ public partial class Player : CharacterBody3D
 	private readonly RecoilModel _recoil = new();
 	private readonly AimModel _aim = new();
 	private SupportModel _support = null!;
+	private HealthComponent? _health;
 	private StanceHeightModel _heights = null!;
 	private ClearanceModel _clearance = null!;
 	private bool _crouchAdjusted;
@@ -135,6 +140,13 @@ public partial class Player : CharacterBody3D
 				Input.MouseMode = Input.MouseModeEnum.Visible;
 				break;
 		}
+	}
+
+	private HealthComponent CreateHealth()
+	{
+		var h = new HealthComponent { Name = "Health", Config = HealthConfig };
+		AddChild(h);
+		return h;
 	}
 
 	/// <summary>Replaces the held weapon (full magazine, chambered).</summary>

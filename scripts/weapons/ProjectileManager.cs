@@ -6,7 +6,7 @@ using Godot.Collections;
 namespace ProjectD;
 
 public readonly record struct BulletImpact(Vector3 Position, Vector3 Normal, GodotObject Collider,
-	AmmoType Ammo, Vector3 Velocity, float TravelDistance);
+	AmmoType Ammo, Vector3 Velocity, float TravelDistance, HitResult? Hit = null);
 
 /// <summary>
 /// Steps every in-flight bullet each physics frame and raycasts the segment it travelled
@@ -88,8 +88,10 @@ public partial class ProjectileManager : Node3D
 			{
 				var pos = hit["position"].AsVector3();
 				b.Path[^1] = pos;
-				Impact?.Invoke(new BulletImpact(pos, hit["normal"].AsVector3(), hit["collider"].AsGodotObject(),
-					b.Ammo, b.State.Velocity, b.Origin.DistanceTo(pos)));
+				var collider = hit["collider"].AsGodotObject();
+				var result = (collider as HitboxArea)?.ReceiveBullet(b.Ammo);
+				Impact?.Invoke(new BulletImpact(pos, hit["normal"].AsVector3(), collider,
+					b.Ammo, b.State.Velocity, b.Origin.DistanceTo(pos), result));
 				Remove(i);
 			}
 			else if (b.State.Age > MaxLifetimeS)

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/health/ArmorData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "steel_helmet_t1"
+NameKey = "armor.steel_helmet_t1"
+Tier = 1
+MaxDurability = 35.0
+WeightKg = 1.4
+ProtectsHead = true
+ProtectsThorax = false
+ProtectsStomach = false
+ProtectsArms = false
+ProtectsLegs = false
