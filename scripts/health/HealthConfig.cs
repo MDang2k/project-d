@@ -42,6 +42,22 @@ public partial class HealthConfig : Resource
 	[Export] public float LegFractureSpeedMultiplier { get; set; } = 0.7f;
 	[Export] public float ArmDestroyedReloadMultiplier { get; set; } = 1.6f;
 
+	[ExportGroup("Energy and hydration")]
+	[Export] public float EnergyDrainPerS { get; set; } = 0.03f;
+	[Export] public float HydrationDrainPerS { get; set; } = 0.04f;
+	[Export] public float SprintDrainMultiplier { get; set; } = 4f;
+	[Export] public float HeavyLoadDrainMultiplier { get; set; } = 1.5f;
+	[Export] public float InjuredDrainMultiplier { get; set; } = 2f;
+	[Export] public float LowThreshold { get; set; } = 25f;
+	[Export] public float EmptyRecoveryMultiplier { get; set; } = 0.5f;
+	[Export] public float EmptyHydrationSwayMultiplier { get; set; } = 1.4f;
+	[Export] public float StarvationDamagePerS { get; set; } = 0.15f;
+
+	public VitalsTuning ToVitalsTuning() => new(
+		EnergyDrainPerS, HydrationDrainPerS, SprintDrainMultiplier, HeavyLoadDrainMultiplier,
+		InjuredDrainMultiplier, LowThreshold, EmptyRecoveryMultiplier, EmptyHydrationSwayMultiplier,
+		StarvationDamagePerS);
+
 	public EffectsTuning ToEffectsTuning() => new(
 		LightBleedPerS, HeavyBleedPerS, LightBleedChance, HeavyBleedChance, StoppedChanceMultiplier,
 		FractureChance, FractureDamageThreshold, PainPerDamage, PainDecayPerS, PainFromFracture, MaxPain,

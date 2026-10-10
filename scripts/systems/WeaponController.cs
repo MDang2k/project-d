@@ -148,8 +148,12 @@ public sealed class WeaponController
 		return fraction <= t.HalfMax ? MagEstimate.AboutHalf : MagEstimate.Full;
 	}
 
+	/// <summary>Injuries (destroyed arm) make reloads slower: 1 is normal speed.</summary>
+	public float ReloadTimeMultiplier { get; set; } = 1f;
+
 	private float ReloadDuration(bool fast)
-		=> (fast ? _t.FastReloadS : _t.TacticalReloadS) + (State.Chamber is null ? _t.ChargeS : 0f);
+		=> ((fast ? _t.FastReloadS : _t.TacticalReloadS) + (State.Chamber is null ? _t.ChargeS : 0f))
+			* ReloadTimeMultiplier;
 
 	private bool Begin(WeaponActionKind kind, float seconds)
 	{
@@ -214,6 +218,14 @@ public static class WeaponPoseModel
 		var rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp(progress / 0.2f, 0f, 1f));
 		var fall = Mathf.SmoothStep(0f, 1f, Mathf.Clamp((progress - 0.8f) / 0.2f, 0f, 1f));
 		return rise * (1f - fall);
+	}
+
+	/// <summary>Quick thrust forward at the end of the windup, then back. progress is 0..1.</summary>
+	public static (Vector3 Position, Vector3 RotationDeg) MeleePose(float progress, float strikeAt)
+	{
+		var p = Mathf.Clamp(progress, 0f, 1f);
+		var e = p < strikeAt ? p / Mathf.Max(0.01f, strikeAt) : 1f - (p - strikeAt) / Mathf.Max(0.01f, 1f - strikeAt);
+		return (new Vector3(0f, -0.04f, -0.3f) * e, new Vector3(-8f, 0f, 0f) * e);
 	}
 
 	/// <summary>Position offset (m) and rotation (degrees pitch, yaw, roll) of the weapon.</summary>

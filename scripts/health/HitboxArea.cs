@@ -11,6 +11,11 @@ public partial class HitboxArea : Area3D
 	public BodyPart Part { get; set; }
 	public HealthComponent? Health { get; set; }
 
+	public override void _Ready()
+	{
+		AddToGroup("hitboxes");
+	}
+
 	public HitResult? ReceiveBullet(AmmoType ammo) => Health?.ReceiveHit(Part, ammo);
 }
 

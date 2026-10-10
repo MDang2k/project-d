@@ -43,8 +43,10 @@ public partial class DummyTarget : Node3D
 		{
 			Position = new Vector3(0f, 2.15f, 0f),
 			Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
-			FontSize = 28,
-			PixelSize = 0.004f,
+			FontSize = 32,
+			// Fixed screen size so the readout stays legible when standing next to the dummy.
+			FixedSize = true,
+			PixelSize = 0.0007f,
 			NoDepthTest = true,
 			Modulate = new Color(1f, 1f, 0.7f),
 		};

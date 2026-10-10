@@ -149,6 +149,10 @@ public partial class PlayerConfig : Resource
 	[Export] public float ClearanceOutSpeed { get; set; } = 4f;
 	[Export] public float ClearanceFireBlockFraction { get; set; } = 0.6f;
 
+	[ExportGroup("Melee")]
+	/// <summary>Radius of the swing-assist sphere at the end of reach, metres.</summary>
+	[Export] public float MeleeAssistRadius { get; set; } = 0.3f;
+
 	[ExportGroup("Look")]
 	[Export] public float MouseSensitivity { get; set; } = 0.0022f;
 	[Export] public float SprintTurnMult { get; set; } = 0.6f;

@@ -58,7 +58,11 @@ public static class DamageResolver
 	public static HitResult Resolve(AmmoType ammo, BodyPart part, IEnumerable<ArmorState> armor, DamageTuning t)
 		=> Resolve(ammo.Damage, ammo.PenetrationTier, part, armor, t);
 
-	/// <summary>Same, for non-bullet sources (melee counts as low penetration).</summary>
+	/// <summary>Damage that bypasses armor entirely (melee, GDD s11): full damage, no durability wear.</summary>
+	public static HitResult Unmitigated(BodyPart part, float damage)
+		=> new(part, damage, false, true, 0f, null);
+
+	/// <summary>Same, for non-bullet sources that are still stopped by armor tiers.</summary>
 	public static HitResult Resolve(float damage, int penetrationTier, BodyPart part,
 		IEnumerable<ArmorState> armor, DamageTuning t)
 	{

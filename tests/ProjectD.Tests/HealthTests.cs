@@ -168,6 +168,16 @@ public class DamageResolverTests
 	}
 
 	[Fact]
+	public void UnmitigatedDamageSkipsArmorAndWear()
+	{
+		var vest = Vest(4);
+		var r = DamageResolver.Unmitigated(BodyPart.Thorax, 30f);
+		Assert.Equal(30f, r.Damage);
+		Assert.False(r.ArmorHit);
+		Assert.Equal(60f, vest.Durability);
+	}
+
+	[Fact]
 	public void BrokenArmorActsAsTierZero()
 	{
 		var vest = Vest(4, durability: 1f);

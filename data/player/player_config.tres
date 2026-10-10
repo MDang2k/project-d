@@ -97,6 +97,7 @@ ClearanceMaxTiltDeg = 25.0
 ClearanceInSpeed = 10.0
 ClearanceOutSpeed = 4.0
 ClearanceFireBlockFraction = 0.6
+MeleeAssistRadius = 0.3
 MouseSensitivity = 0.0022
 SprintTurnMult = 0.6
 PitchLimitDeg = 85.0

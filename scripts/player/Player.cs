@@ -18,6 +18,7 @@ public partial class Player : CharacterBody3D
 	[Export] public float StrengthBonusKg { get; set; }
 	[Export] public WeaponData? StartWeapon { get; set; }
 	[Export] public HealthConfig? HealthConfig { get; set; }
+	[Export] public MeleeData? MeleeWeapon { get; set; }
 
 	public Stance Stance { get; private set; } = Stance.Stand;
 	public WeightTier Tier { get; private set; } = WeightTier.Light;
@@ -27,6 +28,9 @@ public partial class Player : CharacterBody3D
 
 	public event Action<Stance>? StanceChanged;
 	public event Action? MantleStarted;
+
+	/// <summary>Result of a melee strike that landed on a hitbox.</summary>
+	public event Action<HitResult>? MeleeHit;
 
 	/// <summary>Short player-facing feedback (mag/chamber check results, empty click).</summary>
 	public event Action<string>? WeaponMessage;
@@ -40,6 +44,8 @@ public partial class Player : CharacterBody3D
 	public float HeightLevel => _heights.LevelFor(Stance);
 	/// <summary>Current spring-arm retraction of the weapon in metres (debug).</summary>
 	public float WeaponRetract => _clearance.Retract;
+	public Penalties CurrentPenalties => _penalties;
+	public bool IsDead => Health.IsDead;
 	public bool IsHoldingBreath { get; private set; }
 	public float RestAmount => _support.RestAmount;
 	public bool BipodDeployed => _support.BipodDeployed;
@@ -70,6 +76,9 @@ public partial class Player : CharacterBody3D
 	private readonly AimModel _aim = new();
 	private SupportModel _support = null!;
 	private HealthComponent? _health;
+	private MeleeModel _melee = null!;
+	private PainOverlay _pain = null!;
+	private Penalties _penalties = new(1f, 1f, false, 1f, 0f);
 	private StanceHeightModel _heights = null!;
 	private ClearanceModel _clearance = null!;
 	private bool _crouchAdjusted;
@@ -100,6 +109,9 @@ public partial class Player : CharacterBody3D
 		_heights = new StanceHeightModel(_cfg.HeightWheelStep);
 		_clearance = new ClearanceModel(_cfg.ToClearanceTuning());
 		_ = Health;
+		_melee = new MeleeModel(MeleeWeapon?.ToSpec() ?? new MeleeSpec("fists", 12f, 1, 1.4f, 0.2f, 0.5f, 6f));
+		_pain = new PainOverlay { Name = "PainOverlay" };
+		AddChild(_pain);
 
 		_weights = new WeightModel(_cfg.ToWeightTuning());
 		_move = new MovementModel(_cfg.ToMovementTuning(), _weights);
@@ -148,6 +160,117 @@ public partial class Player : CharacterBody3D
 		var h = new HealthComponent { Name = "Health", Config = HealthConfig };
 		AddChild(h);
 		return h;
+	}
+
+	/// <summary>Injury penalties, vitals activity and the pain screen effect.</summary>
+	private void UpdateHealthLinks()
+	{
+		var h = Health;
+		h.Sprinting = IsSprinting;
+		h.HeavyLoad = Tier >= WeightTier.Heavy;
+		_penalties = h.Effects.ComputePenalties(h.Body);
+		_pain.SetStrength(h.IsDead ? 0f : _penalties.PainStrength);
+	}
+
+	/// <summary>Dead: no input, the body settles low and the weapon is dropped from use.</summary>
+	private void StepDeath(float delta)
+	{
+		IsSprinting = false;
+		if (Weapon is { } w)
+		{
+			w.CanFire = false;
+			w.TriggerHeld = false;
+		}
+		var v = Velocity;
+		v.X = Mathf.MoveToward(v.X, 0f, 12f * delta);
+		v.Z = Mathf.MoveToward(v.Z, 0f, 12f * delta);
+		if (!IsOnFloor())
+			v.Y -= _gravity * delta;
+		Velocity = v;
+		MoveAndSlide();
+		_eyeY = Mathf.MoveToward(_eyeY, 0.25f, _cfg.EyeHeightSpeed * delta);
+		UpdateRig(delta);
+	}
+
+	/// <summary>Melee on G: windup, then a short ray from the camera hits one hitbox.</summary>
+	private void UpdateMelee(float delta)
+	{
+		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
+		var weaponBusy = Weapon?.Controller.IsBusy ?? false;
+		if (captured && !_mantling && !weaponBusy && Input.IsActionJustPressed("melee")
+			&& _melee.TryStart(Arms.IsExhausted))
+			Arms.Spend(_melee.Spec.StaminaCost);
+		if (_melee.Update(delta))
+			MeleeStrike();
+	}
+
+	private void MeleeStrike()
+	{
+		var spec = _melee.Spec;
+		var from = _camera.GlobalPosition;
+		var to = from - _camera.GlobalBasis.Z * spec.Range;
+		var q = PhysicsRayQueryParameters3D.Create(from, to, CollisionMask, new Array<Rid> { GetRid() });
+		q.CollideWithAreas = true;
+		MeleeDebug = "swing: " + DescribeNearestHitbox();
+		var space = GetWorld3D().DirectSpaceState;
+		var hit = space.IntersectRay(q);
+		var area = hit.Count > 0 ? hit["collider"].AsGodotObject() as HitboxArea : null;
+		// The centre ray is thin and fails from inside a target, so sweep spheres along the swing.
+		if (area is null)
+			area = FindMeleeTarget(space, from, -_camera.GlobalBasis.Z, spec.Range);
+		if (area?.Health is { } target)
+		{
+			var result = spec.IgnoresArmor
+				? target.ReceiveUnarmoredDamage(area.Part, spec.Damage)
+				: target.ReceiveDamage(area.Part, spec.Damage, spec.PenetrationTier);
+			var key = !result.ArmorHit ? "msg.melee.hit" : result.Penetrated ? "msg.melee.hit_armor" : "msg.melee.hit_stopped";
+			WeaponMessage?.Invoke(GameText.Get(key, area.Part, result.Damage.ToString("0.#")));
+			MeleeHit?.Invoke(result);
+			return;
+		}
+		WeaponMessage?.Invoke(GameText.Get("msg.melee.miss"));
+	}
+
+	/// <summary>
+	/// Melee sweep: overlaps small spheres along the swing, starting at the camera so it still
+	/// works when standing inside the target, and picks the hitbox nearest the aim line.
+	/// </summary>
+	private HitboxArea? FindMeleeTarget(PhysicsDirectSpaceState3D space, Vector3 from, Vector3 dir, float range)
+	{
+		var radius = _cfg.MeleeAssistRadius;
+		var sphere = new SphereShape3D { Radius = radius };
+		var samples = Mathf.Max(2, Mathf.CeilToInt(range / radius));
+		HitboxArea? best = null;
+		var bestScore = float.MaxValue;
+		for (var i = 0; i <= samples; i++)
+		{
+			var d = range * i / samples;
+			var q = new PhysicsShapeQueryParameters3D
+			{
+				Shape = sphere,
+				Transform = new Transform3D(Basis.Identity, from + dir * d),
+				CollisionMask = CollisionMask,
+				CollideWithAreas = true,
+				CollideWithBodies = false,
+				Exclude = new Array<Rid> { GetRid() },
+			};
+			foreach (var r in space.IntersectShape(q, 16))
+			{
+				if (r["collider"].AsGodotObject() is not HitboxArea candidate)
+					continue;
+				var toBox = candidate.GlobalPosition - from;
+				var along = toBox.Dot(dir);
+				var offAxis = (toBox - dir * along).Length();
+				// Prefer what is closest to the aim line, then what is nearer.
+				var score = offAxis + Mathf.Abs(along) * 0.1f;
+				if (score < bestScore)
+				{
+					bestScore = score;
+					best = candidate;
+				}
+			}
+		}
+		return best;
 	}
 
 	/// <summary>Replaces the held weapon (full magazine, chambered).</summary>
@@ -281,7 +404,7 @@ public partial class Player : CharacterBody3D
 	}
 
 	private bool AimHeld()
-		=> Weapon is not null && !_mantling && !Weapon.Controller.IsBusy
+		=> Weapon is not null && !_mantling && !Weapon.Controller.IsBusy && !_melee.IsBusy
 			&& (DebugForceAds || (Input.MouseMode == Input.MouseModeEnum.Captured && Input.IsActionPressed("aim")));
 
 	/// <summary>ADS blend, breath hold, sway, recoil recovery, weapon position and FOV.</summary>
@@ -314,7 +437,8 @@ public partial class Player : CharacterBody3D
 
 		var ctx = new HandlingContext(Stance, weapon.Data.WeightKg, Arms.Fraction, speedFraction,
 			_aim.Amount, IsHoldingBreath, _support.RestAmount, _support.BipodDeployed);
-		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling, weapon.Data.SwayBaseDeg, ctx);
+		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling, weapon.Data.SwayBaseDeg, ctx)
+			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier;
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
 		var (posOffset, rotDeg) = WeaponPoseModel.Pose(weapon.Controller.Action, weapon.Controller.Progress);
 		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y + rotDeg.X), Mathf.DegToRad(sway.X + rotDeg.Y),
@@ -339,6 +463,13 @@ public partial class Player : CharacterBody3D
 		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset
 			+ new Vector3(0f, _restSnap, _clearance.Retract);
 		_swayNode.Rotation += new Vector3(Mathf.DegToRad(_clearance.TiltDeg), 0f, 0f);
+		if (_melee.IsBusy)
+		{
+			var strikeAt = _melee.Spec.WindupS / Mathf.Max(0.01f, _melee.Spec.WindupS + _melee.Spec.RecoverS);
+			var (mp, mr) = WeaponPoseModel.MeleePose(_melee.Progress, strikeAt);
+			_swayNode.Position += mp;
+			_swayNode.Rotation += new Vector3(Mathf.DegToRad(mr.X), Mathf.DegToRad(mr.Y), Mathf.DegToRad(mr.Z));
+		}
 		_camera.Fov = Mathf.Lerp(_cfg.HipFovDeg, _cfg.AdsFovDeg, t);
 	}
 
@@ -348,8 +479,9 @@ public partial class Player : CharacterBody3D
 		if (weapon is null)
 			return;
 		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
+		weapon.Controller.ReloadTimeMultiplier = _penalties.ReloadTimeMultiplier;
 		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling
-			&& !_clearance.BlocksFire;
+			&& !_clearance.BlocksFire && !_melee.IsBusy;
 		weapon.TriggerHeld = DebugForceTrigger || Input.IsActionPressed("fire");
 		if (Input.IsActionJustPressed("fire") || DebugForceTrigger)
 			weapon.TriggerPressed = true;
@@ -360,6 +492,8 @@ public partial class Player : CharacterBody3D
 		if (Input.IsActionJustPressed("rest_bipod"))
 			ToggleBipod(weapon);
 		var c = weapon.Controller;
+		if (_melee.IsBusy)
+			return;
 		if (Input.IsActionJustPressed("reload"))
 		{
 			// Second tap shortly after the first upgrades the tactical reload to a fast one.
@@ -387,6 +521,43 @@ public partial class Player : CharacterBody3D
 
 	/// <summary>Dev helper: same as scrolling the wheel while holding C (positive = up).</summary>
 	public void DebugAdjustHeight(float notches) => AdjustHeight(notches);
+
+	/// <summary>Dev helper: same as pressing the melee key.</summary>
+	public bool DebugMelee()
+	{
+		if (!_melee.TryStart(Arms.IsExhausted))
+			return false;
+		Arms.Spend(_melee.Spec.StaminaCost);
+		return true;
+	}
+
+	public bool MeleeBusy => _melee.IsBusy;
+
+	/// <summary>Debug text: nearest hitbox to the camera and what the last swing found.</summary>
+	public string MeleeDebug { get; private set; } = "-";
+
+	private string DescribeNearestHitbox()
+	{
+		var from = _camera.GlobalPosition;
+		HitboxArea? best = null;
+		var bestDist = float.MaxValue;
+		var count = 0;
+		foreach (var node in GetTree().GetNodesInGroup("hitboxes"))
+		{
+			if (node is not HitboxArea a)
+				continue;
+			count++;
+			var d = a.GlobalPosition.DistanceTo(from);
+			if (d < bestDist)
+			{
+				bestDist = d;
+				best = a;
+			}
+		}
+		return best is null ? "no hitboxes in scene"
+			: $"{count} hitboxes, nearest {best.Part} {bestDist:0.0} m (reach {_melee.Spec.Range:0.0}+{_cfg.MeleeAssistRadius:0.0})";
+	}
+
 
 	/// <summary>Dev helper: same as pressing the bipod key.</summary>
 	public void DebugToggleBipod()
@@ -432,7 +603,14 @@ public partial class Player : CharacterBody3D
 	{
 		var delta = (float)deltaD;
 		Tier = _weights.TierFor(CarriedWeightKg, StrengthBonusKg);
+		UpdateHealthLinks();
+		if (Health.IsDead)
+		{
+			StepDeath(delta);
+			return;
+		}
 		UpdateWeaponInput();
+		UpdateMelee(delta);
 		if (_mantling)
 		{
 			StepMantle(delta);
@@ -452,9 +630,10 @@ public partial class Player : CharacterBody3D
 		// While aiming, Shift holds breath instead of sprinting (GDD s7).
 		var wantsSprint = Input.IsActionPressed("sprint") && input.Y < -0.1f && Stance != Stance.Prone
 			&& !AimHeld();
-		IsSprinting = wantsSprint && _weights.CanSprint(Tier) && !Legs.IsExhausted;
+		IsSprinting = wantsSprint && _weights.CanSprint(Tier) && !Legs.IsExhausted && !_penalties.SprintBlocked;
 
-		var speed = _move.TargetSpeed(Stance, IsSprinting, Tier, _heights.CrouchLevel);
+		var speed = _move.TargetSpeed(Stance, IsSprinting, Tier, _heights.CrouchLevel)
+			* _penalties.MoveSpeedMultiplier;
 		var horizontal = _move.StepHorizontal(new Vector2(Velocity.X, Velocity.Z),
 			new Vector2(wish.X, wish.Z), speed, Tier, IsOnFloor(), delta);
 		var vel = Velocity;
@@ -485,7 +664,8 @@ public partial class Player : CharacterBody3D
 
 	private void TickStamina(float delta)
 	{
-		var recovery = _cfg.RecoveryPerS * _weights.StaminaRecoveryMult(Tier);
+		var recovery = _cfg.RecoveryPerS * _weights.StaminaRecoveryMult(Tier)
+			* Health.Vitals.StaminaRecoveryMultiplier;
 		Legs.Tick(delta, recovery);
 		Arms.Tick(delta, recovery);
 	}

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MeleeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/MeleeData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "entrenching_tool"
+NameKey = "item.entrenching_tool"
+Damage = 45.0
+PenetrationTier = 1
+Range = 1.8
+WindupS = 0.3
+RecoverS = 0.7
+StaminaCost = 14.0
+IgnoresArmor = true
+WeightKg = 1.2

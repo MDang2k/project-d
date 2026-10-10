@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MeleeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/MeleeData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "combat_knife"
+NameKey = "item.combat_knife"
+Damage = 30.0
+PenetrationTier = 1
+Range = 1.6
+WindupS = 0.15
+RecoverS = 0.45
+StaminaCost = 8.0
+IgnoresArmor = true
+WeightKg = 0.3

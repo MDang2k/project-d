@@ -224,7 +224,7 @@ Period-appropriate night optics (e.g. early starlight scopes, which existed in t
 
 ### Melee
 
-One melee weapon slot (knife, bayonet, entrenching tool, etc.). Melee is a quick attack with its own key. Damage hits a single limb; armor applies as for low-penetration ammo. Silent, but short range. Matters more once zombies arrive.
+One melee weapon slot (knife, bayonet, entrenching tool, etc.). Melee is a quick attack with its own key. Damage hits a single limb and skips armor entirely (full damage, no durability loss). Silent, but short range. Matters more once zombies arrive.
 
 ### Slice weapons (5)
 
