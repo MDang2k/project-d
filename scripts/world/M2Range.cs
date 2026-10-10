@@ -163,12 +163,24 @@ public partial class M2Range : Node3D
 		string? shot = null;
 		var fireSeconds = 0.0;
 		var actions = System.Array.Empty<string>();
+		var bipod = false;
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--shot="))
 				shot = arg["--shot=".Length..];
 			else if (arg.StartsWith("--actions="))
 				actions = arg["--actions=".Length..].Split(',');
+			else if (arg.StartsWith("--wheel=") && float.TryParse(arg["--wheel=".Length..], out var notches))
+				_player.DebugAdjustHeight(notches);
+			else if (arg == "--prone")
+				_player.DebugSetStance(Stance.Prone);
+			else if (arg == "--crouch")
+				_player.DebugSetStance(Stance.Crouch);
+			else if (arg.StartsWith("--pos=") && arg["--pos=".Length..].Split(',') is { Length: 2 } xy
+				&& float.TryParse(xy[0], out var px) && float.TryParse(xy[1], out var pz))
+				_player.Position = new Vector3(px, 0.1f, pz);
+			else if (arg == "--bipod")
+				bipod = true;
 			else if (arg == "--ads")
 				_player.DebugForceAds = true;
 			else if (arg == "--traj")
@@ -186,6 +198,11 @@ public partial class M2Range : Node3D
 			await ToSignal(GetTree().CreateTimer(fireSeconds), SceneTreeTimer.SignalName.Timeout);
 			_player.DebugForceTrigger = false;
 		}
+		if (bipod)
+		{
+			await ToSignal(GetTree().CreateTimer(0.6), SceneTreeTimer.SignalName.Timeout);
+			_player.DebugToggleBipod();
+		}
 		await RunDevActions(actions);
 		if (shot is null)
 			return;
@@ -199,6 +216,16 @@ public partial class M2Range : Node3D
 	{
 		Box(new Vector3(0f, -0.5f, -100f), new Vector3(60f, 1f, 260f), new Color(0.3f, 0.35f, 0.25f));
 		Box(new Vector3(0f, 4f, -235f), new Vector3(60f, 8f, 4f), new Color(0.4f, 0.32f, 0.25f));
+		// Tall wall: the weapon pokes into it unless the clearance retraction works.
+		Box(new Vector3(-8f, 1.25f, -4f), new Vector3(3f, 2.5f, 0.5f), new Color(0.5f, 0.45f, 0.45f));
+		// Restable surfaces (GDD s7, s19): sandbag wall, window frame with sill, tall ledge.
+		var cover = new Color(0.55f, 0.5f, 0.4f);
+		Box(new Vector3(-4f, 0.45f, -6f), new Vector3(3f, 0.9f, 0.5f), cover);
+		Box(new Vector3(4f, 0.5f, -6f), new Vector3(0.5f, 1f, 0.5f), cover);
+		Box(new Vector3(6.5f, 0.5f, -6f), new Vector3(0.5f, 1f, 0.5f), cover);
+		Box(new Vector3(5.25f, 0.95f, -6f), new Vector3(2.5f, 0.1f, 0.5f), cover);
+		Box(new Vector3(5.25f, 1.8f, -6f), new Vector3(3.5f, 0.6f, 0.5f), cover);
+		Box(new Vector3(0f, 0.6f, -4f), new Vector3(2f, 1.2f, 0.4f), cover);
 		// Targets sit off the centre line (alternating sides) so a straight shot is never blocked:
 		// the trajectory debug can then show drop labels out to the backstop.
 		for (var i = 0; i < TargetDistances.Length; i++)
@@ -288,10 +315,12 @@ public partial class M2Range : Node3D
 		var mode = w?.State.Fire.Mode.ToString() ?? "-";
 		_label.Text =
 			$"{name}  mode {mode}  stance {_player.Stance}{(_player.IsSprinting ? "  SPRINT" : "")}\n" +
+			$"height {_player.HeightLevel * 100f:0}%  retract {_player.WeaponRetract * 100f:0} cm  " +
+			$"rest {_player.RestAmount * 100f:0}%{(float.IsNaN(_player.RestSurfaceHeight) ? "" : $" (surface {_player.RestSurfaceHeight:0.00} m)")}{(_player.BipodDeployed ? "  BIPOD" : "")}  " +
 			$"ADS {_player.AdsAmount * 100f:0}%{(_player.IsHoldingBreath ? "  BREATH HELD" : "")}  sway {_player.SwayAmplitudeDeg:0.00} deg  " +
 			$"recoil {_player.RecoilOffsetDeg.Y:0.0} deg  arms {_player.Arms.Fraction * 100f:0}%{(_player.Arms.IsExhausted ? " EXHAUSTED" : "")}\n" +
 			$"last impact: {_lastImpact}   target hits {_hits}\n" +
 			$"{(Time.GetTicksMsec() / 1000.0 < _messageUntil ? _message : "")}{(w is { Controller.IsBusy: true } ? $"   [{w.Controller.Action} {w.Controller.Progress * 100f:0}%]" : "")}\n" +
-			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
+			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  hold C+wheel height  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
 	}
 }

@@ -23,6 +23,7 @@ FastReloadS = 4.5
 MagCheckS = 1.8
 ChamberCheckS = 1.0
 ChargeS = 1.2
+HasBipod = true
 WeightKg = 11.6
 BodySize = Vector3(0.07, 0.13, 1.2)
 GripRightOffset = Vector3(0, -0.07, 0.05)

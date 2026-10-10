@@ -15,6 +15,20 @@ public partial class WeaponNode : Node3D
 	public Marker3D GripRight { get; private set; } = null!;
 	public Marker3D GripLeft { get; private set; } = null!;
 	public Marker3D Muzzle { get; private set; } = null!;
+	public Marker3D BipodMount { get; private set; } = null!;
+
+	private Node3D? _bipodLegs;
+
+	/// <summary>Shows or hides the placeholder bipod legs.</summary>
+	public bool BipodDeployed
+	{
+		get => _bipodLegs?.Visible ?? false;
+		set
+		{
+			if (_bipodLegs is not null)
+				_bipodLegs.Visible = value;
+		}
+	}
 
 	public bool TriggerPressed { get; set; }
 	public bool TriggerHeld { get; set; }
@@ -59,6 +73,30 @@ public partial class WeaponNode : Node3D
 		w.GripRight = new Marker3D { Name = "GripRight", Position = data.GripRightOffset };
 		w.GripLeft = new Marker3D { Name = "GripLeft", Position = data.GripLeftOffset };
 		w.Muzzle = new Marker3D { Name = "Muzzle", Position = new Vector3(0f, 0f, -size.Z + 0.1f) };
+		w.BipodMount = new Marker3D
+		{
+			Name = "BipodMount",
+			Position = new Vector3(0f, -size.Y * 0.5f, -size.Z * 0.7f + 0.1f),
+		};
+		w.AddChild(w.BipodMount);
+		if (data.HasBipod)
+		{
+			// Two splayed legs reaching about 0.25 m down; hidden until deployed.
+			var legs = new Node3D { Name = "BipodLegs", Visible = false, Position = w.BipodMount.Position };
+			var legMat = new StandardMaterial3D { AlbedoColor = new Color(0.1f, 0.1f, 0.1f) };
+			foreach (var side in new[] { -1f, 1f })
+			{
+				legs.AddChild(new MeshInstance3D
+				{
+					Mesh = new BoxMesh { Size = new Vector3(0.015f, 0.26f, 0.015f) },
+					Position = new Vector3(0.05f * side, -0.12f, 0f),
+					RotationDegrees = new Vector3(0f, 0f, -12f * side),
+					MaterialOverride = legMat,
+				});
+			}
+			w._bipodLegs = legs;
+			w.AddChild(legs);
+		}
 		w.AddChild(w.GripRight);
 		w.AddChild(w.GripLeft);
 		w.AddChild(w.Muzzle);

@@ -26,6 +26,8 @@ public partial class WeaponData : Resource
 	/// <summary>Peak sway in degrees before stance, stamina and weight modifiers.</summary>
 	[Export] public float SwayBaseDeg { get; set; } = 0.35f;
 
+	[Export] public bool HasBipod { get; set; }
+
 	[ExportGroup("Actions (seconds)")]
 	[Export] public float TacticalReloadS { get; set; } = 2.4f;
 	[Export] public float FastReloadS { get; set; } = 1.6f;

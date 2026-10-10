@@ -20,6 +20,11 @@ public static class GameText
 		["msg.chamber.empty"] = "Chamber empty",
 		["msg.weapon.click"] = "*click*",
 		["msg.reload.no_spare"] = "No usable magazine",
+		["msg.weapon.rested"] = "Weapon rested",
+		["msg.bipod.deployed"] = "Bipod deployed",
+		["msg.bipod.folded"] = "Bipod folded",
+		["msg.bipod.no_surface"] = "No surface for the bipod",
+		["msg.bipod.none"] = "This weapon has no bipod",
 	};
 
 	public static string Get(string key) => English.TryGetValue(key, out var text) ? text : key;

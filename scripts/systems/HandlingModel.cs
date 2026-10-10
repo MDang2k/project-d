@@ -17,7 +17,11 @@ public sealed record HandlingTuning(
 	float WeightSwayPerKg,
 	float CrouchRecoilMult,
 	float ProneRecoilMult,
-	float AdsRecoilMult)
+	float AdsRecoilMult,
+	float RestedSwayMult = 0.15f,
+	float BipodSwayMult = 0.05f,
+	float RestedRecoilMult = 0.5f,
+	float BipodRecoilMult = 0.3f)
 {
 	public static HandlingTuning Default => new(
 		CrouchSwayMult: 0.75f, ProneSwayMult: 0.5f, ExhaustionSwayGain: 1.5f, MoveSwayGain: 1.2f,
@@ -35,7 +39,10 @@ public readonly record struct HandlingContext(
 	/// <summary>Current speed divided by sprint speed, 0..1.</summary>
 	float SpeedFraction,
 	float AdsAmount,
-	bool HoldingBreath);
+	bool HoldingBreath,
+	/// <summary>0..1 blend toward resting on a ledge.</summary>
+	float RestAmount = 0f,
+	bool BipodDeployed = false);
 
 /// <summary>Sway amplitude and recoil multipliers from handling context. Pure logic.</summary>
 public static class HandlingModel
@@ -54,10 +61,12 @@ public static class HandlingModel
 		var weight = 1f + t.WeightSwayPerKg * c.WeaponWeightKg;
 		var ads = Mathf.Lerp(1f, t.AdsSwayMult, Mathf.Clamp(c.AdsAmount, 0f, 1f));
 		var breath = c.HoldingBreath ? t.BreathHoldSwayMult : 1f;
-		return weaponBaseDeg * stance * exhaustion * movement * weight * ads * breath;
+		var support = c.BipodDeployed ? t.BipodSwayMult : Mathf.Lerp(1f, t.RestedSwayMult, Mathf.Clamp(c.RestAmount, 0f, 1f));
+		return weaponBaseDeg * stance * exhaustion * movement * weight * ads * breath * support;
 	}
 
-	public static float RecoilMultiplier(HandlingTuning t, Stance stance, float adsAmount)
+	public static float RecoilMultiplier(HandlingTuning t, Stance stance, float adsAmount,
+		float restAmount = 0f, bool bipodDeployed = false)
 	{
 		var s = stance switch
 		{
@@ -65,7 +74,8 @@ public static class HandlingModel
 			Stance.Crouch => t.CrouchRecoilMult,
 			_ => 1f,
 		};
-		return s * Mathf.Lerp(1f, t.AdsRecoilMult, Mathf.Clamp(adsAmount, 0f, 1f));
+		var support = bipodDeployed ? t.BipodRecoilMult : Mathf.Lerp(1f, t.RestedRecoilMult, Mathf.Clamp(restAmount, 0f, 1f));
+		return s * Mathf.Lerp(1f, t.AdsRecoilMult, Mathf.Clamp(adsAmount, 0f, 1f)) * support;
 	}
 }
 

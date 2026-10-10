@@ -118,6 +118,37 @@ public partial class PlayerConfig : Resource
 	[Export] public float ProneRecoilMult { get; set; } = 0.65f;
 	[Export] public float AdsRecoilMult { get; set; } = 0.8f;
 
+	[ExportGroup("Support (rest and bipod)")]
+	[Export] public float RestMinHeight { get; set; } = 0.45f;
+	[Export] public float RestMaxHeight { get; set; } = 1.5f;
+	[Export] public float RestSurfaceMinNormalY { get; set; } = 0.7f;
+	/// <summary>How far below the weapon a surface may be to rest on it, metres.</summary>
+	[Export] public float RestReach { get; set; } = 0.5f;
+	/// <summary>How far above the weapon a surface may be (weapon pushed into a low wall), metres.</summary>
+	[Export] public float RestUpReach { get; set; } = 0.25f;
+	/// <summary>Largest visual shift when the weapon settles onto a surface, metres.</summary>
+	[Export] public float RestSnapMax { get; set; } = 0.25f;
+	[Export] public float RestBlendTimeS { get; set; } = 0.25f;
+	[Export] public float SupportMoveSpeedLimit { get; set; } = 0.6f;
+	[Export] public float BipodYawLimitDeg { get; set; } = 30f;
+	[Export] public float RestedSwayMult { get; set; } = 0.15f;
+	[Export] public float BipodSwayMult { get; set; } = 0.05f;
+	[Export] public float RestedRecoilMult { get; set; } = 0.5f;
+	[Export] public float BipodRecoilMult { get; set; } = 0.3f;
+
+	[ExportGroup("Variable height (hold C + wheel)")]
+	/// <summary>Height change per wheel notch, as a fraction of the stand-to-crouch range.</summary>
+	[Export] public float HeightWheelStep { get; set; } = 0.1f;
+
+	[ExportGroup("Weapon clearance (spring arm)")]
+	[Export] public float ClearanceRadius { get; set; } = 0.07f;
+	[Export] public float ClearanceMargin { get; set; } = 0.04f;
+	[Export] public float ClearanceMaxRetract { get; set; } = 0.4f;
+	[Export] public float ClearanceMaxTiltDeg { get; set; } = 25f;
+	[Export] public float ClearanceInSpeed { get; set; } = 10f;
+	[Export] public float ClearanceOutSpeed { get; set; } = 4f;
+	[Export] public float ClearanceFireBlockFraction { get; set; } = 0.6f;
+
 	[ExportGroup("Look")]
 	[Export] public float MouseSensitivity { get; set; } = 0.0022f;
 	[Export] public float SprintTurnMult { get; set; } = 0.6f;
@@ -129,7 +160,16 @@ public partial class PlayerConfig : Resource
 
 	public HandlingTuning ToHandlingTuning() => new(
 		CrouchSwayMult, ProneSwayMult, ExhaustionSwayGain, MoveSwayGain, AdsSwayMult,
-		BreathHoldSwayMult, WeightSwayPerKg, CrouchRecoilMult, ProneRecoilMult, AdsRecoilMult);
+		BreathHoldSwayMult, WeightSwayPerKg, CrouchRecoilMult, ProneRecoilMult, AdsRecoilMult,
+		RestedSwayMult, BipodSwayMult, RestedRecoilMult, BipodRecoilMult);
+
+	public ClearanceTuning ToClearanceTuning() => new(
+		ClearanceMargin, ClearanceMaxRetract, ClearanceMaxTiltDeg, ClearanceInSpeed,
+		ClearanceOutSpeed, ClearanceFireBlockFraction);
+
+	public SupportTuning ToSupportTuning() => new(
+		RestMinHeight, RestMaxHeight, RestSurfaceMinNormalY, RestBlendTimeS,
+		SupportMoveSpeedLimit, BipodYawLimitDeg);
 
 	public MovementTuning ToMovementTuning() => new(
 		WalkSpeed, SprintSpeed, CrouchSpeed, CrouchSprintSpeed, ProneSpeed,

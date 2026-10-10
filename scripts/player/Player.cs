@@ -32,7 +32,13 @@ public partial class Player : CharacterBody3D
 
 	public WeaponNode? Weapon => _body.HeldItem;
 
+	/// <summary>0 deepest crouch .. 1 standing height (prone 0).</summary>
+	public float HeightLevel => _heights.LevelFor(Stance);
+	/// <summary>Current spring-arm retraction of the weapon in metres (debug).</summary>
+	public float WeaponRetract => _clearance.Retract;
 	public bool IsHoldingBreath { get; private set; }
+	public float RestAmount => _support.RestAmount;
+	public bool BipodDeployed => _support.BipodDeployed;
 	public float AdsAmount => _aim.Amount;
 	public float SwayAmplitudeDeg { get; private set; }
 	public Vector2 RecoilOffsetDeg => _recoil.Offset;
@@ -58,6 +64,10 @@ public partial class Player : CharacterBody3D
 	private readonly SwayModel _swayModel = new();
 	private readonly RecoilModel _recoil = new();
 	private readonly AimModel _aim = new();
+	private SupportModel _support = null!;
+	private StanceHeightModel _heights = null!;
+	private ClearanceModel _clearance = null!;
+	private bool _crouchAdjusted;
 	private ProjectileManager? _projectiles;
 
 	private float _gravity = 9.8f;
@@ -81,6 +91,9 @@ public partial class Player : CharacterBody3D
 		_swayNode = GetNode<Node3D>("LeanPivot/Head/Recoil/WeaponSway");
 		_camera = GetNode<Camera3D>("LeanPivot/Head/Recoil/FreeLook/Camera");
 		_handling = _cfg.ToHandlingTuning();
+		_support = new SupportModel(_cfg.ToSupportTuning());
+		_heights = new StanceHeightModel(_cfg.HeightWheelStep);
+		_clearance = new ClearanceModel(_cfg.ToClearanceTuning());
 
 		_weights = new WeightModel(_cfg.ToWeightTuning());
 		_move = new MovementModel(_cfg.ToMovementTuning(), _weights);
@@ -91,7 +104,7 @@ public partial class Player : CharacterBody3D
 		_capsule = new CapsuleShape3D { Radius = _cfg.CapsuleRadius };
 		_collision.Shape = _capsule;
 		ApplyStanceShape();
-		_eyeY = _move.EyeHeight(Stance);
+		_eyeY = _move.EyeHeight(Stance, _heights.CrouchLevel);
 		_body = new PlayerBody { Name = "Body" };
 		AddChild(_body);
 		_body.Build(_cfg, _head, _swayNode);
@@ -110,6 +123,11 @@ public partial class Player : CharacterBody3D
 			case InputEventMouseMotion mm when Input.MouseMode == Input.MouseModeEnum.Captured:
 				Look(mm.Relative);
 				break;
+			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp or MouseButton.WheelDown } wheel
+				when Input.IsActionPressed("crouch"):
+				AdjustHeight(wheel.ButtonIndex == MouseButton.WheelUp ? 1f : -1f);
+				GetViewport().SetInputAsHandled();
+				break;
 			case InputEventMouseButton when Input.MouseMode != Input.MouseModeEnum.Captured:
 				Input.MouseMode = Input.MouseModeEnum.Captured;
 				break;
@@ -122,6 +140,7 @@ public partial class Player : CharacterBody3D
 	/// <summary>Replaces the held weapon (full magazine, chambered).</summary>
 	public void EquipWeapon(WeaponData data)
 	{
+		_support.FoldBipod();
 		var weapon = WeaponNode.Create(data);
 		weapon.ShotFired += OnShotFired;
 		weapon.DryFired += () => WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
@@ -138,8 +157,97 @@ public partial class Player : CharacterBody3D
 		_projectiles?.Spawn(ammo, position, direction, GetRid());
 		if (Weapon is { } w)
 			_recoil.Kick(w.Data.ToRecoilTuning(),
-				HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount),
+				HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount, _support.RestAmount,
+					_support.BipodDeployed),
 				GD.Randf() * 2f - 1f);
+	}
+
+	private bool _muzzleSurface;
+	private bool _wasRested;
+	private float _restSnap;
+
+	/// <summary>Height of the surface the weapon rests on (debug overlay), NaN when none.</summary>
+	public float RestSurfaceHeight { get; private set; } = float.NaN;
+
+	/// <summary>
+	/// Probes three points along the weapon (grips, middle, muzzle) with a vertical ray that
+	/// starts above the weapon, so a weapon sunk into a low wall still finds its top.
+	/// Returns the highest valid surface.
+	/// </summary>
+	private bool FindRestSurface(WeaponNode weapon, out float surfaceY)
+	{
+		surfaceY = float.MinValue;
+		var found = false;
+		var a = (weapon.GripRight.GlobalPosition + weapon.GripLeft.GlobalPosition) * 0.5f;
+		var b = weapon.Muzzle.GlobalPosition;
+		foreach (var t in new[] { 0f, 0.5f, 1f })
+		{
+			var p = a.Lerp(b, t);
+			var hit = Ray(p + Vector3.Up * _cfg.RestUpReach, p + Vector3.Down * _cfg.RestReach);
+			if (hit.Count == 0)
+				continue;
+			var y = hit["position"].AsVector3().Y;
+			if (!_support.IsRestSurface(y - GlobalPosition.Y, hit["normal"].AsVector3().Y))
+				continue;
+			found = true;
+			surfaceY = Mathf.Max(surfaceY, y);
+		}
+		return found;
+	}
+
+	/// <summary>True if a restable horizontal surface lies within RestReach below the point.</summary>
+	private bool SurfaceUnder(Vector3 origin)
+	{
+		var hit = Ray(origin + Vector3.Up * _cfg.RestUpReach, origin + Vector3.Down * _cfg.RestReach);
+		return hit.Count > 0
+			&& _support.IsRestSurface(hit["position"].AsVector3().Y - GlobalPosition.Y,
+				hit["normal"].AsVector3().Y);
+	}
+
+	private void ToggleBipod(WeaponNode weapon)
+	{
+		if (_support.BipodDeployed)
+		{
+			_support.FoldBipod();
+			weapon.BipodDeployed = false;
+			WeaponMessage?.Invoke(GameText.Get("msg.bipod.folded"));
+			return;
+		}
+		if (!weapon.Data.HasBipod)
+			WeaponMessage?.Invoke(GameText.Get("msg.bipod.none"));
+		else if (_support.TryDeployBipod(true, Stance, _muzzleSurface, Rotation.Y))
+			WeaponMessage?.Invoke(GameText.Get("msg.bipod.deployed"));
+		else
+			WeaponMessage?.Invoke(GameText.Get("msg.bipod.no_surface"));
+		weapon.BipodDeployed = _support.BipodDeployed;
+	}
+
+	/// <summary>
+	/// Spring-arm retraction: sweeps a sphere from the camera toward the muzzle and pulls the
+	/// weapon back (and tips it up) so it never pokes through walls.
+	/// </summary>
+	private void UpdateClearance(float delta, WeaponNode weapon)
+	{
+		var origin = _camera.GlobalPosition;
+		var toMuzzle = weapon.Muzzle.GlobalPosition - origin;
+		var fullLength = toMuzzle.Length() + _clearance.Retract;
+		var travel = fullLength + _cfg.ClearanceMargin;
+		var hitDistance = travel;
+		if (toMuzzle.LengthSquared() > 0.0001f)
+		{
+			var q = new PhysicsShapeQueryParameters3D
+			{
+				Shape = new SphereShape3D { Radius = _cfg.ClearanceRadius },
+				Transform = new Transform3D(Basis.Identity, origin),
+				Motion = toMuzzle.Normalized() * travel,
+				CollisionMask = CollisionMask,
+				Exclude = new Array<Rid> { GetRid() },
+			};
+			var result = GetWorld3D().DirectSpaceState.CastMotion(q);
+			if (result.Length > 0)
+				hitDistance = result[0] * travel;
+		}
+		_clearance.Update(delta, _clearance.TargetRetract(fullLength, hitDistance));
 	}
 
 	/// <summary>Fast reload drops the old magazine on the ground (GDD s7).</summary>
@@ -175,8 +283,24 @@ public partial class Player : CharacterBody3D
 		if (weapon is null)
 			return;
 		var speedFraction = new Vector2(Velocity.X, Velocity.Z).Length() / Mathf.Max(0.1f, _cfg.SprintSpeed);
+		var speed = new Vector2(Velocity.X, Velocity.Z).Length();
+		var restSurface = FindRestSurface(weapon, out var surfaceY);
+		RestSurfaceHeight = restSurface ? surfaceY - GlobalPosition.Y : float.NaN;
+		var muzzleSurface = SurfaceUnder(weapon.Muzzle.GlobalPosition);
+		if (_support.Update(delta, restSurface, muzzleSurface, weapon.Data.HasBipod, Stance, speed, IsSprinting))
+			WeaponMessage?.Invoke(GameText.Get("msg.bipod.folded"));
+		weapon.BipodDeployed = _support.BipodDeployed;
+		_muzzleSurface = muzzleSurface;
+		var rested = _support.RestAmount > 0.6f;
+		if (rested != _wasRested)
+		{
+			_wasRested = rested;
+			if (rested)
+				WeaponMessage?.Invoke(GameText.Get("msg.weapon.rested"));
+		}
+
 		var ctx = new HandlingContext(Stance, weapon.Data.WeightKg, Arms.Fraction, speedFraction,
-			_aim.Amount, IsHoldingBreath);
+			_aim.Amount, IsHoldingBreath, _support.RestAmount, _support.BipodDeployed);
 		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling, weapon.Data.SwayBaseDeg, ctx);
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
 		var (posOffset, rotDeg) = WeaponPoseModel.Pose(weapon.Controller.Action, weapon.Controller.Progress);
@@ -188,7 +312,20 @@ public partial class Player : CharacterBody3D
 
 		var t = Mathf.SmoothStep(0f, 1f, _aim.Amount);
 		var adsPos = new Vector3(0f, -weapon.Data.SightHeight, -_cfg.AdsEyeRelief);
-		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset;
+		UpdateClearance(delta, weapon);
+
+		// Weapon visibly settles onto the surface it rests on; ADS keeps the sight line instead.
+		var snapTarget = 0f;
+		if (restSurface)
+		{
+			var weaponY = (weapon.GripRight.GlobalPosition.Y + weapon.GripLeft.GlobalPosition.Y) * 0.5f - _restSnap;
+			var wanted = surfaceY + weapon.Data.BodySize.Y * 0.5f + 0.01f - weaponY;
+			snapTarget = Mathf.Clamp(wanted, -_cfg.RestSnapMax, _cfg.RestSnapMax);
+		}
+		_restSnap = snapTarget * _support.RestAmount * (1f - t);
+		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset
+			+ new Vector3(0f, _restSnap, _clearance.Retract);
+		_swayNode.Rotation += new Vector3(Mathf.DegToRad(_clearance.TiltDeg), 0f, 0f);
 		_camera.Fov = Mathf.Lerp(_cfg.HipFovDeg, _cfg.AdsFovDeg, t);
 	}
 
@@ -198,7 +335,8 @@ public partial class Player : CharacterBody3D
 		if (weapon is null)
 			return;
 		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
-		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling;
+		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling
+			&& !_clearance.BlocksFire;
 		weapon.TriggerHeld = DebugForceTrigger || Input.IsActionPressed("fire");
 		if (Input.IsActionJustPressed("fire") || DebugForceTrigger)
 			weapon.TriggerPressed = true;
@@ -206,6 +344,8 @@ public partial class Player : CharacterBody3D
 			weapon.State.Fire.CycleMode();
 		if (!captured)
 			return;
+		if (Input.IsActionJustPressed("rest_bipod"))
+			ToggleBipod(weapon);
 		var c = weapon.Controller;
 		if (Input.IsActionJustPressed("reload"))
 		{
@@ -232,6 +372,16 @@ public partial class Player : CharacterBody3D
 		ApplyStanceShape();
 	}
 
+	/// <summary>Dev helper: same as scrolling the wheel while holding C (positive = up).</summary>
+	public void DebugAdjustHeight(float notches) => AdjustHeight(notches);
+
+	/// <summary>Dev helper: same as pressing the bipod key.</summary>
+	public void DebugToggleBipod()
+	{
+		if (Weapon is { } w)
+			ToggleBipod(w);
+	}
+
 	/// <summary>Debug/screenshot helper: sets camera pitch directly.</summary>
 	public void DebugSetPitchDeg(float degrees)
 	{
@@ -253,6 +403,12 @@ public partial class Player : CharacterBody3D
 		if (IsSprinting)
 			turn *= _cfg.SprintTurnMult;
 		RotateY(-rel.X * turn);
+		if (_support.BipodDeployed)
+		{
+			var r = Rotation;
+			r.Y = _support.ClampYaw(r.Y);
+			Rotation = r;
+		}
 		var limit = Mathf.DegToRad(_cfg.PitchLimitDeg);
 		var rot = _head.Rotation;
 		rot.X = Mathf.Clamp(rot.X - rel.Y * sens, -limit, limit);
@@ -285,7 +441,7 @@ public partial class Player : CharacterBody3D
 			&& !AimHeld();
 		IsSprinting = wantsSprint && _weights.CanSprint(Tier) && !Legs.IsExhausted;
 
-		var speed = _move.TargetSpeed(Stance, IsSprinting, Tier);
+		var speed = _move.TargetSpeed(Stance, IsSprinting, Tier, _heights.CrouchLevel);
 		var horizontal = _move.StepHorizontal(new Vector2(Velocity.X, Velocity.Z),
 			new Vector2(wish.X, wish.Z), speed, Tier, IsOnFloor(), delta);
 		var vel = Velocity;
@@ -327,7 +483,7 @@ public partial class Player : CharacterBody3D
 		var target = LookModel.LeanTarget(Input.IsActionPressed("lean_left"),
 			Input.IsActionPressed("lean_right"), allowed);
 		_lean = LookModel.LeanStep(_lean, target, _cfg.LeanSpeed, delta);
-		_eyeY = Mathf.MoveToward(_eyeY, _move.EyeHeight(Stance), _cfg.EyeHeightSpeed * delta);
+		_eyeY = Mathf.MoveToward(_eyeY, _move.EyeHeight(Stance, _heights.CrouchLevel), _cfg.EyeHeightSpeed * delta);
 		var pivotY = _eyeY * _cfg.LeanPivotFraction;
 		var shift = ClampLeanToWalls(_lean * _cfg.LeanDistance);
 		var ratio = _cfg.LeanDistance > 0f ? shift / _cfg.LeanDistance : 0f;
@@ -414,8 +570,14 @@ public partial class Player : CharacterBody3D
 
 	private void HandleStanceInput()
 	{
+		// Tap C toggles crouch on release; holding C and scrolling adjusts height instead.
 		if (Input.IsActionJustPressed("crouch"))
-			ToggleStance(Stance.Crouch);
+			_crouchAdjusted = false;
+		if (Input.IsActionJustReleased("crouch"))
+		{
+			if (!_crouchAdjusted)
+				ToggleStance(Stance.Crouch);
+		}
 		else if (Input.IsActionJustPressed("prone"))
 			ToggleStance(Stance.Prone);
 		else if (Input.IsActionJustPressed("jump") && Stance != Stance.Stand)
@@ -428,23 +590,49 @@ public partial class Player : CharacterBody3D
 	{
 		if (next == Stance)
 			return;
-		if (_move.CapsuleHeight(next) > _move.CapsuleHeight(Stance) && !CanFitAt(GlobalPosition, next))
+		if (HeightFor(next) > HeightFor(Stance) && !CanFitAt(GlobalPosition, next))
 			return;
 		Stance = next;
 		ApplyStanceShape();
 		StanceChanged?.Invoke(Stance);
 	}
 
+	private float HeightFor(Stance stance) => _move.CapsuleHeight(stance, _heights.CrouchLevel);
+
+	/// <summary>Hold C and scroll: raises or lowers the crouch, standing up at the top.</summary>
+	private void AdjustHeight(float notches)
+	{
+		_crouchAdjusted = true;
+		if (Stance == Stance.Prone)
+			return;
+		var oldStance = Stance;
+		var oldLevel = _heights.CrouchLevel;
+		var oldHeight = HeightFor(oldStance);
+		var next = _heights.Adjust(oldStance, notches);
+		var newHeight = HeightFor(next);
+		if (newHeight > oldHeight && !CanFitHeight(GlobalPosition, newHeight))
+		{
+			_heights.Restore(oldLevel);
+			return;
+		}
+		var changed = next != Stance;
+		Stance = next;
+		ApplyStanceShape();
+		if (changed)
+			StanceChanged?.Invoke(Stance);
+	}
+
 	private void ApplyStanceShape()
 	{
-		var h = _move.CapsuleHeight(Stance);
+		var h = HeightFor(Stance);
 		_capsule.Height = h;
 		_collision.Position = new Vector3(0f, h * 0.5f, 0f);
 	}
 
-	private bool CanFitAt(Vector3 feet, Stance target)
+	private bool CanFitAt(Vector3 feet, Stance target) => CanFitHeight(feet, HeightFor(target));
+
+	private bool CanFitHeight(Vector3 feet, float h)
 	{
-		var h = _move.CapsuleHeight(target);
 		var probe = new CapsuleShape3D { Radius = _cfg.CapsuleRadius, Height = h - 0.04f };
 		var q = new PhysicsShapeQueryParameters3D
 		{

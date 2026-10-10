@@ -41,13 +41,16 @@ public sealed class MovementModel
 	}
 
 	/// <summary>Prone never sprints; sprinting while crouched is the crouch-sprint.</summary>
-	public float TargetSpeed(Stance stance, bool sprinting, WeightTier tier)
+	public float TargetSpeed(Stance stance, bool sprinting, WeightTier tier, float crouchLevel = 0f)
 	{
+		var standSpeed = sprinting ? _t.SprintSpeed : _t.WalkSpeed;
 		var baseSpeed = stance switch
 		{
 			Stance.Prone => _t.ProneSpeed,
-			Stance.Crouch => sprinting ? _t.CrouchSprintSpeed : _t.CrouchSpeed,
-			_ => sprinting ? _t.SprintSpeed : _t.WalkSpeed,
+			// A raised crouch (hold C + wheel) moves between crouch and standing speed.
+			Stance.Crouch => Mathf.Lerp(sprinting ? _t.CrouchSprintSpeed : _t.CrouchSpeed, standSpeed,
+				Mathf.Clamp(crouchLevel, 0f, 1f)),
+			_ => standSpeed,
 		};
 		return baseSpeed * _weights.SpeedMult(tier);
 	}
@@ -68,17 +71,18 @@ public sealed class MovementModel
 		return current.MoveToward(target, rate * delta);
 	}
 
-	public float CapsuleHeight(Stance stance) => stance switch
+	/// <param name="crouchLevel">0 full crouch .. 1 standing height; only used for Crouch.</param>
+	public float CapsuleHeight(Stance stance, float crouchLevel = 0f) => stance switch
 	{
 		Stance.Prone => _t.ProneHeight,
-		Stance.Crouch => _t.CrouchHeight,
+		Stance.Crouch => Mathf.Lerp(_t.CrouchHeight, _t.StandHeight, Mathf.Clamp(crouchLevel, 0f, 1f)),
 		_ => _t.StandHeight,
 	};
 
-	public float EyeHeight(Stance stance) => stance switch
+	public float EyeHeight(Stance stance, float crouchLevel = 0f) => stance switch
 	{
 		Stance.Prone => _t.ProneEyeHeight,
-		Stance.Crouch => _t.CrouchEyeHeight,
+		Stance.Crouch => Mathf.Lerp(_t.CrouchEyeHeight, _t.StandEyeHeight, Mathf.Clamp(crouchLevel, 0f, 1f)),
 		_ => _t.StandEyeHeight,
 	};
 }
