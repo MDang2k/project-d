@@ -37,6 +37,20 @@ public partial class WeaponNode : Node3D
 			Position = new Vector3(0f, 0f, -size.Z * 0.5f + 0.1f),
 			MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.12f, 0.12f, 0.13f) },
 		});
+		var sightMat = new StandardMaterial3D { AlbedoColor = new Color(0.05f, 0.05f, 0.05f) };
+		var sightY = size.Y * 0.5f + 0.0125f;
+		w.AddChild(new MeshInstance3D
+		{
+			Mesh = new BoxMesh { Size = new Vector3(0.012f, 0.025f, 0.012f) },
+			Position = new Vector3(0f, sightY, 0.04f),
+			MaterialOverride = sightMat,
+		});
+		w.AddChild(new MeshInstance3D
+		{
+			Mesh = new BoxMesh { Size = new Vector3(0.008f, 0.025f, 0.008f) },
+			Position = new Vector3(0f, sightY, -size.Z + 0.11f),
+			MaterialOverride = sightMat,
+		});
 		w.GripRight = new Marker3D { Name = "GripRight", Position = data.GripRightOffset };
 		w.GripLeft = new Marker3D { Name = "GripLeft", Position = data.GripLeftOffset };
 		w.Muzzle = new Marker3D { Name = "Muzzle", Position = new Vector3(0f, 0f, -size.Z + 0.1f) };

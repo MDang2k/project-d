@@ -15,7 +15,11 @@ StartWeapon = ExtResource("3")
 
 [node name="Head" type="Node3D" parent="LeanPivot"]
 
-[node name="FreeLook" type="Node3D" parent="LeanPivot/Head"]
+[node name="Recoil" type="Node3D" parent="LeanPivot/Head"]
 
-[node name="Camera" type="Camera3D" parent="LeanPivot/Head/FreeLook"]
+[node name="FreeLook" type="Node3D" parent="LeanPivot/Head/Recoil"]
+
+[node name="Camera" type="Camera3D" parent="LeanPivot/Head/Recoil/FreeLook"]
 current = true
+
+[node name="WeaponSway" type="Node3D" parent="LeanPivot/Head/Recoil"]

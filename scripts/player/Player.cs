@@ -7,7 +7,8 @@ namespace ProjectD;
 /// <summary>
 /// First-person player body (GDD s6). Thin wrapper: rules live in WeightModel, StaminaPool,
 /// MovementModel and LookModel. Camera rig node chain:
-/// LeanPivot (lean offset + roll) > Head (eye height, pitch) > FreeLook (free-look offset) > Camera.
+/// LeanPivot (lean offset + roll) > Head (eye height, pitch) > Recoil (view kick) >
+/// FreeLook (free-look offset) > Camera, with WeaponSway (sway + hip/ADS position) under Recoil.
 /// Weapon sway and recoil nodes join the rig in M2.
 /// </summary>
 public partial class Player : CharacterBody3D
@@ -28,6 +29,13 @@ public partial class Player : CharacterBody3D
 
 	public WeaponNode? Weapon => _body.HeldItem;
 
+	public bool IsHoldingBreath { get; private set; }
+	public float AdsAmount => _aim.Amount;
+	public float SwayAmplitudeDeg { get; private set; }
+	public Vector2 RecoilOffsetDeg => _recoil.Offset;
+	/// <summary>Dev/screenshot helper: holds aim-down-sights regardless of input.</summary>
+	public bool DebugForceAds { get; set; }
+
 	/// <summary>Dev/screenshot helper: holds the trigger regardless of input.</summary>
 	public bool DebugForceTrigger { get; set; }
 
@@ -40,6 +48,13 @@ public partial class Player : CharacterBody3D
 	private Node3D _head = null!;
 	private Node3D _free = null!;
 	private PlayerBody _body = null!;
+	private Node3D _recoilNode = null!;
+	private Node3D _swayNode = null!;
+	private Camera3D _camera = null!;
+	private HandlingTuning _handling = null!;
+	private readonly SwayModel _swayModel = new();
+	private readonly RecoilModel _recoil = new();
+	private readonly AimModel _aim = new();
 	private ProjectileManager? _projectiles;
 
 	private float _gravity = 9.8f;
@@ -58,7 +73,11 @@ public partial class Player : CharacterBody3D
 		_collision = GetNode<CollisionShape3D>("Collision");
 		_pivot = GetNode<Node3D>("LeanPivot");
 		_head = GetNode<Node3D>("LeanPivot/Head");
-		_free = GetNode<Node3D>("LeanPivot/Head/FreeLook");
+		_recoilNode = GetNode<Node3D>("LeanPivot/Head/Recoil");
+		_free = GetNode<Node3D>("LeanPivot/Head/Recoil/FreeLook");
+		_swayNode = GetNode<Node3D>("LeanPivot/Head/Recoil/WeaponSway");
+		_camera = GetNode<Camera3D>("LeanPivot/Head/Recoil/FreeLook/Camera");
+		_handling = _cfg.ToHandlingTuning();
 
 		_weights = new WeightModel(_cfg.ToWeightTuning());
 		_move = new MovementModel(_cfg.ToMovementTuning(), _weights);
@@ -72,8 +91,9 @@ public partial class Player : CharacterBody3D
 		_eyeY = _move.EyeHeight(Stance);
 		_body = new PlayerBody { Name = "Body" };
 		AddChild(_body);
-		_body.Build(_cfg, _head);
-		GetNode<Camera3D>("LeanPivot/Head/FreeLook/Camera").Near = 0.03f;
+		_body.Build(_cfg, _head, _swayNode);
+		_camera.Near = 0.03f;
+		_camera.Fov = _cfg.HipFovDeg;
 		UpdateRig(0f);
 		if (StartWeapon is not null)
 			EquipWeapon(StartWeapon);
@@ -108,6 +128,41 @@ public partial class Player : CharacterBody3D
 	{
 		_projectiles ??= GetTree().GetFirstNodeInGroup("projectiles") as ProjectileManager;
 		_projectiles?.Spawn(ammo, position, direction, GetRid());
+		if (Weapon is { } w)
+			_recoil.Kick(w.Data.ToRecoilTuning(),
+				HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount),
+				GD.Randf() * 2f - 1f);
+	}
+
+	private bool AimHeld()
+		=> Weapon is not null && !_mantling
+			&& (DebugForceAds || (Input.MouseMode == Input.MouseModeEnum.Captured && Input.IsActionPressed("aim")));
+
+	/// <summary>ADS blend, breath hold, sway, recoil recovery, weapon position and FOV.</summary>
+	private void UpdateHandling(float delta)
+	{
+		var weapon = Weapon;
+		var aimHeld = AimHeld();
+		_aim.Update(aimHeld && !IsSprinting, delta, weapon?.Data.AdsTimeS ?? 0.2f);
+		IsHoldingBreath = BreathHold.Update(aimHeld && Input.IsActionPressed("sprint"), Arms,
+			_cfg.BreathHoldDrainPerS, delta);
+
+		if (weapon is null)
+			return;
+		var speedFraction = new Vector2(Velocity.X, Velocity.Z).Length() / Mathf.Max(0.1f, _cfg.SprintSpeed);
+		var ctx = new HandlingContext(Stance, weapon.Data.WeightKg, Arms.Fraction, speedFraction,
+			_aim.Amount, IsHoldingBreath);
+		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling, weapon.Data.SwayBaseDeg, ctx);
+		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
+		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y), Mathf.DegToRad(sway.X), 0f);
+
+		_recoil.Update(delta, weapon.Data.ToRecoilTuning());
+		_recoilNode.Rotation = new Vector3(Mathf.DegToRad(_recoil.Offset.Y), Mathf.DegToRad(_recoil.Offset.X), 0f);
+
+		var t = Mathf.SmoothStep(0f, 1f, _aim.Amount);
+		var adsPos = new Vector3(0f, -weapon.Data.SightHeight, -_cfg.AdsEyeRelief);
+		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t);
+		_camera.Fov = Mathf.Lerp(_cfg.HipFovDeg, _cfg.AdsFovDeg, t);
 	}
 
 	private void UpdateWeaponInput()
@@ -147,13 +202,14 @@ public partial class Player : CharacterBody3D
 				_cfg.FreeLookYawDeg, _cfg.FreeLookPitchDeg);
 			return;
 		}
-		var turn = _cfg.MouseSensitivity * _weights.TurnMult(Tier);
+		var sens = _cfg.MouseSensitivity * Mathf.Lerp(1f, _cfg.AdsSensitivityMult, _aim.Amount);
+		var turn = sens * _weights.TurnMult(Tier);
 		if (IsSprinting)
 			turn *= _cfg.SprintTurnMult;
 		RotateY(-rel.X * turn);
 		var limit = Mathf.DegToRad(_cfg.PitchLimitDeg);
 		var rot = _head.Rotation;
-		rot.X = Mathf.Clamp(rot.X - rel.Y * _cfg.MouseSensitivity, -limit, limit);
+		rot.X = Mathf.Clamp(rot.X - rel.Y * sens, -limit, limit);
 		_head.Rotation = rot;
 	}
 
@@ -166,6 +222,7 @@ public partial class Player : CharacterBody3D
 		{
 			StepMantle(delta);
 			TickStamina(delta);
+			UpdateHandling(delta);
 			UpdateRig(delta);
 			return;
 		}
@@ -177,7 +234,9 @@ public partial class Player : CharacterBody3D
 			return;
 
 		var wish = GlobalBasis * new Vector3(input.X, 0f, input.Y);
-		var wantsSprint = Input.IsActionPressed("sprint") && input.Y < -0.1f && Stance != Stance.Prone;
+		// While aiming, Shift holds breath instead of sprinting (GDD s7).
+		var wantsSprint = Input.IsActionPressed("sprint") && input.Y < -0.1f && Stance != Stance.Prone
+			&& !AimHeld();
 		IsSprinting = wantsSprint && _weights.CanSprint(Tier) && !Legs.IsExhausted;
 
 		var speed = _move.TargetSpeed(Stance, IsSprinting, Tier);
@@ -205,6 +264,7 @@ public partial class Player : CharacterBody3D
 			Legs.Spend(_cfg.SprintDrainPerS * _weights.StaminaDrainMult(Tier) * delta);
 		TickStamina(delta);
 		MoveAndSlide();
+		UpdateHandling(delta);
 		UpdateRig(delta);
 	}
 

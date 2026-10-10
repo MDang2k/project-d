@@ -135,6 +135,8 @@ public partial class M2Range : Node3D
 		{
 			if (arg.StartsWith("--shot="))
 				shot = arg["--shot=".Length..];
+			else if (arg == "--ads")
+				_player.DebugForceAds = true;
 			else if (arg == "--traj")
 				SetTrajectoryDebug(true);
 			else if (arg.StartsWith("--fire=") && double.TryParse(arg["--fire=".Length..], out var f))
@@ -251,7 +253,9 @@ public partial class M2Range : Node3D
 		var mode = w?.State.Fire.Mode.ToString() ?? "-";
 		_label.Text =
 			$"{name}  mode {mode}  stance {_player.Stance}{(_player.IsSprinting ? "  SPRINT" : "")}\n" +
+			$"ADS {_player.AdsAmount * 100f:0}%{(_player.IsHoldingBreath ? "  BREATH HELD" : "")}  sway {_player.SwayAmplitudeDeg:0.00} deg  " +
+			$"recoil {_player.RecoilOffsetDeg.Y:0.0} deg  arms {_player.Arms.Fraction * 100f:0}%{(_player.Arms.IsExhausted ? " EXHAUSTED" : "")}\n" +
 			$"last impact: {_lastImpact}   target hits {_hits}\n" +
-			"1-5 weapon  V fire mode  Delete refill (debug)  F3 trajectory debug " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
+			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
 	}
 }

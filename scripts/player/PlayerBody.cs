@@ -21,15 +21,18 @@ public partial class PlayerBody : Node3D
 	private Vector3 _spineRest;
 
 	private Node3D _head = null!;
+	private Node3D _weaponParent = null!;
 	private TwoBoneIK3D _ik = null!;
 
 	public WeaponNode? HeldItem { get; private set; }
 
-	/// <param name="head">Node the held item attaches to (pitches with the camera).</param>
-	public void Build(PlayerConfig cfg, Node3D head)
+	/// <param name="head">Camera pitch node; elbow hints live here.</param>
+	/// <param name="weaponParent">Node the held item attaches to (recoil and sway apply to it).</param>
+	public void Build(PlayerConfig cfg, Node3D head, Node3D weaponParent)
 	{
 		_cfg = cfg;
 		_head = head;
+		_weaponParent = weaponParent;
 		BuildSkeleton();
 		BuildArmIk(head);
 	}
@@ -39,8 +42,7 @@ public partial class PlayerBody : Node3D
 	{
 		HeldItem?.QueueFree();
 		HeldItem = weapon;
-		weapon.Position = _cfg.HeldItemOffset;
-		_head.AddChild(weapon);
+		_weaponParent.AddChild(weapon);
 		_ik.SetTargetNode(0, _ik.GetPathTo(weapon.GripRight));
 		_ik.SetTargetNode(1, _ik.GetPathTo(weapon.GripLeft));
 	}

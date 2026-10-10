@@ -99,6 +99,25 @@ public partial class PlayerConfig : Resource
 	[Export] public Vector3 ElbowHintRight { get; set; } = new(0.45f, -0.55f, 0.05f);
 	[Export] public Vector3 ElbowHintLeft { get; set; } = new(-0.45f, -0.55f, 0.05f);
 
+	[ExportGroup("Handling")]
+	[Export] public float HipFovDeg { get; set; } = 75f;
+	[Export] public float AdsFovDeg { get; set; } = 58f;
+	/// <summary>Mouse sensitivity multiplier at full ADS.</summary>
+	[Export] public float AdsSensitivityMult { get; set; } = 0.55f;
+	/// <summary>Distance of the rear sight from the eye at full ADS, metres.</summary>
+	[Export] public float AdsEyeRelief { get; set; } = 0.3f;
+	[Export] public float BreathHoldDrainPerS { get; set; } = 12f;
+	[Export] public float CrouchSwayMult { get; set; } = 0.75f;
+	[Export] public float ProneSwayMult { get; set; } = 0.5f;
+	[Export] public float ExhaustionSwayGain { get; set; } = 1.5f;
+	[Export] public float MoveSwayGain { get; set; } = 1.2f;
+	[Export] public float AdsSwayMult { get; set; } = 0.6f;
+	[Export] public float BreathHoldSwayMult { get; set; } = 0.1f;
+	[Export] public float WeightSwayPerKg { get; set; } = 0.04f;
+	[Export] public float CrouchRecoilMult { get; set; } = 0.85f;
+	[Export] public float ProneRecoilMult { get; set; } = 0.65f;
+	[Export] public float AdsRecoilMult { get; set; } = 0.8f;
+
 	[ExportGroup("Look")]
 	[Export] public float MouseSensitivity { get; set; } = 0.0022f;
 	[Export] public float SprintTurnMult { get; set; } = 0.6f;
@@ -107,6 +126,10 @@ public partial class PlayerConfig : Resource
 	public WeightTuning ToWeightTuning() => new(
 		TierThresholdsKg, TierSpeedMult, TierAccelMult, TierTurnMult,
 		TierStaminaDrainMult, TierStaminaRecoveryMult, SprintMaxTier);
+
+	public HandlingTuning ToHandlingTuning() => new(
+		CrouchSwayMult, ProneSwayMult, ExhaustionSwayGain, MoveSwayGain, AdsSwayMult,
+		BreathHoldSwayMult, WeightSwayPerKg, CrouchRecoilMult, ProneRecoilMult, AdsRecoilMult);
 
 	public MovementTuning ToMovementTuning() => new(
 		WalkSpeed, SprintSpeed, CrouchSpeed, CrouchSprintSpeed, ProneSpeed,
