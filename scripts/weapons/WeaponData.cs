@@ -26,11 +26,28 @@ public partial class WeaponData : Resource
 	/// <summary>Peak sway in degrees before stance, stamina and weight modifiers.</summary>
 	[Export] public float SwayBaseDeg { get; set; } = 0.35f;
 
+	[ExportGroup("Actions (seconds)")]
+	[Export] public float TacticalReloadS { get; set; } = 2.4f;
+	[Export] public float FastReloadS { get; set; } = 1.6f;
+	[Export] public float MagCheckS { get; set; } = 1.2f;
+	[Export] public float ChamberCheckS { get; set; } = 0.9f;
+	/// <summary>Extra time to charge the weapon when the chamber is empty at reload.</summary>
+	[Export] public float ChargeS { get; set; } = 0.7f;
+
 	[ExportGroup("Placeholder model")]
 	/// <summary>Box size in metres; the barrel points along -Z, Muzzle sits at the front.</summary>
 	[Export] public Vector3 BodySize { get; set; } = new(0.05f, 0.1f, 0.8f);
 	[Export] public Vector3 GripRightOffset { get; set; } = new(0f, -0.05f, 0.05f);
 	[Export] public Vector3 GripLeftOffset { get; set; } = new(0f, -0.04f, -0.25f);
+
+	public ActionTuning ToActionTuning() => ActionTuning.Default with
+	{
+		TacticalReloadS = TacticalReloadS,
+		FastReloadS = FastReloadS,
+		MagCheckS = MagCheckS,
+		ChamberCheckS = ChamberCheckS,
+		ChargeS = ChargeS,
+	};
 
 	public RecoilTuning ToRecoilTuning()
 		=> new(RecoilVerticalDeg, RecoilHorizontalDeg, RecoilRecoveryDegS, RecoilRecoveryDelayS);

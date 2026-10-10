@@ -24,6 +24,8 @@ public partial class M2Range : Node3D
 	private Label _label = null!;
 	private ProjectileManager _projectiles = null!;
 	private string _lastImpact = "-";
+	private string _message = "";
+	private double _messageUntil;
 	private int _hits;
 	private static readonly float[] MarkDistances = { 25f, 50f, 100f, 150f, 200f };
 	private bool _showTrajectory;
@@ -42,6 +44,11 @@ public partial class M2Range : Node3D
 		_player = scene.Instantiate<Player>();
 		_player.Position = SpawnPoint;
 		AddChild(_player);
+		_player.WeaponMessage += text =>
+		{
+			_message = text;
+			_messageUntil = Time.GetTicksMsec() / 1000.0 + 2.5;
+		};
 
 		var layer = new CanvasLayer();
 		_label = new Label { Position = new Vector2(12f, 12f) };
@@ -49,6 +56,30 @@ public partial class M2Range : Node3D
 		AddChild(layer);
 		BuildTrajectoryDebug();
 		ApplyDevArgs();
+	}
+
+	/// <summary>Dev only (--actions=mag,reload,fast,chamber): runs actions and prints round totals.</summary>
+	private async System.Threading.Tasks.Task RunDevActions(string[] actions)
+	{
+		if (_player.Weapon is not { } w)
+			return;
+		var c = w.Controller;
+		_player.WeaponMessage += text => GD.Print($"MSG {text}");
+		foreach (var a in actions)
+		{
+			var started = a switch
+			{
+				"mag" => c.StartMagCheck(),
+				"reload" => c.StartReload(false),
+				"fast" => c.StartReload(true),
+				"chamber" => c.StartChamberCheck(),
+				_ => false,
+			};
+			GD.Print($"ACTION {a} started={started}");
+			while (c.IsBusy)
+				await ToSignal(GetTree().CreateTimer(0.1), SceneTreeTimer.SignalName.Timeout);
+			GD.Print($"DONE {a}: total rounds {c.State.RoundsAvailable}, mag {c.State.Magazine?.Count}, spares {c.Pouch.Count}");
+		}
 	}
 
 	private void BuildTrajectoryDebug()
@@ -131,10 +162,13 @@ public partial class M2Range : Node3D
 	{
 		string? shot = null;
 		var fireSeconds = 0.0;
+		var actions = System.Array.Empty<string>();
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--shot="))
 				shot = arg["--shot=".Length..];
+			else if (arg.StartsWith("--actions="))
+				actions = arg["--actions=".Length..].Split(',');
 			else if (arg == "--ads")
 				_player.DebugForceAds = true;
 			else if (arg == "--traj")
@@ -152,6 +186,7 @@ public partial class M2Range : Node3D
 			await ToSignal(GetTree().CreateTimer(fireSeconds), SceneTreeTimer.SignalName.Timeout);
 			_player.DebugForceTrigger = false;
 		}
+		await RunDevActions(actions);
 		if (shot is null)
 			return;
 		await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
@@ -256,6 +291,7 @@ public partial class M2Range : Node3D
 			$"ADS {_player.AdsAmount * 100f:0}%{(_player.IsHoldingBreath ? "  BREATH HELD" : "")}  sway {_player.SwayAmplitudeDeg:0.00} deg  " +
 			$"recoil {_player.RecoilOffsetDeg.Y:0.0} deg  arms {_player.Arms.Fraction * 100f:0}%{(_player.Arms.IsExhausted ? " EXHAUSTED" : "")}\n" +
 			$"last impact: {_lastImpact}   target hits {_hits}\n" +
-			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
+			$"{(Time.GetTicksMsec() / 1000.0 < _messageUntil ? _message : "")}{(w is { Controller.IsBusy: true } ? $"   [{w.Controller.Action} {w.Controller.Progress * 100f:0}%]" : "")}\n" +
+			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
 	}
 }

@@ -11,6 +11,7 @@ public partial class WeaponNode : Node3D
 {
 	public WeaponData Data { get; private set; } = null!;
 	public WeaponState State { get; private set; } = null!;
+	public WeaponController Controller { get; private set; } = null!;
 	public Marker3D GripRight { get; private set; } = null!;
 	public Marker3D GripLeft { get; private set; } = null!;
 	public Marker3D Muzzle { get; private set; } = null!;
@@ -23,11 +24,15 @@ public partial class WeaponNode : Node3D
 	/// <summary>Ammo, muzzle position, direction.</summary>
 	public event Action<AmmoType, Vector3, Vector3>? ShotFired;
 
+	/// <summary>Trigger pulled with nothing to fire (empty click).</summary>
+	public event Action? DryFired;
+
 	public static WeaponNode Create(WeaponData data)
 	{
 		var w = new WeaponNode { Name = "Weapon", Data = data };
 		var ammo = data.Ammo?.ToType() ?? new AmmoType("generic", 40f, 2, 700f);
 		w.State = new WeaponState(new FireControl(data.FireModes(), data.RoundsPerMinute));
+		w.Controller = new WeaponController(w.State, data.ToActionTuning());
 		w.RefillDebug(ammo);
 
 		var size = data.BodySize;
@@ -60,18 +65,35 @@ public partial class WeaponNode : Node3D
 		return w;
 	}
 
-	/// <summary>Dev helper: full magazine and a chambered round.</summary>
+	/// <summary>
+	/// Dev helper: full magazine, a chambered round and three spares (full, about half, almost
+	/// empty) so reloads and magazine checks can be tried before the inventory exists.
+	/// </summary>
 	public void RefillDebug(AmmoType? ammo = null)
 	{
 		ammo ??= Data.Ammo?.ToType() ?? new AmmoType("generic", 40f, 2, 700f);
+		State.EjectMagazine();
 		State.InsertMagazine(Magazine.Full(Data.MagazineCapacity, ammo));
 		State.ChamberRound();
+		Controller.Pouch.Clear();
+		var cap = Data.MagazineCapacity;
+		foreach (var count in new[] { cap, cap / 2, Math.Max(2, cap / 6) })
+		{
+			var spare = new Magazine(cap);
+			for (var i = 0; i < count; i++)
+				spare.Push(ammo);
+			Controller.Pouch.Add(spare);
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		var pressed = CanFire && TriggerPressed;
-		var held = CanFire && TriggerHeld;
+		Controller.Update((float)delta);
+		var ready = CanFire && !Controller.IsBusy;
+		var pressed = ready && TriggerPressed;
+		var held = ready && TriggerHeld;
+		if (pressed && State.RoundsAvailable == 0)
+			DryFired?.Invoke();
 		foreach (var ammo in State.Update((float)delta, pressed, held))
 			ShotFired?.Invoke(ammo, Muzzle.GlobalPosition, -Muzzle.GlobalBasis.Z);
 		TriggerPressed = false;

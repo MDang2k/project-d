@@ -27,6 +27,9 @@ public partial class Player : CharacterBody3D
 	public event Action<Stance>? StanceChanged;
 	public event Action? MantleStarted;
 
+	/// <summary>Short player-facing feedback (mag/chamber check results, empty click).</summary>
+	public event Action<string>? WeaponMessage;
+
 	public WeaponNode? Weapon => _body.HeldItem;
 
 	public bool IsHoldingBreath { get; private set; }
@@ -121,6 +124,11 @@ public partial class Player : CharacterBody3D
 	{
 		var weapon = WeaponNode.Create(data);
 		weapon.ShotFired += OnShotFired;
+		weapon.DryFired += () => WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
+		weapon.Controller.MagChecked += r => WeaponMessage?.Invoke(GameText.ForMagCheck(r));
+		weapon.Controller.ChamberChecked += loaded =>
+			WeaponMessage?.Invoke(GameText.Get(loaded ? "msg.chamber.loaded" : "msg.chamber.empty"));
+		weapon.Controller.MagazineDropped += _ => SpawnDroppedMagazine(weapon);
 		_body.AttachHeldItem(weapon);
 	}
 
@@ -134,8 +142,25 @@ public partial class Player : CharacterBody3D
 				GD.Randf() * 2f - 1f);
 	}
 
+	/// <summary>Fast reload drops the old magazine on the ground (GDD s7).</summary>
+	private void SpawnDroppedMagazine(WeaponNode weapon)
+	{
+		var body = new RigidBody3D { Mass = 0.3f, TopLevel = true };
+		body.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(0.04f, 0.14f, 0.07f) } });
+		body.AddChild(new MeshInstance3D
+		{
+			Mesh = new BoxMesh { Size = new Vector3(0.04f, 0.14f, 0.07f) },
+			MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.2f, 0.2f, 0.22f) },
+		});
+		var scene = GetTree().CurrentScene;
+		scene.AddChild(body);
+		body.GlobalPosition = weapon.GlobalPosition + Vector3.Down * 0.1f;
+		body.LinearVelocity = GlobalBasis.X * 0.3f + Vector3.Down * 0.5f;
+		GetTree().CreateTimer(30.0).Timeout += body.QueueFree;
+	}
+
 	private bool AimHeld()
-		=> Weapon is not null && !_mantling
+		=> Weapon is not null && !_mantling && !Weapon.Controller.IsBusy
 			&& (DebugForceAds || (Input.MouseMode == Input.MouseModeEnum.Captured && Input.IsActionPressed("aim")));
 
 	/// <summary>ADS blend, breath hold, sway, recoil recovery, weapon position and FOV.</summary>
@@ -154,14 +179,16 @@ public partial class Player : CharacterBody3D
 			_aim.Amount, IsHoldingBreath);
 		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling, weapon.Data.SwayBaseDeg, ctx);
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
-		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y), Mathf.DegToRad(sway.X), 0f);
+		var (posOffset, rotDeg) = WeaponPoseModel.Pose(weapon.Controller.Action, weapon.Controller.Progress);
+		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y + rotDeg.X), Mathf.DegToRad(sway.X + rotDeg.Y),
+			Mathf.DegToRad(rotDeg.Z));
 
 		_recoil.Update(delta, weapon.Data.ToRecoilTuning());
 		_recoilNode.Rotation = new Vector3(Mathf.DegToRad(_recoil.Offset.Y), Mathf.DegToRad(_recoil.Offset.X), 0f);
 
 		var t = Mathf.SmoothStep(0f, 1f, _aim.Amount);
 		var adsPos = new Vector3(0f, -weapon.Data.SightHeight, -_cfg.AdsEyeRelief);
-		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t);
+		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset;
 		_camera.Fov = Mathf.Lerp(_cfg.HipFovDeg, _cfg.AdsFovDeg, t);
 	}
 
@@ -177,6 +204,25 @@ public partial class Player : CharacterBody3D
 			weapon.TriggerPressed = true;
 		if (Input.IsActionJustPressed("fire_mode"))
 			weapon.State.Fire.CycleMode();
+		if (!captured)
+			return;
+		var c = weapon.Controller;
+		if (Input.IsActionJustPressed("reload"))
+		{
+			// Second tap shortly after the first upgrades the tactical reload to a fast one.
+			if (c.IsBusy)
+				c.UpgradeToFast();
+			else if (!c.StartReload(fast: false))
+				WeaponMessage?.Invoke(GameText.Get("msg.reload.no_spare"));
+		}
+		else if (Input.IsActionJustPressed("chamber_check", exactMatch: true))
+		{
+			c.StartChamberCheck();
+		}
+		else if (Input.IsActionJustPressed("mag_check", exactMatch: true))
+		{
+			c.StartMagCheck();
+		}
 	}
 
 	/// <summary>Debug/screenshot helper: switches stance without input or headroom checks.</summary>
