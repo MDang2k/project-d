@@ -22,6 +22,11 @@ public partial class M2Range : Node3D
 		BodyPart.Head, BodyPart.Thorax, BodyPart.Stomach, BodyPart.LeftArm, BodyPart.RightArm,
 		BodyPart.LeftLeg, BodyPart.RightLeg,
 	};
+	private static readonly (Key Key, string Item)[] MedicalKeys =
+	{
+		(Key.Insert, "bandage"), (Key.Home, "tourniquet"), (Key.Pageup, "splint"),
+		(Key.Pagedown, "morphine"), (Key.End, "field_medkit"), (Key.Backslash, "surgery_kit"),
+	};
 	private static readonly float[] TargetDistances = { 15f, 50f, 100f, 200f };
 	private static readonly Vector3 SpawnPoint = new(0f, 0.1f, 0f);
 
@@ -67,12 +72,36 @@ public partial class M2Range : Node3D
 	/// <summary>Dev only (--actions=mag,reload,fast,chamber): runs actions and prints round totals.</summary>
 	private async System.Threading.Tasks.Task RunDevActions(string[] actions)
 	{
-		if (_player.Weapon is not { } w)
+		if (actions.Length == 0)
 			return;
-		var c = w.Controller;
+		var w = _player.Weapon;
+		var c = w!.Controller;
 		_player.WeaponMessage += text => GD.Print($"MSG {text}");
 		foreach (var a in actions)
 		{
+			if (a.StartsWith("dmg:"))
+			{
+				var f = a.Split(':');
+				_player.Health.ReceiveDamage(System.Enum.Parse<BodyPart>(f[1]), float.Parse(f[2]), 1);
+				GD.Print($"DMG {a} -> {EffectsLine()}");
+				continue;
+			}
+			if (a.StartsWith("med:"))
+			{
+				var item = GD.Load<MedicalData>($"res://data/items/{a[4..]}.tres");
+				var ok = _player.Health.UseMedical(item);
+				GD.Print($"MED {a} started={ok}");
+				while (_player.Health.Medical.IsBusy)
+					await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"MED done -> {EffectsLine()}");
+				continue;
+			}
+			if (a.StartsWith("wait:"))
+			{
+				await ToSignal(GetTree().CreateTimer(double.Parse(a[5..])), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"WAIT {a} -> {PlayerHealthLine()} | {EffectsLine()}");
+				continue;
+			}
 			var started = a switch
 			{
 				"mag" => c.StartMagCheck(),
@@ -197,6 +226,8 @@ public partial class M2Range : Node3D
 				actions = arg["--actions=".Length..].Split(',');
 			else if (arg.StartsWith("--wheel=") && float.TryParse(arg["--wheel=".Length..], out var notches))
 				_player.DebugAdjustHeight(notches);
+			else if (arg.StartsWith("--seed=") && int.TryParse(arg["--seed=".Length..], out var seed))
+				_player.Health.Seed = seed;
 			else if (arg == "--prone")
 				_player.DebugSetStance(Stance.Prone);
 			else if (arg == "--crouch")
@@ -325,6 +356,9 @@ public partial class M2Range : Node3D
 			case Key.F5 or Key.F6 or Key.F7 or Key.F8 or Key.F9 or Key.F10 or Key.F11:
 				_player.Health.ReceiveDamage(DebugParts[(int)k.PhysicalKeycode - (int)Key.F5], 20f, 1);
 				break;
+			case Key.Insert or Key.Home or Key.Pageup or Key.Pagedown or Key.End or Key.Backslash:
+				UseMedical(System.Array.Find(MedicalKeys, m => m.Key == k.PhysicalKeycode).Item);
+				break;
 			case Key.F12:
 				_player.Health.Reset();
 				break;
@@ -341,6 +375,35 @@ public partial class M2Range : Node3D
 		}
 	}
 
+	private void UseMedical(string id)
+	{
+		var item = GD.Load<MedicalData>($"res://data/items/{id}.tres");
+		var started = _player.Health.UseMedical(item);
+		_message = started ? $"Using {id}..." : $"Cannot use {id} now";
+		_messageUntil = Time.GetTicksMsec() / 1000.0 + 2.5;
+	}
+
+	private string EffectsLine()
+	{
+		var fx = _player.Health.Effects;
+		var sb = new System.Text.StringBuilder("effects:");
+		foreach (var part in fx.BleedingParts)
+			sb.Append($" {fx.Bleed(part)}-bleed({part})");
+		foreach (var part in fx.Fractures)
+			sb.Append($" fracture({part})");
+		var p = fx.ComputePenalties(_player.Health.Body);
+		sb.Append($"  pain {fx.Pain:0}{(fx.PainSuppressed ? " (morphine " + fx.MorphineLeft.ToString("0") + "s)" : "")}");
+		sb.Append($"  sway x{p.SwayMultiplier:0.0} speed x{p.MoveSpeedMultiplier:0.0}");
+		if (p.SprintBlocked)
+			sb.Append(" NO-SPRINT");
+		var med = _player.Health.Medical;
+		if (med.IsBusy)
+			sb.Append($"   [{med.Current!.Kind} {med.Progress * 100f:0}%]");
+		if (fx.HealPoolLeft > 0f)
+			sb.Append($"  medkit {fx.HealPoolLeft:0} HP left");
+		return sb.ToString();
+	}
+
 	private string PlayerHealthLine()
 	{
 		var b = _player.Health.Body;
@@ -348,7 +411,7 @@ public partial class M2Range : Node3D
 			return "YOU: DEAD (F12 reset)";
 		return $"YOU  H {b.Hp(BodyPart.Head):0}  T {b.Hp(BodyPart.Thorax):0}  S {b.Hp(BodyPart.Stomach):0}  " +
 			$"LA {b.Hp(BodyPart.LeftArm):0}  RA {b.Hp(BodyPart.RightArm):0}  " +
-			$"LL {b.Hp(BodyPart.LeftLeg):0}  RL {b.Hp(BodyPart.RightLeg):0}   [F5-F11 damage 20 head..rleg, F12 reset]";
+			$"LL {b.Hp(BodyPart.LeftLeg):0}  RL {b.Hp(BodyPart.RightLeg):0}   [F5-F11 dmg 20 head..rleg, F12 reset | Ins bandage Home tourniquet PgUp splint PgDn morphine End medkit \\ surgery]";
 	}
 
 	public override void _Process(double delta)
@@ -362,7 +425,7 @@ public partial class M2Range : Node3D
 			$"rest {_player.RestAmount * 100f:0}%{(float.IsNaN(_player.RestSurfaceHeight) ? "" : $" (surface {_player.RestSurfaceHeight:0.00} m)")}{(_player.BipodDeployed ? "  BIPOD" : "")}  " +
 			$"ADS {_player.AdsAmount * 100f:0}%{(_player.IsHoldingBreath ? "  BREATH HELD" : "")}  sway {_player.SwayAmplitudeDeg:0.00} deg  " +
 			$"recoil {_player.RecoilOffsetDeg.Y:0.0} deg  arms {_player.Arms.Fraction * 100f:0}%{(_player.Arms.IsExhausted ? " EXHAUSTED" : "")}\n" +
-			$"{PlayerHealthLine()}\n" +
+			$"{PlayerHealthLine()}\n{EffectsLine()}\n" +
 			$"last impact: {_lastImpact}   target hits {_hits}\n" +
 			$"{(Time.GetTicksMsec() / 1000.0 < _messageUntil ? _message : "")}{(w is { Controller.IsBusy: true } ? $"   [{w.Controller.Action} {w.Controller.Progress * 100f:0}%]" : "")}\n" +
 			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  hold C+wheel height  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";

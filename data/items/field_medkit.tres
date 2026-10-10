@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MedicalData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/health/MedicalData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "field_medkit"
+NameKey = "item.field_medkit"
+Kind = 4
+UseTimeS = 8.0
+WeightKg = 0.9
+EffectDurationS = 0.0
+HealPool = 120.0
+HealRatePerS = 4.0
+RestoredMaxHpFraction = 0.5

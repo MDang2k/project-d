@@ -92,6 +92,11 @@ public partial class DummyTarget : Node3D
 		sb.Append($"\nH {b.Hp(BodyPart.Head):0}  T {b.Hp(BodyPart.Thorax):0}  S {b.Hp(BodyPart.Stomach):0}");
 		sb.Append($"\nLA {b.Hp(BodyPart.LeftArm):0}  RA {b.Hp(BodyPart.RightArm):0}");
 		sb.Append($"\nLL {b.Hp(BodyPart.LeftLeg):0}  RL {b.Hp(BodyPart.RightLeg):0}");
+		var fx = Health.Effects;
+		foreach (var part in fx.BleedingParts)
+			sb.Append($"\n{fx.Bleed(part)} bleed ({part})");
+		foreach (var part in fx.Fractures)
+			sb.Append($"\nfracture ({part})");
 		foreach (var a in Health.Armor)
 			sb.Append($"\n{a.Spec.Id} T{a.EffectiveTier} {a.Durability:0}/{a.Spec.MaxDurability:0}");
 		return sb.ToString();

@@ -99,6 +99,7 @@ public partial class Player : CharacterBody3D
 		_support = new SupportModel(_cfg.ToSupportTuning());
 		_heights = new StanceHeightModel(_cfg.HeightWheelStep);
 		_clearance = new ClearanceModel(_cfg.ToClearanceTuning());
+		_ = Health;
 
 		_weights = new WeightModel(_cfg.ToWeightTuning());
 		_move = new MovementModel(_cfg.ToMovementTuning(), _weights);

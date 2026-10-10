@@ -22,6 +22,32 @@ public partial class HealthConfig : Resource
 	[Export] public float DurabilityPerDamagePenetrated { get; set; } = 0.1f;
 	[Export] public float DurabilityPerDamageStopped { get; set; } = 0.08f;
 
+	[ExportGroup("Status effects")]
+	[Export] public float LightBleedPerS { get; set; } = 0.3f;
+	[Export] public float HeavyBleedPerS { get; set; } = 1.0f;
+	[Export] public float LightBleedChance { get; set; } = 0.25f;
+	[Export] public float HeavyBleedChance { get; set; } = 0.15f;
+	[Export] public float StoppedChanceMultiplier { get; set; } = 0.2f;
+	[Export] public float FractureChance { get; set; } = 0.25f;
+	[Export] public float FractureDamageThreshold { get; set; } = 25f;
+	[Export] public float PainPerDamage { get; set; } = 0.8f;
+	[Export] public float PainDecayPerS { get; set; } = 1.5f;
+	[Export] public float PainFromFracture { get; set; } = 15f;
+	[Export] public float MaxPain { get; set; } = 100f;
+	[Export] public float PainEffectStart { get; set; } = 0.2f;
+	[Export] public float ArmDestroyedSwayMultiplier { get; set; } = 2.0f;
+	[Export] public float ArmFractureSwayMultiplier { get; set; } = 1.4f;
+	[Export] public float PainSwayMultiplier { get; set; } = 1.6f;
+	[Export] public float LegDestroyedSpeedMultiplier { get; set; } = 0.5f;
+	[Export] public float LegFractureSpeedMultiplier { get; set; } = 0.7f;
+	[Export] public float ArmDestroyedReloadMultiplier { get; set; } = 1.6f;
+
+	public EffectsTuning ToEffectsTuning() => new(
+		LightBleedPerS, HeavyBleedPerS, LightBleedChance, HeavyBleedChance, StoppedChanceMultiplier,
+		FractureChance, FractureDamageThreshold, PainPerDamage, PainDecayPerS, PainFromFracture, MaxPain,
+		PainEffectStart, ArmDestroyedSwayMultiplier, ArmFractureSwayMultiplier, PainSwayMultiplier,
+		LegDestroyedSpeedMultiplier, LegFractureSpeedMultiplier, ArmDestroyedReloadMultiplier);
+
 	public HealthTuning ToHealthTuning() => new(
 		HeadHp, ThoraxHp, StomachHp, ArmHp, LegHp, DestroyedSpreadMultiplier, SpreadHitsHead);
 
