@@ -77,6 +77,6 @@ Use free CC0 packs (Kenney, Quaternius) or Godot primitives. Before using any pa
 
 Work milestone by milestone (details in GDD §Milestones). Do not start systems from later milestones unless asked.
 
-**Current milestone: M2 — weapons.** (M0 code done, weak-machine benchmark still pending; M1 player complete.)
+**Current milestone: M3 — damage.** (M0 code done, weak-machine benchmark still pending; M1 player and M2 weapons complete.)
 
 Definition of done for any task: `dotnet build` has no warnings, xUnit tests for logic pass, GUT smoke passes, and you have told the user what to playtest.
