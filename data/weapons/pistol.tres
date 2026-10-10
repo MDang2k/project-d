@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/ammo/9x19.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "pistol"
+NameKey = "weapon.pistol"
+Ammo = ExtResource("2")
+MagazineCapacity = 8
+RoundsPerMinute = 450.0
+AllowsSemi = true
+AllowsAuto = false
+WeightKg = 0.8
+BodySize = Vector3(0.035, 0.14, 0.2)
+GripRightOffset = Vector3(0, -0.07, 0.03)
+GripLeftOffset = Vector3(0, -0.06, -0.02)

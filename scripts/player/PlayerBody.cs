@@ -20,17 +20,29 @@ public partial class PlayerBody : Node3D
 	private int _hips, _spine, _thighL, _thighR, _shinL, _shinR, _footL, _footR;
 	private Vector3 _spineRest;
 
-	public Node3D HeldItem { get; private set; } = null!;
-	public Marker3D GripRight { get; private set; } = null!;
-	public Marker3D GripLeft { get; private set; } = null!;
+	private Node3D _head = null!;
+	private TwoBoneIK3D _ik = null!;
+
+	public WeaponNode? HeldItem { get; private set; }
 
 	/// <param name="head">Node the held item attaches to (pitches with the camera).</param>
 	public void Build(PlayerConfig cfg, Node3D head)
 	{
 		_cfg = cfg;
+		_head = head;
 		BuildSkeleton();
-		BuildHeldItem(head);
 		BuildArmIk(head);
+	}
+
+	/// <summary>Replaces the held weapon and re-aims both arms at its grip markers.</summary>
+	public void AttachHeldItem(WeaponNode weapon)
+	{
+		HeldItem?.QueueFree();
+		HeldItem = weapon;
+		weapon.Position = _cfg.HeldItemOffset;
+		_head.AddChild(weapon);
+		_ik.SetTargetNode(0, _ik.GetPathTo(weapon.GripRight));
+		_ik.SetTargetNode(1, _ik.GetPathTo(weapon.GripLeft));
 	}
 
 	private void BuildSkeleton()
@@ -109,23 +121,6 @@ public partial class PlayerBody : Node3D
 		});
 	}
 
-	private void BuildHeldItem(Node3D head)
-	{
-		HeldItem = new Node3D { Name = "HeldItem", Position = _cfg.HeldItemOffset };
-		HeldItem.AddChild(new MeshInstance3D
-		{
-			Mesh = new BoxMesh { Size = new Vector3(0.06f, 0.1f, 0.7f) },
-			Position = new Vector3(0f, 0f, -0.1f),
-			MaterialOverride = new StandardMaterial3D { AlbedoColor = Metal },
-		});
-		GripRight = new Marker3D { Name = "GripRight", Position = _cfg.GripRightOffset };
-		GripLeft = new Marker3D { Name = "GripLeft", Position = _cfg.GripLeftOffset };
-		HeldItem.AddChild(GripRight);
-		HeldItem.AddChild(GripLeft);
-		HeldItem.AddChild(new Marker3D { Name = "Muzzle", Position = new Vector3(0f, 0f, -0.45f) });
-		head.AddChild(HeldItem);
-	}
-
 	private void BuildArmIk(Node3D head)
 	{
 		var poleR = new Marker3D { Name = "ElbowHintRight", Position = _cfg.ElbowHintRight };
@@ -133,18 +128,17 @@ public partial class PlayerBody : Node3D
 		head.AddChild(poleR);
 		head.AddChild(poleL);
 
-		var ik = new TwoBoneIK3D { Name = "ArmIK", SettingCount = 2 };
-		_skel.AddChild(ik);
-		SetupArm(ik, 0, "R", GripRight, poleR);
-		SetupArm(ik, 1, "L", GripLeft, poleL);
+		_ik = new TwoBoneIK3D { Name = "ArmIK", SettingCount = 2 };
+		_skel.AddChild(_ik);
+		SetupArm(_ik, 0, "R", poleR);
+		SetupArm(_ik, 1, "L", poleL);
 	}
 
-	private static void SetupArm(TwoBoneIK3D ik, int index, string side, Node3D grip, Node3D pole)
+	private static void SetupArm(TwoBoneIK3D ik, int index, string side, Node3D pole)
 	{
 		ik.SetRootBoneName(index, $"UpperArm_{side}");
 		ik.SetMiddleBoneName(index, $"Forearm_{side}");
 		ik.SetEndBoneName(index, $"Hand_{side}");
-		ik.SetTargetNode(index, ik.GetPathTo(grip));
 		ik.SetPoleNode(index, ik.GetPathTo(pole));
 	}
 

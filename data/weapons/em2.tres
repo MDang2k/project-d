@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/ammo/280_british.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "em2"
+NameKey = "weapon.em2"
+Ammo = ExtResource("2")
+MagazineCapacity = 20
+RoundsPerMinute = 600.0
+AllowsSemi = true
+AllowsAuto = true
+WeightKg = 3.4
+BodySize = Vector3(0.055, 0.14, 0.7)
+GripRightOffset = Vector3(0, -0.07, -0.1)
+GripLeftOffset = Vector3(0, -0.05, -0.3)

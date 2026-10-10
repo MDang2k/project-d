@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AmmoData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/AmmoData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "7_92x57"
+Caliber = "7.92x57"
+Damage = 78.0
+PenetrationTier = 4
+MuzzleVelocity = 760.0

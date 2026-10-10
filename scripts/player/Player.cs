@@ -15,6 +15,7 @@ public partial class Player : CharacterBody3D
 	[Export] public PlayerConfig? Config { get; set; }
 	[Export] public float CarriedWeightKg { get; set; } = 15f;
 	[Export] public float StrengthBonusKg { get; set; }
+	[Export] public WeaponData? StartWeapon { get; set; }
 
 	public Stance Stance { get; private set; } = Stance.Stand;
 	public WeightTier Tier { get; private set; } = WeightTier.Light;
@@ -25,6 +26,11 @@ public partial class Player : CharacterBody3D
 	public event Action<Stance>? StanceChanged;
 	public event Action? MantleStarted;
 
+	public WeaponNode? Weapon => _body.HeldItem;
+
+	/// <summary>Dev/screenshot helper: holds the trigger regardless of input.</summary>
+	public bool DebugForceTrigger { get; set; }
+
 	private WeightModel _weights = null!;
 	private MovementModel _move = null!;
 	private PlayerConfig _cfg = null!;
@@ -34,6 +40,7 @@ public partial class Player : CharacterBody3D
 	private Node3D _head = null!;
 	private Node3D _free = null!;
 	private PlayerBody _body = null!;
+	private ProjectileManager? _projectiles;
 
 	private float _gravity = 9.8f;
 	private float _eyeY = 1.65f;
@@ -68,6 +75,8 @@ public partial class Player : CharacterBody3D
 		_body.Build(_cfg, _head);
 		GetNode<Camera3D>("LeanPivot/Head/FreeLook/Camera").Near = 0.03f;
 		UpdateRig(0f);
+		if (StartWeapon is not null)
+			EquipWeapon(StartWeapon);
 		Input.MouseMode = Input.MouseModeEnum.Captured;
 	}
 
@@ -85,6 +94,34 @@ public partial class Player : CharacterBody3D
 				Input.MouseMode = Input.MouseModeEnum.Visible;
 				break;
 		}
+	}
+
+	/// <summary>Replaces the held weapon (full magazine, chambered).</summary>
+	public void EquipWeapon(WeaponData data)
+	{
+		var weapon = WeaponNode.Create(data);
+		weapon.ShotFired += OnShotFired;
+		_body.AttachHeldItem(weapon);
+	}
+
+	private void OnShotFired(AmmoType ammo, Vector3 position, Vector3 direction)
+	{
+		_projectiles ??= GetTree().GetFirstNodeInGroup("projectiles") as ProjectileManager;
+		_projectiles?.Spawn(ammo, position, direction, GetRid());
+	}
+
+	private void UpdateWeaponInput()
+	{
+		var weapon = Weapon;
+		if (weapon is null)
+			return;
+		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
+		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling;
+		weapon.TriggerHeld = DebugForceTrigger || Input.IsActionPressed("fire");
+		if (Input.IsActionJustPressed("fire") || DebugForceTrigger)
+			weapon.TriggerPressed = true;
+		if (Input.IsActionJustPressed("fire_mode"))
+			weapon.State.Fire.CycleMode();
 	}
 
 	/// <summary>Debug/screenshot helper: switches stance without input or headroom checks.</summary>
@@ -124,6 +161,7 @@ public partial class Player : CharacterBody3D
 	{
 		var delta = (float)deltaD;
 		Tier = _weights.TierFor(CarriedWeightKg, StrengthBonusKg);
+		UpdateWeaponInput();
 		if (_mantling)
 		{
 			StepMantle(delta);

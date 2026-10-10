@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/ammo/7_92x57.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "mg_type"
+NameKey = "weapon.mg_type"
+Ammo = ExtResource("2")
+MagazineCapacity = 50
+RoundsPerMinute = 1200.0
+AllowsSemi = false
+AllowsAuto = true
+WeightKg = 11.6
+BodySize = Vector3(0.07, 0.13, 1.2)
+GripRightOffset = Vector3(0, -0.07, 0.05)
+GripLeftOffset = Vector3(0, -0.05, -0.4)
