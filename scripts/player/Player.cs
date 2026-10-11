@@ -30,6 +30,16 @@ public partial class Player : CharacterBody3D
 	public event Action<Stance>? StanceChanged;
 	public event Action? MantleStarted;
 
+	/// <summary>Weapon slot currently in hand (primary, secondary or pistol).</summary>
+	public EquipSlot ActiveSlot { get; private set; } = EquipSlot.Primary;
+
+	public bool InventoryOpen => _screen.IsOpen;
+
+	public InventoryScreen Screen => _screen;
+
+	/// <summary>Dev helper: same as pressing Tab.</summary>
+	public void DebugToggleInventory() => _screen.Toggle();
+
 	/// <summary>Result of a melee strike that landed on a hitbox.</summary>
 	public event Action<HitResult>? MeleeHit;
 
@@ -85,6 +95,9 @@ public partial class Player : CharacterBody3D
 	private HealthComponent? _health;
 	private InventoryComponent? _inventory;
 	private MeleeModel _melee = null!;
+	private InventoryScreen _screen = null!;
+	private ItemInstance? _pendingUse;
+	private string? _heldWeaponItemId;
 	private PainOverlay _pain = null!;
 	private Penalties _penalties = new(1f, 1f, false, 1f, 0f);
 	private StanceHeightModel _heights = null!;
@@ -122,6 +135,12 @@ public partial class Player : CharacterBody3D
 		_melee = new MeleeModel(MeleeWeapon?.ToSpec() ?? new MeleeSpec("fists", 12f, 1, 1.4f, 0.2f, 0.5f, 6f));
 		_pain = new PainOverlay { Name = "PainOverlay" };
 		AddChild(_pain);
+		_screen = new InventoryScreen { Name = "InventoryScreen" };
+		AddChild(_screen);
+		_screen.Bind(this);
+		Inventory.Changed += RefreshHeldWeapon;
+		Health.MedicalFinished += (_, ok) => FinishPendingUse(ok);
+		Health.ConsumableFinished += _ => FinishPendingUse(true);
 
 		_weights = new WeightModel(_cfg.ToWeightTuning());
 		_move = new MovementModel(_cfg.ToMovementTuning(), _weights);
@@ -139,7 +158,8 @@ public partial class Player : CharacterBody3D
 		_camera.Near = 0.03f;
 		_camera.Fov = _cfg.HipFovDeg;
 		UpdateRig(0f);
-		if (StartWeapon is not null)
+		RefreshHeldWeapon();
+		if (Weapon is null && StartWeapon is not null && Inventory.Inventory.InSlot(ActiveSlot) is null)
 			EquipWeapon(StartWeapon);
 		Input.MouseMode = Input.MouseModeEnum.Captured;
 	}
@@ -158,6 +178,15 @@ public partial class Player : CharacterBody3D
 				break;
 			case InputEventMouseButton when Input.MouseMode != Input.MouseModeEnum.Captured:
 				Input.MouseMode = Input.MouseModeEnum.Captured;
+				break;
+			case InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Key1 } when !_screen.IsOpen:
+				SelectSlot(EquipSlot.Primary);
+				break;
+			case InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Key2 } when !_screen.IsOpen:
+				SelectSlot(EquipSlot.Secondary);
+				break;
+			case InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Key3 } when !_screen.IsOpen:
+				SelectSlot(EquipSlot.Pistol);
 				break;
 			case InputEventKey { PhysicalKeycode: Key.Escape }:
 				Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -322,6 +351,68 @@ public partial class Player : CharacterBody3D
 			}
 		}
 		return best;
+	}
+
+	/// <summary>Draws the weapon from a slot (1, 2, 3 keys).</summary>
+	public void SelectSlot(EquipSlot slot)
+	{
+		if (Inventory.Inventory.InSlot(slot) is null)
+			return;
+		ActiveSlot = slot;
+		RefreshHeldWeapon();
+	}
+
+	/// <summary>Makes the hands match the weapon item in the active slot.</summary>
+	private void RefreshHeldWeapon()
+	{
+		var item = Inventory.Inventory.InSlot(ActiveSlot);
+		if (item is null)
+		{
+			if (_heldWeaponItemId is not null)
+			{
+				_support.FoldBipod();
+				_body.ClearHeldItem();
+				_heldWeaponItemId = null;
+			}
+			return;
+		}
+		if (_heldWeaponItemId == item.Spec.Id)
+			return;
+		if (ItemDb.Data(item.Spec.Id)?.Payload is WeaponData data)
+		{
+			EquipWeapon(data);
+			_heldWeaponItemId = item.Spec.Id;
+		}
+	}
+
+	/// <summary>Uses a medical, food or drink item from the inventory; consumed when finished.</summary>
+	public bool UseItem(ItemInstance item)
+	{
+		if (_pendingUse is not null || Health.IsDead)
+			return false;
+		var started = ItemDb.Data(item.Spec.Id)?.Payload switch
+		{
+			MedicalData m => Health.UseMedical(m),
+			ConsumableData c => Health.UseConsumable(c),
+			_ => false,
+		};
+		if (started)
+			_pendingUse = item;
+		else
+			WeaponMessage?.Invoke(GameText.Get("msg.use.cannot"));
+		return started;
+	}
+
+	private void FinishPendingUse(bool applied)
+	{
+		var item = _pendingUse;
+		_pendingUse = null;
+		if (item is null || !applied)
+			return;
+		item.Count--;
+		if (item.Count <= 0)
+			Inventory.Inventory.Remove(item);
+		Inventory.NotifyChanged();
 	}
 
 	/// <summary>Replaces the held weapon (full magazine, chambered).</summary>

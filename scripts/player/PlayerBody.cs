@@ -37,12 +37,21 @@ public partial class PlayerBody : Node3D
 		BuildArmIk(head);
 	}
 
+	/// <summary>Removes the held weapon; the arms drop to their rest pose.</summary>
+	public void ClearHeldItem()
+	{
+		HeldItem?.QueueFree();
+		HeldItem = null;
+		_ik.Active = false;
+	}
+
 	/// <summary>Replaces the held weapon and re-aims both arms at its grip markers.</summary>
 	public void AttachHeldItem(WeaponNode weapon)
 	{
 		HeldItem?.QueueFree();
 		HeldItem = weapon;
 		_weaponParent.AddChild(weapon);
+		_ik.Active = true;
 		_ik.SetTargetNode(0, _ik.GetPathTo(weapon.GripRight));
 		_ik.SetTargetNode(1, _ik.GetPathTo(weapon.GripLeft));
 	}

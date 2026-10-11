@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 namespace ProjectD;
@@ -31,6 +32,7 @@ public partial class M2Range : Node3D
 	{
 		(Key.Semicolon, "canned_food"), (Key.Apostrophe, "ration_pack"), (Key.Slash, "water_canteen"),
 	};
+	private static readonly string[] SpawnItemIds = { "pistol", "ak_type", "fal_type", "em2", "mg_type" };
 	private static readonly float[] TargetDistances = { 15f, 50f, 100f, 200f };
 	private static readonly Vector3 SpawnPoint = new(0f, 0.1f, 0f);
 
@@ -133,6 +135,36 @@ public partial class M2Range : Node3D
 				while (_player.Health.Consumables.IsBusy)
 					await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
 				GD.Print($"EAT done -> {EffectsLine()}");
+				continue;
+			}
+			if (a.StartsWith("use:"))
+			{
+				var id = a[4..];
+				var item = _player.Inventory.Inventory.AllItems().FirstOrDefault(i => i.Spec.Id == id);
+				var ok = item is not null && _player.UseItem(item);
+				GD.Print($"USE {id} started={ok}");
+				await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+				while (_player.Health.Medical.IsBusy || _player.Health.Consumables.IsBusy)
+					await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+				var left = _player.Inventory.Inventory.AllItems().Where(i => i.Spec.Id == id).Sum(i => i.Count);
+				GD.Print($"USE done: {id} left={left} weight={_player.TotalCarriedKg:0.00} -> {EffectsLine()}");
+				continue;
+			}
+			if (a.StartsWith("drag:"))
+			{
+				var f = a.Split(':');
+				await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+				var moved = _player.Screen.DebugDragToGrid(f[1], int.Parse(f[2]), int.Parse(f[3]), int.Parse(f[4]));
+				await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+				var where = _player.Inventory.Inventory.Locate(_player.Inventory.Inventory.AllItems().First(i => i.Spec.Id == f[1]));
+				var inGrid = where?.Grid is { } wg ? $"grid {wg.Width}x{wg.Height}" : where?.Slot?.ToString() ?? "nowhere";
+				GD.Print($"DRAG {a} attempted={moved} now in {inGrid}");
+				continue;
+			}
+			if (a.StartsWith("slot:"))
+			{
+				_player.SelectSlot(System.Enum.Parse<EquipSlot>(a[5..]));
+				GD.Print($"SLOT {a} -> weapon {_player.Weapon?.Data.Id ?? "none"} active={_player.ActiveSlot}");
 				continue;
 			}
 			if (a.StartsWith("wait:"))
@@ -267,6 +299,8 @@ public partial class M2Range : Node3D
 				_player.DebugAdjustHeight(notches);
 			else if (arg.StartsWith("--seed=") && int.TryParse(arg["--seed=".Length..], out var seed))
 				_player.Health.Seed = seed;
+			else if (arg == "--inventory")
+				_player.DebugToggleInventory();
 			else if (arg == "--prone")
 				_player.DebugSetStance(Stance.Prone);
 			else if (arg == "--crouch")
@@ -385,11 +419,18 @@ public partial class M2Range : Node3D
 		if (@event is not InputEventKey { Pressed: true, Echo: false } k)
 			return;
 		var index = (int)k.PhysicalKeycode - (int)Key.Key1;
-		if (index >= 0 && index < WeaponPaths.Length)
+		if (k.CtrlPressed && index >= 0 && index < SpawnItemIds.Length)
 		{
-			_player.EquipWeapon(GD.Load<WeaponData>(WeaponPaths[index]));
+			var spawned = InventoryComponent.Make(SpawnItemIds[index]);
+			var stored = spawned is not null && _player.Inventory.Inventory.TryAutoStore(spawned);
+			_message = stored ? $"Added {GameText.ItemName(SpawnItemIds[index])} to the inventory" : "No room in the inventory";
+			_messageUntil = Time.GetTicksMsec() / 1000.0 + 2.5;
+			if (stored)
+				_player.Inventory.NotifyChanged();
 			return;
 		}
+		if (index >= 0 && index < WeaponPaths.Length)
+			return;
 		switch (k.PhysicalKeycode)
 		{
 			case Key.F5 or Key.F6 or Key.F7 or Key.F8 or Key.F9 or Key.F10 or Key.F11:
@@ -477,6 +518,7 @@ public partial class M2Range : Node3D
 
 	public override void _Process(double delta)
 	{
+		_label.Visible = !_player.InventoryOpen;
 		var w = _player.Weapon;
 		var name = w is null ? "none" : Tr(w.Data.NameKey);
 		var mode = w?.State.Fire.Mode.ToString() ?? "-";
@@ -490,6 +532,6 @@ public partial class M2Range : Node3D
 			$"{PlayerHealthLine()}\n{EffectsLine()}\nmelee {_player.MeleeDebug}\n" +
 			$"last impact: {_lastImpact}   target hits {_hits}\n" +
 			$"{(Time.GetTicksMsec() / 1000.0 < _messageUntil ? _message : "")}{(w is { Controller.IsBusy: true } ? $"   [{w.Controller.Action} {w.Controller.Progress * 100f:0}%]" : "")}\n" +
-			"1-5 weapon  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  hold C+wheel height  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
+			"1-3 draw slot, Ctrl+1-5 add weapon, Tab inventory  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  hold C+wheel height  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
 	}
 }

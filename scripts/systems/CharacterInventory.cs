@@ -145,6 +145,68 @@ public sealed class CharacterInventory
 		return true;
 	}
 
+	/// <summary>
+	/// Moves an item from a known source (a slot, or any grid including a loot container) into a
+	/// grid cell. Undone if it does not fit. Merges into a same-type stack if one is at the cell.
+	/// </summary>
+	public bool TryMoveToGrid(ItemInstance item, ItemLocation from, InventoryGrid dest, int x, int y)
+	{
+		if (item.Contains(dest))
+			return false;
+		if (dest.ItemAt(x, y) is { } target && target != item && target.Spec.Id == item.Spec.Id
+			&& target.Spec.MaxStack > 1 && target.Count < target.Spec.MaxStack)
+		{
+			var moved = Math.Min(item.Count, target.Spec.MaxStack - target.Count);
+			target.Count += moved;
+			item.Count -= moved;
+			if (item.Count == 0)
+				Detach(item, from);
+			return true;
+		}
+		var wasRotated = item.Rotated;
+		Detach(item, from);
+		if (dest.TryPlace(item, x, y))
+			return true;
+		item.Rotated = wasRotated;
+		Reattach(item, from);
+		return false;
+	}
+
+	/// <summary>Equips an item from a known source; a displaced item goes to storage or the move is undone.</summary>
+	public bool TryEquipFrom(ItemInstance item, ItemLocation from, EquipSlot slot)
+	{
+		if (!SlotAccepts(slot, item.Spec))
+			return false;
+		Detach(item, from);
+		var previous = InSlot(slot);
+		if (previous is not null)
+			_slots.Remove(slot);
+		_slots[slot] = item;
+		if (previous is not null && !TryAutoStore(previous))
+		{
+			_slots[slot] = previous;
+			Reattach(item, from);
+			return false;
+		}
+		return true;
+	}
+
+	private void Detach(ItemInstance item, ItemLocation from)
+	{
+		if (from.Slot is { } s && _slots.TryGetValue(s, out var inSlot) && inSlot == item)
+			_slots.Remove(s);
+		else
+			from.Grid?.Remove(item);
+	}
+
+	private void Reattach(ItemInstance item, ItemLocation from)
+	{
+		if (from.Slot is { } s)
+			_slots[s] = item;
+		else
+			from.Grid?.TryPlaceAnywhere(item);
+	}
+
 	/// <summary>Takes an item out of its slot and stores it; false (unchanged) if there is no room.</summary>
 	public bool TryUnequip(EquipSlot slot)
 	{

@@ -46,6 +46,7 @@ public partial class HealthComponent : Node
 	public event Action<BodyPart>? LimbDestroyed;
 	public event Action<BodyPart>? Died;
 	public event Action<MedicalSpec, bool>? MedicalFinished;
+	public event Action<ConsumableSpec>? ConsumableFinished;
 
 	private HealthConfig Cfg => _config ??= new HealthConfig();
 
@@ -72,6 +73,7 @@ public partial class HealthComponent : Node
 		_medical.Finished += (spec, ok) => MedicalFinished?.Invoke(spec, ok);
 		_vitals = new VitalsModel(Cfg.ToVitalsTuning());
 		_consumables = new ConsumableController(_vitals);
+		_consumables.Finished += spec => ConsumableFinished?.Invoke(spec);
 	}
 
 	public void Equip(ArmorData data)
