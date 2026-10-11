@@ -31,10 +31,23 @@ public partial class AiPreset : Resource
 	[Export] public float HoldSeconds { get; set; } = 3f;
 	[Export] public float DecayPerS { get; set; } = 0.15f;
 
+	[ExportGroup("Behavior")]
+	/// <summary>Distance at which the AI stops closing in on a target it can see, metres.</summary>
+	[Export] public float EngageDistance { get; set; } = 25f;
+	[Export] public float WalkSpeed { get; set; } = 1.6f;
+	[Export] public float RunSpeed { get; set; } = 3.4f;
+	[Export] public float ArrivalRadius { get; set; } = 1.2f;
+	[Export] public float LookAroundS { get; set; } = 3f;
+	[Export] public float LostTargetS { get; set; } = 4f;
+	[Export] public float SearchS { get; set; } = 10f;
+	[Export] public float PatrolWaitS { get; set; } = 2f;
+
 	[ExportGroup("Loadout")]
 	[Export] public WeaponData? Weapon { get; set; }
 	[Export] public Array<ArmorData> Armor { get; set; } = new();
 	[Export] public HealthConfig? Health { get; set; }
+
+	public BrainTuning ToBrainTuning() => new(ArrivalRadius, LookAroundS, LostTargetS, SearchS, PatrolWaitS);
 
 	public PerceptionTuning ToPerceptionTuning() => new(
 		ViewDistance, FovDeg, PeripheralDeg, PeripheralDistance, CrouchVisibility, ProneVisibility,

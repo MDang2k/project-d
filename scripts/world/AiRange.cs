@@ -33,6 +33,7 @@ public partial class AiRange : Node3D
 
 		// Dev: --only=bandit keeps a single AI so one faction's senses can be measured alone.
 		var only = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--only="))?["--only=".Length..];
+		var standStill = OS.GetCmdlineUserArgs().Contains("--stand");
 		var spots = new[]
 		{
 			(new Vector3(10f, 0.1f, -18f), 150f), (new Vector3(-12f, 0.1f, -26f), 200f),
@@ -40,8 +41,14 @@ public partial class AiRange : Node3D
 		};
 		for (var i = 0; i < PresetIds.Length; i++)
 		{
-			if (only is null || only == PresetIds[i])
-				SpawnAi(PresetIds[i], spots[i].Item1, spots[i].Item2);
+			if (only is not null && only != PresetIds[i])
+				continue;
+			// Each AI patrols a small loop around its start point (or stands with --stand).
+			var c = spots[i].Item1;
+			var patrol = standStill
+				? System.Array.Empty<Vector3>()
+				: new[] { c, c + new Vector3(8f, 0f, 0f), c + new Vector3(8f, 0f, -8f), c + new Vector3(0f, 0f, -8f) };
+			SpawnAi(PresetIds[i], c, spots[i].Item2, patrol);
 		}
 
 		NoiseBus.Noise += n => _lastNoise = $"{n.Kind} ({n.Radius:0} m)";
@@ -52,7 +59,7 @@ public partial class AiRange : Node3D
 		ApplyDevArgs();
 	}
 
-	private void SpawnAi(string presetId, Vector3 position, float yawDeg)
+	private void SpawnAi(string presetId, Vector3 position, float yawDeg, Vector3[] patrol)
 	{
 		var ai = new AiHuman
 		{
@@ -60,9 +67,12 @@ public partial class AiRange : Node3D
 			Preset = GD.Load<AiPreset>($"res://data/ai/{presetId}.tres"),
 			Position = position,
 			RotationDegrees = new Vector3(0f, yawDeg, 0f),
+			PatrolPoints = patrol,
 		};
 		AddChild(ai);
 	}
+
+	private NavigationRegion3D _nav = null!;
 
 	private StaticBody3D Box(Vector3 pos, Vector3 size, Color color)
 	{
@@ -73,12 +83,25 @@ public partial class AiRange : Node3D
 			Mesh = new BoxMesh { Size = size },
 			MaterialOverride = new StandardMaterial3D { AlbedoColor = color },
 		});
-		AddChild(body);
+		_nav.AddChild(body);
 		return body;
 	}
 
 	private void BuildWorld()
 	{
+		_nav = new NavigationRegion3D
+		{
+			NavigationMesh = new NavigationMesh
+			{
+				AgentRadius = 0.5f,
+				AgentHeight = 2f,
+				AgentMaxClimb = 0.25f,
+				GeometryParsedGeometryType = NavigationMesh.ParsedGeometryType.StaticColliders,
+				CellSize = 0.25f,
+				CellHeight = 0.25f,
+			},
+		};
+		AddChild(_nav);
 		Box(new Vector3(0f, -0.5f, -40f), new Vector3(120f, 1f, 160f), new Color(0.3f, 0.35f, 0.25f));
 		var cover = new Color(0.55f, 0.5f, 0.4f);
 		// A wall hiding the second bandit from the spawn, low walls to crouch behind, a window frame.
@@ -87,6 +110,7 @@ public partial class AiRange : Node3D
 		Box(new Vector3(-3f, 0.45f, -5f), new Vector3(3f, 0.9f, 0.5f), cover);
 		Box(new Vector3(8f, 1.25f, -26f), new Vector3(0.5f, 2.5f, 10f), new Color(0.5f, 0.45f, 0.45f));
 		Box(new Vector3(-10f, 0.6f, -36f), new Vector3(5f, 1.2f, 0.5f), cover);
+		_nav.BakeNavigationMesh(false);
 		AddChild(new DirectionalLight3D { RotationDegrees = new Vector3(-50f, 30f, 0f), ShadowEnabled = true });
 		AddChild(new WorldEnvironment
 		{
@@ -173,7 +197,7 @@ public partial class AiRange : Node3D
 		if (report)
 		{
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
-				GD.Print($"AI {ai.Preset?.Id} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue}");
+				GD.Print($"AI {ai.Preset?.Id} state={ai.Brain.State} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue}");
 		}
 		if (shot is null)
 		{

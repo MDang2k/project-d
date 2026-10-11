@@ -31,8 +31,12 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		}
 	}
 
+	/// <summary>Patrol route (world positions); set before the node enters the tree. Empty means stand and scan.</summary>
+	public Vector3[] PatrolPoints { get; set; } = System.Array.Empty<Vector3>();
+
 	public HealthComponent Health { get; private set; } = null!;
 	public PerceptionModel Perception { get; private set; } = null!;
+	public AiBrain Brain { get; private set; } = null!;
 	public WeaponNode? Weapon { get; private set; }
 	public string LastCue { get; private set; } = "-";
 
@@ -44,7 +48,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private float _tickAcc;
 	private float _deadTimer;
 	private float _scanClock;
-	private float _baseYaw;
+	private float _scanBaseYaw;
+	private NavigationAgent3D _agent = null!;
+	private Vector3 _agentTarget = new(float.NaN, 0f, 0f);
 	private float _gravity = 9.8f;
 
 	// --- IPerceivable ----------------------------------------------------------------------
@@ -69,11 +75,21 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Preset ??= new AiPreset();
 		_tuning = Preset.ToPerceptionTuning();
 		Perception = new PerceptionModel(_tuning);
+		Brain = new AiBrain(Preset.ToBrainTuning());
+		Brain.SetPatrol(PatrolPoints);
 		_gravity = ProjectSettings.GetSetting("physics/3d/default_gravity", 9.8f).AsSingle();
 		CollisionLayer = 1u << 3;
 		CollisionMask = 1u;
 		AddToGroup("perceivables");
-		_baseYaw = Rotation.Y;
+		_scanBaseYaw = Rotation.Y;
+		_agent = new NavigationAgent3D
+		{
+			PathDesiredDistance = 0.6f,
+			TargetDesiredDistance = Preset.ArrivalRadius,
+			Radius = 0.4f,
+			Height = 1.8f,
+		};
+		AddChild(_agent);
 
 		AddChild(new CollisionShape3D
 		{
@@ -184,6 +200,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var delta = (float)deltaD;
 		if (Health.IsDead)
 		{
+			Brain.Update(delta, new AiSenses(AwarenessLevel.Unaware, false, null, 99f), false, true);
 			_noises.Clear();
 			_deadTimer -= delta;
 			if (_deadTimer <= 0f)
@@ -192,20 +209,86 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			return;
 		}
 
-		var vel = Velocity;
-		vel.X = vel.Z = 0f;
-		vel.Y = IsOnFloor() ? 0f : vel.Y - _gravity * delta;
-		Velocity = vel;
-		MoveAndSlide();
-
 		_tickAcc += delta;
 		if (_tickAcc >= TickS)
 		{
 			PerceiveTick(_tickAcc);
 			_tickAcc = 0f;
 		}
-		Turn(delta);
+		var senses = new AiSenses(Perception.Level, Perception.SeesTarget, Perception.InterestPoint,
+			Perception.SecondsSinceCue);
+		Brain.Update(delta, senses, _arrived, false);
+		Move(delta);
 		UpdateLabel();
+	}
+
+	private bool _arrived;
+
+	/// <summary>Walks the brain's destination over the navmesh; in combat closes in and faces the target.</summary>
+	private void Move(float delta)
+	{
+		Vector3? destination = Brain.Destination;
+		var speed = Brain.State == AiState.Patrol ? Preset!.WalkSpeed : Preset!.RunSpeed * 0.75f;
+		float? faceYaw = null;
+
+		if (Brain.State == AiState.Combat && Perception.InterestPoint is { } target)
+		{
+			var to = target - GlobalPosition;
+			faceYaw = Mathf.Atan2(-to.X, -to.Z);
+			var close = new Vector2(to.X, to.Z).Length() <= Preset.EngageDistance && Perception.SeesTarget;
+			destination = close ? null : target;
+			speed = Preset.RunSpeed;
+		}
+
+		var flatVel = Vector3.Zero;
+		_arrived = destination is null;
+		if (destination is { } dest)
+		{
+			if (!_agentTarget.IsFinite() || _agentTarget.DistanceTo(dest) > 0.5f)
+			{
+				_agentTarget = dest;
+				_agent.TargetPosition = dest;
+			}
+			var flat = new Vector2(dest.X - GlobalPosition.X, dest.Z - GlobalPosition.Z);
+			if (flat.Length() <= Preset.ArrivalRadius || _agent.IsNavigationFinished())
+			{
+				_arrived = true;
+			}
+			else
+			{
+				var next = _agent.GetNextPathPosition() - GlobalPosition;
+				next.Y = 0f;
+				if (next.LengthSquared() > 0.0001f)
+				{
+					flatVel = next.Normalized() * speed;
+					faceYaw ??= Mathf.Atan2(-next.X, -next.Z);
+				}
+			}
+		}
+		else
+		{
+			_agentTarget = new Vector3(float.NaN, 0f, 0f);
+		}
+
+		var vel = Velocity;
+		vel.X = flatVel.X;
+		vel.Z = flatVel.Z;
+		vel.Y = IsOnFloor() ? 0f : vel.Y - _gravity * delta;
+		Velocity = vel;
+		MoveAndSlide();
+
+		// Standing around: sweep the view around where the AI was last facing.
+		if (faceYaw is null)
+		{
+			_scanClock += delta;
+			faceYaw = _scanBaseYaw + Mathf.DegToRad(Mathf.Sin(_scanClock * 0.5f) * 70f);
+		}
+		else
+		{
+			_scanBaseYaw = faceYaw.Value;
+		}
+		var yaw = Mathf.RotateToward(Rotation.Y, faceYaw.Value, Mathf.DegToRad(TurnSpeedDegS) * delta);
+		Rotation = new Vector3(0f, yaw, 0f);
 	}
 
 	private void Respawn()
@@ -213,6 +296,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Health.Reset();
 		Perception.Reset();
 		LastCue = "-";
+		Brain.Update(0f, new AiSenses(AwarenessLevel.Unaware, false, null, 99f), false, false);
 	}
 
 	private void PerceiveTick(float dt)
@@ -280,24 +364,6 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Perception.Tick(dt);
 	}
 
-	/// <summary>Idle: sweep the view back and forth. Noticed something: turn toward it.</summary>
-	private void Turn(float delta)
-	{
-		float targetYaw;
-		if (Perception.InterestPoint is { } point && Perception.Level != AwarenessLevel.Unaware)
-		{
-			var to = point - GlobalPosition;
-			targetYaw = Mathf.Atan2(-to.X, -to.Z);
-		}
-		else
-		{
-			_scanClock += delta;
-			targetYaw = _baseYaw + Mathf.DegToRad(Mathf.Sin(_scanClock * 0.5f) * 70f);
-		}
-		var yaw = Mathf.RotateToward(Rotation.Y, targetYaw, Mathf.DegToRad(TurnSpeedDegS) * delta);
-		Rotation = new Vector3(0f, yaw, 0f);
-	}
-
 	private void UpdateLabel()
 	{
 		if (_label is null || !_showDebug)
@@ -308,7 +374,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			return;
 		}
 		var seeing = Perception.SeesTarget ? "  SEES" : "";
-		_label.Text = $"{Preset!.Id}\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
+		_label.Text = $"{Preset!.Id}  [{Brain.State}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
 		_label.Modulate = Perception.Level switch
 		{
 			AwarenessLevel.Alert => new Color(1f, 0.3f, 0.25f),
