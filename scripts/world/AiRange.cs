@@ -65,6 +65,7 @@ public partial class AiRange : Node3D
 		_label = new Label { Position = new Vector2(12f, 12f) };
 		layer.AddChild(_label);
 		AddChild(layer);
+		BuildMenu(layer);
 		ApplyDevArgs();
 	}
 
@@ -79,6 +80,7 @@ public partial class AiRange : Node3D
 			PatrolPoints = patrol,
 		};
 		AddChild(ai);
+		ai.ShowDebug = _debug;
 	}
 
 	private NavigationRegion3D _nav = null!;
@@ -147,6 +149,9 @@ public partial class AiRange : Node3D
 			return;
 		switch (key.Keycode)
 		{
+			case Key.F1:
+				ToggleMenu();
+				break;
 			case Key.F2:
 				_player.DebugNoclip = !_player.DebugNoclip;
 				break;
@@ -171,6 +176,7 @@ public partial class AiRange : Node3D
 
 	public override void _Process(double delta)
 	{
+		RefreshMenu();
 		if (_traceOn)
 		{
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
@@ -191,7 +197,7 @@ public partial class AiRange : Node3D
 			var d = ai.GlobalPosition.DistanceTo(_player.GlobalPosition);
 			sb.AppendLine($"{ai.Preset?.Id,-11} {d,5:0} m  {ai.Perception.Level,-10} {ai.Perception.Awareness * 100f,3:0}%  {ai.LastCue}");
 		}
-		sb.Append("V fire  RMB aim  Shift sprint  C crouch  Z prone  F4 AI debug " + (_debug ? "ON" : "off") + "  F3 your side " + _player.Faction + "  F2 noclip " + (_player.DebugNoclip ? "ON (Space up, C down, Shift fast)" : "off") + "  Backspace respawn");
+		sb.Append("V fire  RMB aim  Shift sprint  C crouch  Z prone  F4 AI debug " + (_debug ? "ON" : "off") + "  F1 DEBUG MENU  F3 your side " + _player.Faction + "  F2 noclip " + (_player.DebugNoclip ? "ON (Space up, C down, Shift fast)" : "off") + "  Backspace respawn");
 		_label.Text = sb.ToString();
 		_ = w;
 	}
@@ -219,6 +225,10 @@ public partial class AiRange : Node3D
 			else if (arg.StartsWith("--corpse=") && arg["--corpse=".Length..].Split(',') is { Length: 2 } cxy
 				&& float.TryParse(cxy[0], out var cx) && float.TryParse(cxy[1], out var cz))
 				CorpseSpawner.Spawn(this, new Vector3(cx, 0f, cz), new[] { "flak_vest_t1" });
+			else if (arg == "--menu")
+				ToggleMenu();
+			else if (arg == "--norespawn")
+				AiHuman.AutoRespawn = false;
 			else if (arg == "--noclip")
 				_player.DebugNoclip = true;
 			else if (arg == "--report")

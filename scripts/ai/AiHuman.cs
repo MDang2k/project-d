@@ -17,6 +17,12 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	[Export] public AiPreset? Preset { get; set; }
 
+	/// <summary>Dev: dead AI come back after a few seconds. Off lets bodies stay and be looted.</summary>
+	public static bool AutoRespawn { get; set; } = true;
+
+	/// <summary>Dev: freezes every AI in place (they stop thinking, moving and shooting).</summary>
+	public static bool Paused { get; set; }
+
 	/// <summary>Draw the vision cone and awareness label (dev).</summary>
 	public bool ShowDebug
 	{
@@ -211,10 +217,23 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		{
 			Brain.Update(delta, new AiSenses(AwarenessLevel.Unaware, false, null, 99f), false, true);
 			_noises.Clear();
-			_deadTimer -= delta;
+			if (AutoRespawn)
+				_deadTimer -= delta;
 			if (_deadTimer <= 0f)
 				Respawn();
 			UpdateLabel();
+			return;
+		}
+
+		if (Paused)
+		{
+			Velocity = Vector3.Zero;
+			_noises.Clear();
+			if (Weapon is not null)
+			{
+				Weapon.TriggerHeld = false;
+				Weapon.TriggerPressed = false;
+			}
 			return;
 		}
 
