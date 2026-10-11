@@ -60,6 +60,10 @@ public sealed class ItemInstance
 	public List<InventoryGrid> Grids { get; } = new();
 	/// <summary>Magazines: loaded rounds as ammo ids, last is fed first.</summary>
 	public List<string> Rounds { get; } = new();
+	/// <summary>Weapons: the magazine currently inserted (its weight counts with the weapon).</summary>
+	public ItemInstance? InsertedMagazine { get; set; }
+	/// <summary>Weapons: ammo id of the round in the chamber, if any.</summary>
+	public string? Chambered { get; set; }
 
 	public int Width => Rotated ? Spec.Height : Spec.Width;
 	public int Height => Rotated ? Spec.Width : Spec.Height;
@@ -71,7 +75,7 @@ public sealed class ItemInstance
 	{
 		get
 		{
-			var w = Spec.WeightKg * Count + Rounds.Count * Spec.RoundWeightKg;
+			var w = Spec.WeightKg * Count + Rounds.Count * Spec.RoundWeightKg + (InsertedMagazine?.WeightKg ?? 0f);
 			foreach (var grid in Grids)
 				w += grid.Items.Sum(i => i.WeightKg);
 			return w;

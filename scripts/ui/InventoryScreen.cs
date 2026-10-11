@@ -177,7 +177,9 @@ public partial class InventoryScreen : CanvasLayer
 		if (!IsOpen)
 			return;
 		_header.Text = $"Weight {_player.TotalCarriedKg:0.0} kg ({_player.Tier})   |   Drag to move, R rotate, " +
-			"double-click use or equip, Tab or Esc close. The raid keeps running.";
+			"double-click use, equip or unload, drop ammo on a magazine to load, " +
+			"release over empty space to drop, Tab or Esc close.   " +
+			_player.LoaderStatus;
 		if (_container is not null && _searchBar is not null && _searchLabel is not null)
 		{
 			var m = _container.Model;
@@ -358,6 +360,16 @@ public partial class InventoryScreen : CanvasLayer
 				continue;
 			var x = (int)Mathf.Floor((topLeft.X - g.GlobalPosition.X + GridView.Cell * 0.5f) / GridView.Cell);
 			var y = (int)Mathf.Floor((topLeft.Y - g.GlobalPosition.Y + GridView.Cell * 0.5f) / GridView.Cell);
+			// Ammo dropped on a magazine loads it over time instead of moving the stack.
+			var (px, py) = g.CellAt(pos);
+			if (g.Grid.ItemAt(px, py) is { } under && under != item && MagazineLoader.CanLoad(under, item))
+			{
+				_player.TryLoadMagazine(under, item);
+				item.Rotated = _heldWasRotated;
+				_held = null;
+				_drag.QueueRedraw();
+				return;
+			}
 			done = inv.TryMoveToGrid(item, _heldFrom, g.Grid, x, y);
 			break;
 		}
@@ -371,12 +383,41 @@ public partial class InventoryScreen : CanvasLayer
 				break;
 			}
 		}
+		if (!done && !OverAnyPanel(pos))
+			done = DropHeld(item);
 		if (!done)
 			item.Rotated = _heldWasRotated;
 		_held = null;
 		_drag.QueueRedraw();
 		if (done)
 			_player.Inventory.NotifyChanged();
+	}
+
+	private bool OverAnyPanel(Vector2 pos)
+		=> _grids.Any(g => g.GetGlobalRect().HasPoint(pos)) || _slots.Any(s => s.GetGlobalRect().HasPoint(pos))
+			|| _health.GetGlobalRect().HasPoint(pos);
+
+	/// <summary>Releasing an item over empty space drops it on the ground (a pickup you can search).</summary>
+	private bool DropHeld(ItemInstance item)
+	{
+		var inv = _player.Inventory.Inventory;
+		if (_heldFrom.Slot is { } slot)
+		{
+			if (inv.InSlot(slot) != item)
+				return false;
+			inv.Remove(item);
+		}
+		else if (_heldFrom.Grid is { } grid)
+		{
+			if (!grid.Remove(item))
+				return false;
+		}
+		else
+		{
+			return false;
+		}
+		_player.DropItem(item);
+		return true;
 	}
 
 	private void CancelDrag()
@@ -411,6 +452,9 @@ public partial class InventoryScreen : CanvasLayer
 			case QuickActionKind.Use:
 				_player.UseItem(item);
 				break;
+			case QuickActionKind.Unload:
+				_player.TryUnloadMagazine(item);
+				break;
 		}
 		if (changed)
 			_player.Inventory.NotifyChanged();
@@ -435,6 +479,24 @@ public partial class InventoryScreen : CanvasLayer
 			var to = target.GlobalPosition + new Vector2(cellX + 0.5f, cellY + 0.5f) * GridView.Cell;
 			OnPress(from, false);
 			OnRelease(to);
+			return true;
+		}
+		return false;
+	}
+
+	/// <summary>Dev: drags the first item with this id out of every panel and releases it.</summary>
+	public bool DebugDropOut(string itemId)
+	{
+		if (!IsOpen)
+			Open();
+		foreach (var g in _grids)
+		{
+			var item = g.Grid.Items.FirstOrDefault(i => i.Spec.Id == itemId);
+			if (item is null || g.Grid.PositionOf(item) is not { } p)
+				continue;
+			var from = g.GlobalPosition + new Vector2(p.X + 0.5f, p.Y + 0.5f) * GridView.Cell;
+			OnPress(from, false);
+			OnRelease(new Vector2(1500f, 900f));
 			return true;
 		}
 		return false;

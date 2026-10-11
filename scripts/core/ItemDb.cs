@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 namespace ProjectD;
@@ -41,4 +42,47 @@ public partial class ItemDb : Node
 	public static ItemInstance? Create(string id, int count = 1) => Instance?.Registry.Create(id, count);
 
 	public static ItemData? Data(string id) => Instance?.Registry.Data(id);
+
+	private readonly System.Collections.Generic.Dictionary<string, AmmoType?> _ammoCache = new();
+
+	/// <summary>Runtime ammo type for an AmmoData id (as stored in magazines and chambers).</summary>
+	public static AmmoType? AmmoTypeById(string ammoId) => Instance?.LookupAmmo(ammoId);
+
+	private AmmoType? LookupAmmo(string ammoId)
+	{
+		if (_ammoCache.TryGetValue(ammoId, out var cached))
+			return cached;
+		AmmoType? found = null;
+		foreach (var id in Registry.Ids)
+		{
+			if (Registry.Data(id)?.Payload is AmmoData a && a.Id == ammoId)
+			{
+				found = a.ToType();
+				break;
+			}
+		}
+		_ammoCache[ammoId] = found;
+		return found;
+	}
+
+	/// <summary>Item id of the ammo stack that holds rounds with this AmmoData id.</summary>
+	public static string? AmmoItemId(string ammoId)
+	{
+		var r = Instance?.Registry;
+		return r?.Ids.FirstOrDefault(id => r.Data(id) is { Category: ItemCategory.Ammo } d && d.AmmoId == ammoId);
+	}
+
+	/// <summary>A magazine item definition for a caliber (used to rebuild debug magazines).</summary>
+	public static ItemData? MagazineFor(string caliber)
+	{
+		var r = Instance?.Registry;
+		if (r is null)
+			return null;
+		foreach (var id in r.Ids)
+		{
+			if (r.Data(id) is { Category: ItemCategory.Magazine } d && d.Caliber == caliber)
+				return d;
+		}
+		return null;
+	}
 }

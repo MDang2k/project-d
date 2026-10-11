@@ -167,6 +167,40 @@ public partial class M2Range : Node3D
 				GD.Print($"DRAG {a} attempted={moved} now in {inGrid}");
 				continue;
 			}
+			if (a.StartsWith("load:"))
+			{
+				var inv = _player.Inventory.Inventory.AllItems().ToList();
+				var mag = inv.Where(i => i.Spec.Category == ItemCategory.Magazine && i.Spec.Caliber == "7.62x39")
+					.OrderBy(i => i.Rounds.Count).First();
+				var ammo = inv.First(i => i.Spec.Id == "ammo_7_62x39");
+				var before = mag.Rounds.Count;
+				var loading = _player.TryLoadMagazine(mag, ammo);
+				GD.Print($"LOAD started={loading} mag {before}/{mag.Spec.MagazineCapacity} stack={ammo.Count}");
+				while (!(_player.LoaderStatus == ""))
+					await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"LOAD done mag {mag.Rounds.Count}/{mag.Spec.MagazineCapacity} stack={ammo.Count} weight={_player.TotalCarriedKg:0.00}");
+				continue;
+			}
+			if (a.StartsWith("dropout:"))
+			{
+				await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+				var id = a[8..];
+				var before = _player.Inventory.Inventory.AllItems().Count(i => i.Spec.Id == id);
+				var ok = _player.Screen.DebugDropOut(id);
+				await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+				var after = _player.Inventory.Inventory.AllItems().Count(i => i.Spec.Id == id);
+				var pickups = GetTree().GetNodesInGroup("dropped_items").Count;
+				GD.Print($"DROP {id} attempted={ok} count {before}->{after} pickups on ground={pickups} weight={_player.TotalCarriedKg:0.00}");
+				continue;
+			}
+			if (a == "pickup")
+			{
+				var ok = _player.DebugPickUpNearest();
+				var left = GetTree().GetNodesInGroup("dropped_items").Count;
+				await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"PICKUP ok={ok} ground items left={left} weight={_player.TotalCarriedKg:0.00}");
+				continue;
+			}
 			if (a.StartsWith("slot:"))
 			{
 				_player.SelectSlot(System.Enum.Parse<EquipSlot>(a[5..]));
@@ -190,7 +224,7 @@ public partial class M2Range : Node3D
 			GD.Print($"ACTION {a} started={started}");
 			while (c.IsBusy)
 				await ToSignal(GetTree().CreateTimer(0.1), SceneTreeTimer.SignalName.Timeout);
-			GD.Print($"DONE {a}: total rounds {c.State.RoundsAvailable}, mag {c.State.Magazine?.Count}, spares {c.Pouch.Count}");
+			GD.Print($"DONE {a}: total rounds {c.State.RoundsAvailable}, mag {c.State.Magazine?.Count}, spares {_player.Inventory.Inventory.AllItems().Count(i => i.Spec.Category == ItemCategory.Magazine)}");
 		}
 	}
 

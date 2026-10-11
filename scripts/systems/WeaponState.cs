@@ -19,6 +19,9 @@ public sealed class WeaponState
 
 	public void InsertMagazine(Magazine magazine) => Magazine = magazine;
 
+	/// <summary>Restores a chambered round when a weapon item is drawn again.</summary>
+	public void SetChamber(AmmoType? round) => Chamber = round;
+
 	public Magazine? EjectMagazine()
 	{
 		var m = Magazine;

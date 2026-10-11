@@ -2,7 +2,7 @@ using System.Linq;
 
 namespace ProjectD;
 
-public enum QuickActionKind { None, Equip, Unequip, Use }
+public enum QuickActionKind { None, Equip, Unequip, Use, Unload }
 
 public readonly record struct QuickAction(QuickActionKind Kind, EquipSlot? Slot = null);
 
@@ -19,6 +19,9 @@ public static class InventoryActions
 	{
 		if (location is { Slot: not null })
 			return new QuickAction(QuickActionKind.Unequip, location.Value.Slot);
+
+		if (item.Spec.Category == ItemCategory.Magazine && item.Rounds.Count > 0)
+			return new QuickAction(QuickActionKind.Unload);
 
 		switch (item.Spec.Category)
 		{

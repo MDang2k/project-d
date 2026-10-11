@@ -38,8 +38,8 @@ public partial class InventoryComponent : Node
 	/// <summary>Developer loadout used until the stash and traders exist (M7).</summary>
 	public void GiveStartingKit()
 	{
-		Equip("ak_type", EquipSlot.Primary);
-		Equip("pistol", EquipSlot.Pistol);
+		Load(Equip("ak_type", EquipSlot.Primary), "ak_mag", "7_62x39", 30);
+		Load(Equip("pistol", EquipSlot.Pistol), "pistol_mag", "9x19", 8);
 		Equip("combat_knife", EquipSlot.Melee);
 		Equip("flak_vest_t2", EquipSlot.Vest);
 		Equip("steel_helmet_t1", EquipSlot.Head);
@@ -49,6 +49,7 @@ public partial class InventoryComponent : Node
 
 		for (var i = 0; i < 3; i++)
 			Store(MakeMagazine("ak_mag", "7_62x39", 30));
+		Store(MakeMagazine("ak_mag", "7_62x39", 12));
 		for (var i = 0; i < 2; i++)
 			Store(MakeMagazine("pistol_mag", "9x19", 8));
 		Store(Make("ammo_7_62x39", 60));
@@ -62,10 +63,25 @@ public partial class InventoryComponent : Node
 		NotifyChanged();
 	}
 
-	private void Equip(string id, EquipSlot slot)
+	private ItemInstance? Equip(string id, EquipSlot slot)
 	{
-		if (Make(id) is { } item && !Inventory.TryEquip(item, slot))
+		var item = Make(id);
+		if (item is not null && !Inventory.TryEquip(item, slot))
 			GD.PushWarning($"[Inventory] could not equip {id} in {slot}");
+		return item;
+	}
+
+	/// <summary>Inserts a full magazine and chambers a round, as if loaded before the raid.</summary>
+	private static void Load(ItemInstance? weapon, string magId, string ammoId, int rounds)
+	{
+		if (weapon is null)
+			return;
+		var mag = MakeMagazine(magId, ammoId, rounds);
+		if (mag is null || mag.Rounds.Count == 0)
+			return;
+		mag.Rounds.RemoveAt(mag.Rounds.Count - 1);
+		weapon.InsertedMagazine = mag;
+		weapon.Chambered = ammoId;
 	}
 
 	private void Store(ItemInstance? item)

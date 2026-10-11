@@ -149,6 +149,10 @@ public partial class PlayerConfig : Resource
 	[Export] public float ClearanceOutSpeed { get; set; } = 4f;
 	[Export] public float ClearanceFireBlockFraction { get; set; } = 0.6f;
 
+	[ExportGroup("Magazines")]
+	/// <summary>Seconds to load or unload one round from the inventory (GDD s7).</summary>
+	[Export] public float MagLoadSecondsPerRound { get; set; } = 0.2f;
+
 	[ExportGroup("Melee")]
 	/// <summary>Radius of the swing-assist sphere at the end of reach, metres.</summary>
 	[Export] public float MeleeAssistRadius { get; set; } = 0.3f;

@@ -31,8 +31,18 @@ public sealed record ActionTuning(
 		EjectAt: 0.4f, AlmostEmptyMax: 0.25f, HalfMax: 0.75f);
 }
 
-/// <summary>Spare magazines carried for the weapon. Real inventory arrives in M4.</summary>
-public sealed class MagazinePouch
+/// <summary>Where spare magazines come from and go back to (the inventory, or a debug pouch).</summary>
+public interface IMagazineStore
+{
+	/// <summary>Removes and returns the compatible magazine with the most rounds; null if none.</summary>
+	Magazine? TakeFullest();
+
+	/// <summary>Gives a magazine back (tactical reload, or an unusable spare).</summary>
+	void Return(Magazine magazine);
+}
+
+/// <summary>Debug pouch of spare magazines, used when no inventory is attached.</summary>
+public sealed class MagazinePouch : IMagazineStore
 {
 	private readonly List<Magazine> _mags = new();
 
@@ -41,6 +51,8 @@ public sealed class MagazinePouch
 	public void Clear() => _mags.Clear();
 
 	public void Add(Magazine magazine) => _mags.Add(magazine);
+
+	public void Return(Magazine magazine) => _mags.Add(magazine);
 
 	/// <summary>Removes and returns the magazine with the most rounds; null when none.</summary>
 	public Magazine? TakeFullest()
@@ -67,6 +79,9 @@ public sealed class WeaponController
 
 	public WeaponState State { get; }
 	public MagazinePouch Pouch { get; } = new();
+
+	/// <summary>Spare magazines source; defaults to the debug pouch, the player swaps in the inventory.</summary>
+	public IMagazineStore Store { get; set; } = null!;
 	public WeaponActionKind Action { get; private set; }
 	public bool IsBusy => Action != WeaponActionKind.None;
 	public float Progress => _duration > 0f ? Math.Min(_elapsed / _duration, 1f) : 0f;
@@ -82,6 +97,7 @@ public sealed class WeaponController
 	{
 		State = state;
 		_t = tuning;
+		Store = Pouch;
 	}
 
 	/// <summary>Starts a reload with the fullest spare magazine; false if busy or no usable spare.</summary>
@@ -89,12 +105,12 @@ public sealed class WeaponController
 	{
 		if (IsBusy)
 			return false;
-		var spare = Pouch.TakeFullest();
+		var spare = Store.TakeFullest();
 		if (spare is null)
 			return false;
 		if (spare.IsEmpty)
 		{
-			Pouch.Add(spare);
+			Store.Return(spare);
 			return false;
 		}
 		_incoming = spare;
@@ -174,7 +190,7 @@ public sealed class WeaponController
 		if (Action == WeaponActionKind.FastReload)
 			MagazineDropped?.Invoke(old);
 		else
-			Pouch.Add(old);
+			Store.Return(old);
 	}
 
 	private void FinishReload()

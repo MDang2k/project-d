@@ -98,7 +98,9 @@ public partial class Player : CharacterBody3D
 	private InventoryScreen _screen = null!;
 	private Label _prompt = null!;
 	private ItemInstance? _pendingUse;
-	private string? _heldWeaponItemId;
+	private int? _heldWeaponUid;
+	private MagazineLoader _loader = null!;
+	private ItemInstance? _loadAmmo;
 	private PainOverlay _pain = null!;
 	private Penalties _penalties = new(1f, 1f, false, 1f, 0f);
 	private StanceHeightModel _heights = null!;
@@ -136,6 +138,9 @@ public partial class Player : CharacterBody3D
 		_melee = new MeleeModel(MeleeWeapon?.ToSpec() ?? new MeleeSpec("fists", 12f, 1, 1.4f, 0.2f, 0.5f, 6f));
 		_pain = new PainOverlay { Name = "PainOverlay" };
 		AddChild(_pain);
+		_loader = new MagazineLoader(_cfg.MagLoadSecondsPerRound);
+		_loader.Finished += OnLoaderFinished;
+		_loader.RoundUnloaded += OnRoundUnloaded;
 		_screen = new InventoryScreen { Name = "InventoryScreen" };
 		AddChild(_screen);
 		_screen.Bind(this);
@@ -285,37 +290,104 @@ public partial class Player : CharacterBody3D
 		UpdateRig(delta);
 	}
 
-	/// <summary>F: search the container in front of you; moving away closes its window.</summary>
+	/// <summary>
+	/// F: search the container in front of you (moving away closes its window) or pick up a
+	/// dropped item directly.
+	/// </summary>
 	private void UpdateInteract()
 	{
-	var from = _camera.GlobalPosition;
-	var forward = -_camera.GlobalBasis.Z;
-	LootContainer? best = null;
-	var bestDist = float.MaxValue;
-	foreach (var node in GetTree().GetNodesInGroup("loot_containers"))
-	{
-		if (node is not LootContainer c)
-			continue;
-		var to = c.GlobalPosition + Vector3.Up * 0.4f - from;
-		var dist = to.Length();
-		if (dist > InteractReach || dist < 0.01f || forward.Dot(to / dist) < 0.5f || dist >= bestDist)
-			continue;
-		best = c;
-		bestDist = dist;
+		var from = _camera.GlobalPosition;
+		var forward = -_camera.GlobalBasis.Z;
+		LootContainer? container = null;
+		DroppedItem? dropped = null;
+		var bestDist = float.MaxValue;
+
+		bool Candidate(Vector3 point, out float dist)
+		{
+			var to = point - from;
+			dist = to.Length();
+			return dist <= InteractReach && dist > 0.01f && forward.Dot(to / dist) >= 0.5f && dist < bestDist;
+		}
+
+		foreach (var node in GetTree().GetNodesInGroup("loot_containers"))
+		{
+			if (node is LootContainer c && Candidate(c.GlobalPosition + Vector3.Up * 0.4f, out var d))
+			{
+				container = c;
+				dropped = null;
+				bestDist = d;
+			}
+		}
+		foreach (var node in GetTree().GetNodesInGroup("dropped_items"))
+		{
+			if (node is DroppedItem di && Candidate(di.GlobalPosition, out var d))
+			{
+				dropped = di;
+				container = null;
+				bestDist = d;
+			}
+		}
+
+		if (_screen.Container is { } open)
+		{
+			if ((open.GlobalPosition - GlobalPosition).Length() > InteractReach + 1.2f)
+				_screen.CloseContainer();
+			_prompt.Visible = false;
+			return;
+		}
+		_prompt.Visible = (container is not null || dropped is not null) && !_screen.IsOpen && !Health.IsDead;
+		if (!_prompt.Visible)
+			return;
+		_prompt.Text = dropped is not null
+			? GameText.Get("msg.pickup.prompt", dropped.Title)
+			: GameText.Get("msg.search.prompt", container!.Title);
+		if (!Input.IsActionJustPressed("interact") || Input.MouseMode != Input.MouseModeEnum.Captured)
+			return;
+		if (dropped is not null)
+			PickUp(dropped);
+		else
+			_screen.OpenWithContainer(container!);
 	}
-	if (_screen.Container is { } open)
+
+	/// <summary>Dev helper: picks up the nearest dropped item regardless of aim.</summary>
+	public bool DebugPickUpNearest()
 	{
-		if ((open.GlobalPosition - GlobalPosition).Length() > InteractReach + 1.2f)
-			_screen.CloseContainer();
-		_prompt.Visible = false;
-		return;
+		DroppedItem? best = null;
+		var bestDist = float.MaxValue;
+		foreach (var node in GetTree().GetNodesInGroup("dropped_items"))
+		{
+			if (node is DroppedItem d && d.GlobalPosition.DistanceTo(GlobalPosition) < bestDist)
+			{
+				best = d;
+				bestDist = d.GlobalPosition.DistanceTo(GlobalPosition);
+			}
+		}
+		if (best is null)
+			return false;
+		PickUp(best);
+		return true;
 	}
-	_prompt.Visible = best is not null && !_screen.IsOpen && !Health.IsDead;
-	if (best is null)
-		return;
-	_prompt.Text = GameText.Get("msg.search.prompt", best.Title);
-	if (Input.IsActionJustPressed("interact") && Input.MouseMode == Input.MouseModeEnum.Captured && !_screen.IsOpen)
-		_screen.OpenWithContainer(best);
+
+	/// <summary>Takes a dropped item into pockets, rig or backpack; equips it if only a slot is free.</summary>
+	private void PickUp(DroppedItem dropped)
+	{
+		var item = dropped.Item;
+		var inv = Inventory.Inventory;
+		var taken = inv.TryAutoStore(item);
+		if (!taken)
+		{
+			var action = InventoryActions.Quick(inv, item, null);
+			if (action is { Kind: QuickActionKind.Equip, Slot: { } slot } && inv.InSlot(slot) is null)
+				taken = inv.TryEquip(item, slot);
+		}
+		if (!taken)
+		{
+			WeaponMessage?.Invoke(GameText.Get("msg.pickup.no_room"));
+			return;
+		}
+		dropped.QueueFree();
+		WeaponMessage?.Invoke(GameText.Get("msg.pickup.done", GameText.ItemName(item.Spec.Id)));
+		Inventory.NotifyChanged();
 	}
 
 	private const float InteractReach = 2.4f;
@@ -416,20 +488,20 @@ public partial class Player : CharacterBody3D
 		var item = Inventory.Inventory.InSlot(ActiveSlot);
 		if (item is null)
 		{
-			if (_heldWeaponItemId is not null)
+			if (_heldWeaponUid is not null)
 			{
 				_support.FoldBipod();
 				_body.ClearHeldItem();
-				_heldWeaponItemId = null;
+				_heldWeaponUid = null;
 			}
 			return;
 		}
-		if (_heldWeaponItemId == item.Spec.Id)
+		if (_heldWeaponUid == item.Uid)
 			return;
 		if (ItemDb.Data(item.Spec.Id)?.Payload is WeaponData data)
 		{
-			EquipWeapon(data);
-			_heldWeaponItemId = item.Spec.Id;
+			EquipWeapon(data, item);
+			_heldWeaponUid = item.Uid;
 		}
 	}
 
@@ -464,16 +536,19 @@ public partial class Player : CharacterBody3D
 	}
 
 	/// <summary>Replaces the held weapon (full magazine, chambered).</summary>
-	public void EquipWeapon(WeaponData data)
+	public void EquipWeapon(WeaponData data, ItemInstance? item = null)
 	{
 		_support.FoldBipod();
-		var weapon = WeaponNode.Create(data);
+		var weapon = WeaponNode.Create(data, item);
+		if (item is not null)
+			weapon.Controller.Store = new InventoryMagazineStore(Inventory.Inventory, data.Ammo?.Caliber,
+				Inventory.NotifyChanged, DropItemToWorld);
 		weapon.ShotFired += OnShotFired;
 		weapon.DryFired += () => WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
 		weapon.Controller.MagChecked += r => WeaponMessage?.Invoke(GameText.ForMagCheck(r));
 		weapon.Controller.ChamberChecked += loaded =>
 			WeaponMessage?.Invoke(GameText.Get(loaded ? "msg.chamber.loaded" : "msg.chamber.empty"));
-		weapon.Controller.MagazineDropped += _ => SpawnDroppedMagazine(weapon);
+		weapon.Controller.MagazineDropped += m => OnMagazineDropped(weapon, m);
 		_body.AttachHeldItem(weapon);
 	}
 
@@ -574,6 +649,78 @@ public partial class Player : CharacterBody3D
 				hitDistance = result[0] * travel;
 		}
 		_clearance.Update(delta, _clearance.TargetRetract(fullLength, hitDistance));
+	}
+
+	private void OnMagazineDropped(WeaponNode weapon, Magazine magazine)
+	{
+		SpawnDroppedMagazine(weapon);
+		if (InventoryMagazineStore.FromMagazine(magazine, weapon.Data.Ammo?.Caliber) is { } item)
+			DropItemToWorld(item);
+	}
+
+	/// <summary>Drops an item from the inventory screen onto the ground beside the player.</summary>
+	public void DropItem(ItemInstance item) => DropItemToWorld(item);
+
+	/// <summary>Throws an item onto the ground in front of the player as a physical object.</summary>
+	private void DropItemToWorld(ItemInstance item)
+	{
+		var forward = -_camera.GlobalBasis.Z;
+		var spot = _camera.GlobalPosition + forward * 0.6f;
+		var toss = forward * 1.5f + Vector3.Up * 0.8f + Velocity;
+		var dropped = DroppedItem.Create(item, spot, toss);
+		GetTree().CurrentScene.AddChild(dropped);
+	}
+
+	// --- loading rounds from the inventory (GDD s7) ---------------------------------------
+
+	/// <summary>Short status text for the inventory header while loading or unloading.</summary>
+	public string LoaderStatus => _loader.Mode switch
+	{
+		LoaderMode.Loading => $"Loading magazine {_loader.Magazine?.Rounds.Count}/{_loader.Magazine?.Spec.MagazineCapacity}...",
+		LoaderMode.Unloading => $"Unloading magazine ({_loader.Magazine?.Rounds.Count} left)...",
+		_ => "",
+	};
+
+	public bool TryLoadMagazine(ItemInstance magazine, ItemInstance ammo)
+	{
+		if (!_loader.StartLoad(magazine, ammo))
+			return false;
+		_loadAmmo = ammo;
+		return true;
+	}
+
+	public bool TryUnloadMagazine(ItemInstance magazine) => _loader.StartUnload(magazine);
+
+	private void UpdateLoader(float delta)
+	{
+		if (!_loader.IsBusy)
+			return;
+		// Cancel if the magazine left the inventory (moved to the ground or into a weapon).
+		if (_loader.Magazine is { } m && Inventory.Inventory.Locate(m) is null)
+		{
+			_loader.Cancel();
+			return;
+		}
+		_loader.Update(delta);
+	}
+
+	private void OnLoaderFinished()
+	{
+		if (_loadAmmo is { Count: <= 0 } spent)
+			Inventory.Inventory.Remove(spent);
+		_loadAmmo = null;
+		Inventory.NotifyChanged();
+	}
+
+	private void OnRoundUnloaded(string ammoId)
+	{
+		var itemId = ItemDb.AmmoItemId(ammoId);
+		var stack = itemId is null ? null : InventoryComponent.Make(itemId);
+		if (stack is null)
+			return;
+		if (!Inventory.Inventory.TryAutoStore(stack))
+			DropItemToWorld(stack);
+		Inventory.NotifyChanged();
 	}
 
 	/// <summary>Fast reload drops the old magazine on the ground (GDD s7).</summary>
@@ -799,6 +946,7 @@ public partial class Player : CharacterBody3D
 			StepDeath(delta);
 			return;
 		}
+		UpdateLoader(delta);
 		UpdateInteract();
 		UpdateWeaponInput();
 		UpdateMelee(delta);

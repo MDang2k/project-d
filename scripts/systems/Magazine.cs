@@ -16,6 +16,12 @@ public sealed class Magazine
 
 	public Magazine(int capacity) => Capacity = capacity;
 
+	/// <summary>The inventory item this magazine was built from (null for debug magazines).</summary>
+	public object? Tag { get; set; }
+
+	/// <summary>Rounds bottom to top; the last one feeds first.</summary>
+	public IReadOnlyList<AmmoType> RoundsBottomToTop => _rounds;
+
 	public bool Push(AmmoType round)
 	{
 		if (_rounds.Count >= Capacity)

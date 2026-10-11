@@ -41,13 +41,20 @@ public partial class WeaponNode : Node3D
 	/// <summary>Trigger pulled with nothing to fire (empty click).</summary>
 	public event Action? DryFired;
 
-	public static WeaponNode Create(WeaponData data)
+	/// <summary>The inventory item this weapon is drawn from; its magazine and chamber live there.</summary>
+	public ItemInstance? Item { get; private set; }
+
+	public static WeaponNode Create(WeaponData data, ItemInstance? item = null)
 	{
 		var w = new WeaponNode { Name = "Weapon", Data = data };
 		var ammo = data.Ammo?.ToType() ?? new AmmoType("generic", 40f, 2, 700f);
 		w.State = new WeaponState(new FireControl(data.FireModes(), data.RoundsPerMinute));
 		w.Controller = new WeaponController(w.State, data.ToActionTuning());
-		w.RefillDebug(ammo);
+		w.Item = item;
+		if (item is null)
+			w.RefillDebug(ammo);
+		else
+			w.LoadFromItem();
 
 		var size = data.BodySize;
 		w.AddChild(new MeshInstance3D
@@ -103,6 +110,28 @@ public partial class WeaponNode : Node3D
 		return w;
 	}
 
+	/// <summary>Restores the inserted magazine and chambered round from the weapon item.</summary>
+	private void LoadFromItem()
+	{
+		if (Item?.InsertedMagazine is { } mag)
+			State.InsertMagazine(InventoryMagazineStore.ToMagazine(mag));
+		if (Item?.Chambered is { } id)
+			State.SetChamber(ItemDb.AmmoTypeById(id) ?? new AmmoType(id, 40f, 2, 700f));
+	}
+
+	/// <summary>Writes the live magazine and chamber back onto the item so state survives swaps.</summary>
+	private void SaveToItem()
+	{
+		if (Item is null)
+			return;
+		Item.Chambered = State.Chamber?.Id;
+		Item.InsertedMagazine = State.Magazine is { } m
+			? InventoryMagazineStore.FromMagazine(m, Data.Ammo?.Caliber)
+			: null;
+		if (State.Magazine is { } live && Item.InsertedMagazine is { } stored)
+			live.Tag = stored;
+	}
+
 	/// <summary>
 	/// Dev helper: full magazine, a chambered round and three spares (full, about half, almost
 	/// empty) so reloads and magazine checks can be tried before the inventory exists.
@@ -135,5 +164,6 @@ public partial class WeaponNode : Node3D
 		foreach (var ammo in State.Update((float)delta, pressed, held))
 			ShotFired?.Invoke(ammo, Muzzle.GlobalPosition, -Muzzle.GlobalBasis.Z);
 		TriggerPressed = false;
+		SaveToItem();
 	}
 }
