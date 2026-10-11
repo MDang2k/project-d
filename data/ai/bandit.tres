@@ -7,6 +7,10 @@
 [ext_resource type="Resource" path="res://data/armor/flak_vest_t1.tres" id="10"]
 [ext_resource type="Resource" path="res://data/armor/steel_helmet_t1.tres" id="11"]
 
+[ext_resource type="Resource" path="res://data/weapons/ak_type.tres" id="20"]
+[ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="21"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="30"]
+
 [resource]
 script = ExtResource("1")
 Id = "bandit"
@@ -22,3 +26,6 @@ Accuracy = 0.45
 Courage = 0.5
 Aggression = 0.6
 HealItem = ExtResource("4")
+WeaponChoices = Array[ExtResource("30")]([ExtResource("20"), ExtResource("21")])
+LootsCorpses = true
+ArmorChance = 0.8

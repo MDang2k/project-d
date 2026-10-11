@@ -5,6 +5,10 @@
 [ext_resource type="Script" path="res://scripts/health/ArmorData.cs" id="3"]
 [ext_resource type="Resource" path="res://data/items/bandage.tres" id="4"]
 
+[ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="20"]
+[ext_resource type="Resource" path="res://data/weapons/ak_type.tres" id="21"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="30"]
+
 [resource]
 script = ExtResource("1")
 Id = "looter"
@@ -18,3 +22,6 @@ Weapon = ExtResource("2")
 Accuracy = 0.25
 Courage = 0.2
 Aggression = 0.3
+WeaponChoices = Array[ExtResource("30")]([ExtResource("20"), ExtResource("21")])
+LootsCorpses = true
+ArmorChance = 0.35

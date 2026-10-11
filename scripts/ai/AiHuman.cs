@@ -99,9 +99,8 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 		Health = new HealthComponent { Name = "Health", Config = Preset.Health };
 		AddChild(Health);
-		foreach (var a in Preset.Armor)
-			Health.Equip(a);
-		Health.Died += _ => _deadTimer = RespawnS;
+		RollLoadout();
+		Health.Died += _ => OnDied();
 		_hitboxRoot = new Node3D { Name = "Hitboxes" };
 		AddChild(_hitboxRoot);
 		HitboxRig.Build(_hitboxRoot, Health);
@@ -141,7 +140,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			Position = new Vector3(0f, 1.65f, -0.13f),
 			MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.1f, 0.1f, 0.1f) },
 		});
-		if (Preset.Weapon is { } data)
+		if (_weaponData is { } data)
 		{
 			Weapon = WeaponNode.Create(data);
 			Weapon.Position = new Vector3(0.18f, 1.2f, -0.2f);
@@ -199,7 +198,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	private void OnNoise(NoiseEvent e)
 	{
-		if (!ReferenceEquals(e.Source, this) && Health is { IsDead: false })
+		// Ignore own noise, including the search of the body being looted right now.
+		if (!ReferenceEquals(e.Source, this) && !ReferenceEquals(e.Source, _lootTarget)
+			&& Health is { IsDead: false })
 			_noises.Add(e);
 	}
 
@@ -224,9 +225,10 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			_tickAcc = 0f;
 		}
 		var senses = new AiSenses(Perception.Level, Perception.SeesTarget, Perception.InterestPoint,
-			Perception.SecondsSinceCue);
+			Perception.SecondsSinceCue, FindLootPoint(delta));
 		Brain.Update(delta, senses, _arrived, false);
 		Move(delta);
+		UpdateLooting();
 		UpdateLabel();
 	}
 
@@ -307,6 +309,90 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var yaw = Mathf.RotateToward(Rotation.Y, faceYaw.Value, Mathf.DegToRad(TurnSpeedDegS) * delta);
 		Rotation = new Vector3(0f, yaw, 0f);
 	}
+
+	private WeaponData? _weaponData;
+	private readonly List<string> _wornIds = new();
+	private LootContainer? _lootTarget;
+	private float _lootScanS;
+
+	/// <summary>Picks a weapon from the preset's table and wears each armor piece with its chance.</summary>
+	private void RollLoadout()
+	{
+		var rng = new System.Random();
+		var choices = Preset!.WeaponChoices;
+		_weaponData = choices.Count > 0 ? choices[rng.Next(choices.Count)] : Preset.Weapon;
+		_wornIds.Clear();
+		foreach (var a in Preset.Armor)
+		{
+			if (rng.NextDouble() > Preset.ArmorChance)
+				continue;
+			Health.Equip(a);
+			_wornIds.Add(a.Id);
+		}
+	}
+
+	private void OnDied()
+	{
+		_deadTimer = RespawnS;
+		_lootTarget?.Model.StopSearch();
+		_lootTarget = null;
+		var worn = new List<string>(_wornIds);
+		if (_weaponData is { } w)
+			worn.Add(w.Id);
+		CorpseSpawner.Spawn(GetParent(), GlobalPosition, worn);
+	}
+
+	/// <summary>Nearest untouched body within reach, when this AI scavenges.</summary>
+	private Vector3? FindLootPoint(float delta)
+	{
+		if (!Preset!.LootsCorpses)
+			return null;
+		if (_lootTarget is { } t && (!IsInstanceValid(t) || t.Taken))
+			_lootTarget = null;
+		_lootScanS -= delta;
+		if (_lootTarget is null && _lootScanS <= 0f && Brain.State is AiState.Idle or AiState.Patrol)
+		{
+			_lootScanS = 1f;
+			var best = Preset.LootRadius;
+			foreach (var node in GetTree().GetNodesInGroup("loot_containers"))
+			{
+				if (node is not LootContainer c || !c.IsCorpse || c.Taken)
+					continue;
+				var d = c.GlobalPosition.DistanceTo(GlobalPosition);
+				if (d < best)
+				{
+					best = d;
+					_lootTarget = c;
+				}
+			}
+		}
+		return _lootTarget?.GlobalPosition;
+	}
+
+	/// <summary>At the body: search it (noisy, like the player), then take everything.</summary>
+	private void UpdateLooting()
+	{
+		if (_lootTarget is null || !IsInstanceValid(_lootTarget))
+			return;
+		if (Brain.State == AiState.Loot && _arrived)
+		{
+			_lootTarget.Model.StartSearch();
+			if (_lootTarget.Model.FullyRevealed)
+			{
+				LootedItems += _lootTarget.TakeAll();
+				_lootTarget = null;
+			}
+		}
+		else if (Brain.State != AiState.Loot)
+		{
+			_lootTarget.Model.StopSearch();
+			if (Brain.State is not (AiState.Idle or AiState.Patrol))
+				_lootTarget = null;
+		}
+	}
+
+	/// <summary>Items this AI has stripped from bodies (dev reporting).</summary>
+	public int LootedItems { get; private set; }
 
 	private void Respawn()
 	{

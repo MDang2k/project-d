@@ -22,3 +22,5 @@ Accuracy = 0.6
 Courage = 0.6
 Aggression = 0.7
 HealItem = ExtResource("4")
+LootsCorpses = false
+ArmorChance = 1.0

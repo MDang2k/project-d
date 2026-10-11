@@ -1144,7 +1144,10 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	// --- IPerceivable ----------------------------------------------------------------------
 
-	public Faction Faction => _cfg.PlayerFaction;
+	/// <summary>Dev: overrides the configured side to test who is hostile.</summary>
+	public Faction? DebugFaction { get; set; }
+
+	public Faction Faction => DebugFaction ?? _cfg.PlayerFaction;
 	public bool IsAlive => !Health.IsDead && !_noclip;
 	public Stance PerceivedStance => Stance;
 	public float PerceivedSpeedFraction

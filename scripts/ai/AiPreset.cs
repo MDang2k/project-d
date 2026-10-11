@@ -59,9 +59,19 @@ public partial class AiPreset : Resource
 	/// <summary>Bandage-like item used when badly hurt; null means this AI cannot heal.</summary>
 	[Export] public MedicalData? HealItem { get; set; }
 
+	[ExportGroup("Scavenging")]
+	/// <summary>Walks to nearby bodies and strips them when nothing else is going on.</summary>
+	[Export] public bool LootsCorpses { get; set; }
+	[Export] public float LootRadius { get; set; } = 35f;
+
 	[ExportGroup("Loadout")]
+	/// <summary>Weapon when WeaponChoices is empty.</summary>
 	[Export] public WeaponData? Weapon { get; set; }
+	/// <summary>One of these is picked at random per spawn (loadout table).</summary>
+	[Export] public Array<WeaponData> WeaponChoices { get; set; } = new();
 	[Export] public Array<ArmorData> Armor { get; set; } = new();
+	/// <summary>Chance that each armor piece is actually worn.</summary>
+	[Export] public float ArmorChance { get; set; } = 1f;
 	[Export] public HealthConfig? Health { get; set; }
 
 	public TacticsTuning ToTacticsTuning() => TacticsTuning.Default with

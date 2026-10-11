@@ -121,6 +121,39 @@ public class AiBrainTests
 	}
 
 	[Fact]
+	public void IdleAiWalksToABodyAndStopsWhenItIsGone()
+	{
+		var b = new AiBrain(BrainTuning.Default);
+		var body = new Vector3(4f, 0f, 4f);
+		var s = new AiSenses(AwarenessLevel.Unaware, false, null, 99f, body);
+		Run(b, s, 0.1f);
+		Assert.Equal(AiState.Loot, b.State);
+		Assert.Equal(body, b.Destination);
+		Run(b, s, 0.5f, arrived: true);
+		Assert.True(b.Looking);
+		Run(b, None, 0.2f);
+		Assert.Equal(AiState.Idle, b.State);
+	}
+
+	[Fact]
+	public void NoiseInterruptsLooting()
+	{
+		var b = new AiBrain(BrainTuning.Default);
+		Run(b, new AiSenses(AwarenessLevel.Unaware, false, null, 99f, Vector3.One), 0.1f);
+		Run(b, Heard(), 0.1f);
+		Assert.Equal(AiState.Investigate, b.State);
+	}
+
+	[Fact]
+	public void LootingGivesUpAfterTimeout()
+	{
+		var b = new AiBrain(BrainTuning.Default with { LootTimeoutS = 5f });
+		var s = new AiSenses(AwarenessLevel.Unaware, false, null, 99f, Vector3.One);
+		Run(b, s, 6f);
+		Assert.Equal(AiState.Idle, b.State);
+	}
+
+	[Fact]
 	public void StateChangedEventFires()
 	{
 		var b = new AiBrain(BrainTuning.Default);

@@ -15,16 +15,18 @@ public sealed record BrainTuning(
 	/// <summary>Seconds spent searching the last known position before giving up.</summary>
 	float SearchS,
 	/// <summary>Seconds waited at each patrol point.</summary>
-	float PatrolWaitS)
+	float PatrolWaitS,
+	/// <summary>Give up on a body after this many seconds (blocked path, interrupted).</summary>
+	float LootTimeoutS = 40f)
 {
 	public static BrainTuning Default => new(1.2f, 3f, 4f, 10f, 2f);
 }
 
-public enum AiState { Idle, Patrol, Investigate, Combat, Search, Dead }
+public enum AiState { Idle, Patrol, Investigate, Combat, Search, Loot, Dead }
 
 /// <summary>What the AI currently perceives, fed to the brain once per tick.</summary>
 public readonly record struct AiSenses(AwarenessLevel Level, bool SeesTarget, Vector3? InterestPoint,
-	float SecondsSinceCue);
+	float SecondsSinceCue, Vector3? LootPoint = null);
 
 /// <summary>
 /// Human AI state machine: idle/patrol, investigate, combat, search (GDD s16). Pure logic. It decides
@@ -36,6 +38,7 @@ public sealed class AiBrain
 	private readonly List<Vector3> _patrol = new();
 	private int _patrolIndex;
 	private float _waitTimer;
+	private float _lootCooldown;
 
 	public AiBrain(BrainTuning tuning) => _t = tuning;
 
@@ -93,6 +96,7 @@ public sealed class AiBrain
 		if (State == AiState.Dead)
 			GoIdleOrPatrol();
 		StateTimeS += delta;
+		_lootCooldown = Math.Max(0f, _lootCooldown - delta);
 
 		var engaged = s.Level == AwarenessLevel.Alert && s.SeesTarget;
 		if (engaged)
@@ -111,6 +115,11 @@ public sealed class AiBrain
 					Enter(AiState.Investigate);
 					Destination = first;
 				}
+				else if (s.LootPoint is { } body && _lootCooldown <= 0f)
+				{
+					Enter(AiState.Loot);
+					Destination = body;
+				}
 				else
 				{
 					UpdatePatrol(delta, arrived);
@@ -127,6 +136,25 @@ public sealed class AiBrain
 					_waitTimer += delta;
 					if (_waitTimer >= _t.LookAroundS)
 						GoIdleOrPatrol();
+				}
+				break;
+
+			case AiState.Loot:
+				if (s.Level != AwarenessLevel.Unaware && s.InterestPoint is { } alarm)
+				{
+					Enter(AiState.Investigate);
+					Destination = alarm;
+				}
+				else if (s.LootPoint is null || StateTimeS >= _t.LootTimeoutS)
+				{
+					if (s.LootPoint is not null)
+						_lootCooldown = 15f; // stuck on this body: leave it alone for a while
+					GoIdleOrPatrol();
+				}
+				else
+				{
+					Destination = s.LootPoint;
+					Looking = arrived;
 				}
 				break;
 

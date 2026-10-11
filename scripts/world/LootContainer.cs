@@ -29,6 +29,22 @@ public partial class LootContainer : Node3D
 
 	public LootContainerModel Model { get; private set; } = null!;
 
+	public bool IsCorpse => TitleKey == "container.body";
+
+	/// <summary>An AI already emptied this one.</summary>
+	public bool Taken { get; private set; }
+
+	/// <summary>An AI strips everything; returns how many items it took.</summary>
+	public int TakeAll()
+	{
+		Taken = true;
+		Model.StopSearch();
+		var items = System.Linq.Enumerable.ToList(Model.Grid.Items);
+		foreach (var item in items)
+			Model.Grid.Remove(item);
+		return items.Count;
+	}
+
 	public string Title => GameText.Get(TitleKey);
 
 	public override void _Ready()
@@ -93,7 +109,7 @@ public partial class LootContainer : Node3D
 		if (_noiseTimer <= 0f)
 		{
 			_noiseTimer = NoiseIntervalS;
-			NoiseBus.Emit(GlobalPosition, Model.NoiseRadius, "search");
+			NoiseBus.Emit(GlobalPosition, Model.NoiseRadius, "search", this);
 		}
 	}
 }

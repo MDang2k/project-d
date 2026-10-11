@@ -62,26 +62,7 @@ public partial class DummyTarget : Node3D
 
 	/// <summary>A lootable body appears beside the dummy: its worn armor plus a rolled scav table.</summary>
 	private void SpawnCorpse()
-	{
-		var corpse = new LootContainer
-		{
-			TitleKey = "container.body",
-			Table = GD.Load<LootTable>("res://data/loot/body_scav.tres"),
-			GridSize = new Vector2I(4, 4),
-			SecondsPerItem = 1.0f,
-			NoiseRadius = 6f,
-			BoxSize = new Vector3(1.6f, 0.25f, 0.6f),
-			BoxColor = new Color(0.25f, 0.28f, 0.22f),
-			Position = GlobalPosition + new Vector3(0.9f, 0f, 0f),
-		};
-		GetParent().AddChild(corpse);
-		foreach (var id in _armorIds)
-		{
-			if (ItemDb.Create(id) is { } worn)
-				corpse.AddVisible(worn);
-		}
-		GetTree().CreateTimer(180.0).Timeout += corpse.QueueFree;
-	}
+		=> CorpseSpawner.Spawn(GetParent(), GlobalPosition + new Vector3(0.9f, 0f, 0f), _armorIds);
 
 	private void Mesh(BodyPart part, Godot.Mesh mesh, Vector3 position)
 	{
