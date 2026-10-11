@@ -197,9 +197,26 @@ public partial class AiRange : Node3D
 			var d = ai.GlobalPosition.DistanceTo(_player.GlobalPosition);
 			sb.AppendLine($"{ai.Preset?.Id,-11} {d,5:0} m  {ai.Perception.Level,-10} {ai.Perception.Awareness * 100f,3:0}%  {ai.LastCue}");
 		}
+		if (_raid is { IsRunning: true } r)
+			sb.AppendLine($"raid {r.Session.RemainingS:0}s left  extract {r.Session.ExtractProgress * 100f:0}%");
+		else if (_raid is not null)
+			sb.AppendLine($"raid over: {_raid.Session.Outcome}");
 		sb.Append("V fire  RMB aim  Shift sprint  C crouch  Z prone  F4 AI debug " + (_debug ? "ON" : "off") + "  F1 DEBUG MENU  F3 your side " + _player.Faction + "  F2 noclip " + (_player.DebugNoclip ? "ON (Space up, C down, Shift fast)" : "off") + "  Backspace respawn");
 		_label.Text = sb.ToString();
 		_ = w;
+	}
+
+	private RaidManager? _raid;
+
+	/// <summary>Dev (--raid=secs): runs a raid with a short timer and one extraction zone at the spawn.</summary>
+	private void StartTestRaid(float seconds)
+	{
+		var zone = new ExtractionZone { ZoneId = "test_gate", Position = new Vector3(0f, 1.5f, 0f), Seconds = 5f };
+		AddChild(zone);
+		_raid = new RaidManager { Config = new RaidConfig { DurationS = seconds } };
+		AddChild(_raid);
+		_raid.Ended += (outcome, lost) => GD.Print($"RAID {outcome} lost={lost.Count}");
+		_raid.Start(_player);
 	}
 
 	private async void ApplyDevArgs()
@@ -225,6 +242,8 @@ public partial class AiRange : Node3D
 			else if (arg.StartsWith("--corpse=") && arg["--corpse=".Length..].Split(',') is { Length: 2 } cxy
 				&& float.TryParse(cxy[0], out var cx) && float.TryParse(cxy[1], out var cz))
 				CorpseSpawner.Spawn(this, new Vector3(cx, 0f, cz), new[] { "flak_vest_t1" });
+			else if (arg.StartsWith("--raid=") && float.TryParse(arg["--raid=".Length..], out var raidSeconds))
+				StartTestRaid(raidSeconds);
 			else if (arg == "--menu")
 				ToggleMenu();
 			else if (arg == "--norespawn")
