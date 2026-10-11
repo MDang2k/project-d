@@ -153,6 +153,22 @@ public partial class PlayerBody : Node3D
 		ik.SetPoleNode(index, ik.GetPathTo(pole));
 	}
 
+	/// <summary>Dev: world positions of both hand bones (after IK) for jitter measurements.</summary>
+	public (Vector3 Left, Vector3 Right) DebugHandPositions()
+	{
+		// Bone attachments follow the final (post-IK) pose; raw bone poses do not include modifiers.
+		Vector3 Find(string bone)
+		{
+			foreach (var child in _skel.GetChildren())
+			{
+				if (child is BoneAttachment3D a && a.BoneName == bone)
+					return a.GlobalPosition;
+			}
+			return Vector3.Zero;
+		}
+		return (Find("Hand_L"), Find("Hand_R"));
+	}
+
 	/// <summary>Poses legs and torso from the current eye height and lean (call every frame).</summary>
 	public void Pose(float eyeY, float leanRoll, float leanShift)
 	{

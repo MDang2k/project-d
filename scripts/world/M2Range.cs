@@ -201,6 +201,27 @@ public partial class M2Range : Node3D
 				GD.Print($"PICKUP ok={ok} ground items left={left} weight={_player.TotalCarriedKg:0.00}");
 				continue;
 			}
+			if (a.StartsWith("jitter:"))
+			{
+				var seconds = double.Parse(a[7..]);
+				var frames = 0;
+				var maxStep = 0f;
+				var sum = 0f;
+				var last = _player.DebugHands();
+				var end = Time.GetTicksMsec() / 1000.0 + seconds;
+				while (Time.GetTicksMsec() / 1000.0 < end)
+				{
+					await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+					var now = _player.DebugHands();
+					var step = Mathf.Max(now.Left.DistanceTo(last.Left), now.Right.DistanceTo(last.Right));
+					maxStep = Mathf.Max(maxStep, step);
+					sum += step;
+					frames++;
+					last = now;
+				}
+				GD.Print($"JITTER frames={frames} mean step={sum / Mathf.Max(1, frames) * 100f:0.00} cm, max step={maxStep * 100f:0.00} cm, retract={_player.WeaponRetract * 100f:0} cm");
+				continue;
+			}
 			if (a.StartsWith("slot:"))
 			{
 				_player.SelectSlot(System.Enum.Parse<EquipSlot>(a[5..]));
@@ -366,6 +387,8 @@ public partial class M2Range : Node3D
 				_player.DebugToggleInventory();
 			else if (arg.StartsWith("--search=") && int.TryParse(arg["--search=".Length..], out var searchIndex))
 				searchContainer = searchIndex;
+			else if (arg.StartsWith("--pitch=") && float.TryParse(arg["--pitch=".Length..], out var pitchDeg))
+				_player.DebugSetPitchDeg(pitchDeg);
 			else if (arg == "--prone")
 				_player.DebugSetStance(Stance.Prone);
 			else if (arg == "--crouch")

@@ -668,6 +668,7 @@ public partial class Player : CharacterBody3D
 		var spot = _camera.GlobalPosition + forward * 0.6f;
 		var toss = forward * 1.5f + Vector3.Up * 0.8f + Velocity;
 		var dropped = DroppedItem.Create(item, spot, toss);
+		dropped.AddCollisionExceptionWith(this);
 		GetTree().CurrentScene.AddChild(dropped);
 	}
 
@@ -858,6 +859,8 @@ public partial class Player : CharacterBody3D
 
 	/// <summary>Dev helper: same as scrolling the wheel while holding C (positive = up).</summary>
 	public void DebugAdjustHeight(float notches) => AdjustHeight(notches);
+
+	public (Vector3 Left, Vector3 Right) DebugHands() => _body.DebugHandPositions();
 
 	/// <summary>Dev helper: same as pressing the melee key.</summary>
 	public bool DebugMelee()

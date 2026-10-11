@@ -20,6 +20,10 @@ public partial class DroppedItem : RigidBody3D
 	{
 		var d = new DroppedItem { Item = item, Position = position, LinearVelocity = velocity };
 		d.Mass = Mathf.Clamp(item.WeightKg, 0.2f, 15f);
+		// Layer 3: invisible to the player's own probes (weapon clearance, rest, mantle, melee) and not
+		// a platform to stand on; it only collides with the world. Bullets still hit it.
+		d.CollisionLayer = 1u << 2;
+		d.CollisionMask = 1u;
 		return d;
 	}
 
