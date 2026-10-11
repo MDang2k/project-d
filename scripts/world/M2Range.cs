@@ -61,6 +61,12 @@ public partial class M2Range : Node3D
 		_player.Position = SpawnPoint;
 		AddChild(_player);
 		AddDummies();
+		AddContainers();
+		NoiseBus.Noise += n =>
+		{
+			_message = $"noise: {n.Kind}, heard within {n.Radius:0} m";
+			_messageUntil = Time.GetTicksMsec() / 1000.0 + 1.5;
+		};
 		_player.WeaponMessage += text =>
 		{
 			_message = text;
@@ -188,6 +194,28 @@ public partial class M2Range : Node3D
 		}
 	}
 
+	/// <summary>Search targets near the start: a low-tier crate, a mid-tier locker, a weapons crate (M4).</summary>
+	private void AddContainers()
+	{
+		void Add(string title, string table, Vector3 pos, Vector2I grid, float secs, float noise, Vector3 box, Color color)
+		{
+			var c = new LootContainer
+			{
+				TitleKey = title,
+				Table = GD.Load<LootTable>($"res://data/loot/{table}.tres"),
+				GridSize = grid, SecondsPerItem = secs, NoiseRadius = noise, BoxSize = box, BoxColor = color,
+				Position = pos,
+			};
+			AddChild(c);
+		}
+		Add("container.crate", "low_tier", new Vector3(2f, 0f, -2f), new Vector2I(5, 4), 1.2f, 8f,
+			new Vector3(0.9f, 0.6f, 0.6f), new Color(0.45f, 0.33f, 0.2f));
+		Add("container.locker", "mid_tier", new Vector3(-2.5f, 0f, -2f), new Vector2I(4, 6), 1.5f, 14f,
+			new Vector3(0.7f, 1.9f, 0.5f), new Color(0.35f, 0.38f, 0.4f));
+		Add("container.weapons_crate", "high_tier", new Vector3(0f, 0f, -1.6f), new Vector2I(6, 4), 2.0f, 10f,
+			new Vector3(1.2f, 0.5f, 0.6f), new Color(0.3f, 0.34f, 0.25f));
+	}
+
 	/// <summary>Armored and unarmored humanoid targets 10 m out (M3 damage testing).</summary>
 	private void AddDummies()
 	{
@@ -289,6 +317,7 @@ public partial class M2Range : Node3D
 		var fireSeconds = 0.0;
 		var actions = System.Array.Empty<string>();
 		var bipod = false;
+		var searchContainer = -1;
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--shot="))
@@ -301,6 +330,8 @@ public partial class M2Range : Node3D
 				_player.Health.Seed = seed;
 			else if (arg == "--inventory")
 				_player.DebugToggleInventory();
+			else if (arg.StartsWith("--search=") && int.TryParse(arg["--search=".Length..], out var searchIndex))
+				searchContainer = searchIndex;
 			else if (arg == "--prone")
 				_player.DebugSetStance(Stance.Prone);
 			else if (arg == "--crouch")
@@ -331,6 +362,14 @@ public partial class M2Range : Node3D
 		{
 			await ToSignal(GetTree().CreateTimer(0.6), SceneTreeTimer.SignalName.Timeout);
 			_player.DebugToggleBipod();
+		}
+		if (searchContainer >= 0)
+		{
+			await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+			var found = GetTree().GetNodesInGroup("loot_containers").OfType<LootContainer>().ToList();
+			if (searchContainer < found.Count)
+				_player.Screen.OpenWithContainer(found[searchContainer]);
+			GD.Print($"SEARCH opened {found.Count} containers, hidden={found.ElementAtOrDefault(searchContainer)?.Model.HiddenCount}");
 		}
 		await RunDevActions(actions);
 		if (shot is null)

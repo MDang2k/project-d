@@ -172,6 +172,23 @@ public sealed class CharacterInventory
 		return false;
 	}
 
+	/// <summary>
+	/// Takes an item from a known source (a loot container) into pockets, rig or backpack,
+	/// merging stacks first. Undone if there is no room.
+	/// </summary>
+	public bool TryTake(ItemInstance item, ItemLocation from)
+	{
+		var wasRotated = item.Rotated;
+		var count = item.Count;
+		Detach(item, from);
+		if (TryAutoStore(item))
+			return true;
+		item.Count = count;
+		item.Rotated = wasRotated;
+		Reattach(item, from);
+		return false;
+	}
+
 	/// <summary>Equips an item from a known source; a displaced item goes to storage or the move is undone.</summary>
 	public bool TryEquipFrom(ItemInstance item, ItemLocation from, EquipSlot slot)
 	{
@@ -242,6 +259,29 @@ public sealed class CharacterInventory
 			_slots[s] = item;
 		else
 			from.Value.Grid!.TryPlaceAnywhere(item);
+	}
+
+	/// <summary>
+	/// Death or MIA (GDD s15): removes and returns every worn and carried item except the secure
+	/// container and its contents, which stay with the character.
+	/// </summary>
+	public List<ItemInstance> TakeEverythingExceptSecure()
+	{
+		var lost = new List<ItemInstance>();
+		foreach (var slot in _slots.Keys.Where(k => k != EquipSlot.SecureContainer).ToList())
+		{
+			lost.Add(_slots[slot]);
+			_slots.Remove(slot);
+		}
+		foreach (var pocket in Pockets)
+		{
+			foreach (var item in pocket.Items.ToList())
+			{
+				lost.Add(item);
+				pocket.Remove(item);
+			}
+		}
+		return lost;
 	}
 
 	/// <summary>Everything worn or carried, flattened (for saving and loot transfer).</summary>

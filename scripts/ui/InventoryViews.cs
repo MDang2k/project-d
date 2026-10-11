@@ -40,6 +40,8 @@ public partial class GridView : Control
 	public string Title { get; }
 	/// <summary>Item currently being dragged; it is not drawn in its grid.</summary>
 	public Func<ItemInstance?>? Dragged { get; set; }
+	/// <summary>Items not yet revealed by a search are drawn as unknown blocks.</summary>
+	public Func<ItemInstance, bool>? IsHidden { get; set; }
 
 	public GridView(InventoryGrid grid, string title)
 	{
@@ -77,6 +79,14 @@ public partial class GridView : Control
 			if (Grid.PositionOf(item) is not { } pos)
 				continue;
 			var rect = new Rect2(pos.X * Cell, pos.Y * Cell, item.Width * Cell, item.Height * Cell);
+			if (IsHidden?.Invoke(item) == true)
+			{
+				DrawRect(rect.Grow(-1f), new Color(0.22f, 0.22f, 0.25f));
+				DrawRect(rect.Grow(-1f), new Color(0f, 0f, 0f, 0.6f), false, 1.5f);
+				DrawString(font, rect.Position + new Vector2(0f, rect.Size.Y * 0.5f + 7f), "?",
+					HorizontalAlignment.Center, rect.Size.X, 20, new Color(0.6f, 0.6f, 0.65f));
+				continue;
+			}
 			ItemIcon.Draw(this, item, rect, font, dim: item == dragged);
 		}
 	}

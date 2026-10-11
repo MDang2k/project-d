@@ -96,6 +96,7 @@ public partial class Player : CharacterBody3D
 	private InventoryComponent? _inventory;
 	private MeleeModel _melee = null!;
 	private InventoryScreen _screen = null!;
+	private Label _prompt = null!;
 	private ItemInstance? _pendingUse;
 	private string? _heldWeaponItemId;
 	private PainOverlay _pain = null!;
@@ -138,6 +139,18 @@ public partial class Player : CharacterBody3D
 		_screen = new InventoryScreen { Name = "InventoryScreen" };
 		AddChild(_screen);
 		_screen.Bind(this);
+		var promptLayer = new CanvasLayer { Layer = 2 };
+		_prompt = new Label
+		{
+			HorizontalAlignment = HorizontalAlignment.Center,
+			Visible = false,
+		};
+		_prompt.SetAnchorsPreset(Control.LayoutPreset.CenterBottom);
+		_prompt.OffsetTop = -160f;
+		_prompt.OffsetLeft = -200f;
+		_prompt.OffsetRight = 200f;
+		promptLayer.AddChild(_prompt);
+		AddChild(promptLayer);
 		Inventory.Changed += RefreshHeldWeapon;
 		Health.MedicalFinished += (_, ok) => FinishPendingUse(ok);
 		Health.ConsumableFinished += _ => FinishPendingUse(true);
@@ -271,6 +284,41 @@ public partial class Player : CharacterBody3D
 		_eyeY = Mathf.MoveToward(_eyeY, 0.25f, _cfg.EyeHeightSpeed * delta);
 		UpdateRig(delta);
 	}
+
+	/// <summary>F: search the container in front of you; moving away closes its window.</summary>
+	private void UpdateInteract()
+	{
+	var from = _camera.GlobalPosition;
+	var forward = -_camera.GlobalBasis.Z;
+	LootContainer? best = null;
+	var bestDist = float.MaxValue;
+	foreach (var node in GetTree().GetNodesInGroup("loot_containers"))
+	{
+		if (node is not LootContainer c)
+			continue;
+		var to = c.GlobalPosition + Vector3.Up * 0.4f - from;
+		var dist = to.Length();
+		if (dist > InteractReach || dist < 0.01f || forward.Dot(to / dist) < 0.5f || dist >= bestDist)
+			continue;
+		best = c;
+		bestDist = dist;
+	}
+	if (_screen.Container is { } open)
+	{
+		if ((open.GlobalPosition - GlobalPosition).Length() > InteractReach + 1.2f)
+			_screen.CloseContainer();
+		_prompt.Visible = false;
+		return;
+	}
+	_prompt.Visible = best is not null && !_screen.IsOpen && !Health.IsDead;
+	if (best is null)
+		return;
+	_prompt.Text = GameText.Get("msg.search.prompt", best.Title);
+	if (Input.IsActionJustPressed("interact") && Input.MouseMode == Input.MouseModeEnum.Captured && !_screen.IsOpen)
+		_screen.OpenWithContainer(best);
+	}
+
+	private const float InteractReach = 2.4f;
 
 	/// <summary>Melee on G: windup, then a short ray from the camera hits one hitbox.</summary>
 	private void UpdateMelee(float delta)
@@ -751,6 +799,7 @@ public partial class Player : CharacterBody3D
 			StepDeath(delta);
 			return;
 		}
+		UpdateInteract();
 		UpdateWeaponInput();
 		UpdateMelee(delta);
 		if (_mantling)

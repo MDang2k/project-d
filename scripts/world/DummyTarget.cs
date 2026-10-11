@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Godot;
 
@@ -16,12 +17,13 @@ public partial class DummyTarget : Node3D
 	private Label3D _label = null!;
 	private string _title = "Dummy";
 	private float _deadTimer;
+	private string[] _armorIds = System.Array.Empty<string>();
 
 	public HealthComponent Health { get; private set; } = null!;
 
 	public static DummyTarget Create(string title, HealthConfig? config, params ArmorData[] armor)
 	{
-		var d = new DummyTarget { _title = title };
+		var d = new DummyTarget { _title = title, _armorIds = armor.Select(a => a.Id).ToArray() };
 		d.Health = new HealthComponent { Name = "Health", Config = config };
 		d.AddChild(d.Health);
 		foreach (var a in armor)
@@ -51,7 +53,34 @@ public partial class DummyTarget : Node3D
 			Modulate = new Color(1f, 1f, 0.7f),
 		};
 		AddChild(_label);
-		Health.Died += _ => _deadTimer = RespawnS;
+		Health.Died += _ =>
+		{
+			_deadTimer = RespawnS;
+			SpawnCorpse();
+		};
+	}
+
+	/// <summary>A lootable body appears beside the dummy: its worn armor plus a rolled scav table.</summary>
+	private void SpawnCorpse()
+	{
+		var corpse = new LootContainer
+		{
+			TitleKey = "container.body",
+			Table = GD.Load<LootTable>("res://data/loot/body_scav.tres"),
+			GridSize = new Vector2I(4, 4),
+			SecondsPerItem = 1.0f,
+			NoiseRadius = 6f,
+			BoxSize = new Vector3(1.6f, 0.25f, 0.6f),
+			BoxColor = new Color(0.25f, 0.28f, 0.22f),
+			Position = GlobalPosition + new Vector3(0.9f, 0f, 0f),
+		};
+		GetParent().AddChild(corpse);
+		foreach (var id in _armorIds)
+		{
+			if (ItemDb.Create(id) is { } worn)
+				corpse.AddVisible(worn);
+		}
+		GetTree().CreateTimer(180.0).Timeout += corpse.QueueFree;
 	}
 
 	private void Mesh(BodyPart part, Godot.Mesh mesh, Vector3 position)

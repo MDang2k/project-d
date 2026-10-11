@@ -44,12 +44,28 @@ public partial class InventoryScreen : CanvasLayer
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
+	private LootContainer? _container;
+	private ProgressBar? _searchBar;
+	private Label? _searchLabel;
 	private ItemInstance? _held;
 	private ItemLocation _heldFrom;
 	private bool _heldWasRotated;
 	private Vector2 _grabOffset;
 
 	public bool IsOpen => _root.Visible;
+	public LootContainer? Container => _container;
+
+	/// <summary>Opens the inventory with a world container beside it and starts searching it.</summary>
+	public void OpenWithContainer(LootContainer container)
+	{
+		_container?.Model.StopSearch();
+		_container = container;
+		container.Model.StartSearch();
+		if (IsOpen)
+			Rebuild();
+		else
+			Open();
+	}
 
 	public void Bind(Player player)
 	{
@@ -137,8 +153,19 @@ public partial class InventoryScreen : CanvasLayer
 		Rebuild();
 	}
 
+	/// <summary>Closes only the container column (player walked away), keeping the inventory open.</summary>
+	public void CloseContainer()
+	{
+		_container?.Model.StopSearch();
+		_container = null;
+		if (IsOpen)
+			Rebuild();
+	}
+
 	private void Close()
 	{
+		_container?.Model.StopSearch();
+		_container = null;
 		CancelDrag();
 		_tooltip.Visible = false;
 		_root.Visible = false;
@@ -151,6 +178,12 @@ public partial class InventoryScreen : CanvasLayer
 			return;
 		_header.Text = $"Weight {_player.TotalCarriedKg:0.0} kg ({_player.Tier})   |   Drag to move, R rotate, " +
 			"double-click use or equip, Tab or Esc close. The raid keeps running.";
+		if (_container is not null && _searchBar is not null && _searchLabel is not null)
+		{
+			var m = _container.Model;
+			_searchBar.Value = m.Progress * 100.0;
+			_searchLabel.Text = m.FullyRevealed ? "Search complete" : $"Searching... {m.HiddenCount} unknown";
+		}
 		foreach (var g in _grids)
 			g.QueueRedraw();
 		foreach (var s in _slots)
@@ -207,6 +240,30 @@ public partial class InventoryScreen : CanvasLayer
 		AddItemGrids(right, inv, EquipSlot.SecureContainer, "Secure container");
 		columns.AddChild(right);
 
+		if (_container is not null)
+		{
+			var box = new VBoxContainer();
+			box.AddThemeConstantOverride("separation", 6);
+			box.AddChild(new Label { Text = _container.Title });
+			_searchLabel = new Label();
+			box.AddChild(_searchLabel);
+			_searchBar = new ProgressBar
+			{
+				MinValue = 0, MaxValue = 100, ShowPercentage = false,
+				CustomMinimumSize = new Vector2(220f, 12f),
+			};
+			box.AddChild(_searchBar);
+			var model = _container.Model;
+			var view = new GridView(model.Grid, "Container")
+			{
+				Dragged = () => _held,
+				IsHidden = item => !model.IsRevealed(item),
+			};
+			_grids.Add(view);
+			box.AddChild(view);
+			columns.AddChild(box);
+		}
+
 		_drag.MoveToFront();
 		_tooltip.MoveToFront();
 	}
@@ -253,6 +310,8 @@ public partial class InventoryScreen : CanvasLayer
 		{
 			if (!g.GetGlobalRect().HasPoint(pos) || g.ItemAtGlobal(pos) is not { } item)
 				continue;
+			if (g.IsHidden?.Invoke(item) == true)
+				return null;
 			var cell = g.Grid.PositionOf(item)!.Value;
 			var topLeft = g.GlobalPosition + new Vector2(cell.X, cell.Y) * GridView.Cell;
 			return (item, new ItemLocation(null, g.Grid), pos - topLeft);
@@ -333,6 +392,14 @@ public partial class InventoryScreen : CanvasLayer
 		var inv = _player.Inventory.Inventory;
 		var action = InventoryActions.Quick(inv, item, from);
 		var changed = false;
+		// Double-click on something in a world container: equip it if it is gear, otherwise take it.
+		if (from.Grid is { } sourceGrid && _container is { } box && sourceGrid == box.Model.Grid
+			&& action.Kind != QuickActionKind.Equip)
+		{
+			if (inv.TryTake(item, from))
+				_player.Inventory.NotifyChanged();
+			return;
+		}
 		switch (action.Kind)
 		{
 			case QuickActionKind.Equip:
