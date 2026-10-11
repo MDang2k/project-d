@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "field_pack"
+NameKey = "item.field_pack"
+Category = 6
+Width = 4
+Height = 4
+WeightKg = 1.6
+MaxStack = 1
+WeaponClass = 0
+IconColor = Color(0.35, 0.3, 0.25, 1)
+IconLabel = "Pack"
+Grids = Array[Vector2i]([Vector2i(5, 5)])

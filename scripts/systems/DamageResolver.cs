@@ -13,10 +13,11 @@ public sealed class ArmorState
 	public ArmorSpec Spec { get; }
 	public float Durability { get; private set; }
 
-	public ArmorState(ArmorSpec spec)
+	/// <param name="durability">Starting durability; null means full.</param>
+	public ArmorState(ArmorSpec spec, float? durability = null)
 	{
 		Spec = spec;
-		Durability = spec.MaxDurability;
+		Durability = Math.Clamp(durability ?? spec.MaxDurability, 0f, spec.MaxDurability);
 	}
 
 	public int EffectiveTier => Durability > 0f ? Spec.Tier : 0;

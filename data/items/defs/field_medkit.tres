@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/items/field_medkit.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "field_medkit"
+NameKey = "item.field_medkit"
+Category = 7
+Width = 2
+Height = 2
+WeightKg = 0.9
+MaxStack = 1
+WeaponClass = 0
+Payload = ExtResource("2")
+IconColor = Color(0.8, 0.2, 0.2, 1)
+IconLabel = "Medkit"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "mg_belt"
+NameKey = "item.mg_belt"
+Category = 1
+Width = 2
+Height = 2
+WeightKg = 0.9
+MaxStack = 1
+WeaponClass = 0
+IconColor = Color(0.35, 0.3, 0.2, 1)
+IconLabel = "Belt"
+MagazineCapacity = 50
+RoundWeightKg = 0.028
+Caliber = "7.92x57"

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/weapons/em2.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "em2"
+NameKey = "item.em2"
+Category = 0
+Width = 4
+Height = 2
+WeightKg = 3.4
+MaxStack = 1
+WeaponClass = 1
+Payload = ExtResource("2")
+IconColor = Color(0.25, 0.25, 0.28, 1)
+IconLabel = "EM2"

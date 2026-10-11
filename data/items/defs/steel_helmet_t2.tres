@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/armor/steel_helmet_t2.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "steel_helmet_t2"
+NameKey = "item.steel_helmet_t2"
+Category = 4
+Width = 2
+Height = 2
+WeightKg = 1.8
+MaxStack = 1
+WeaponClass = 0
+Payload = ExtResource("2")
+IconColor = Color(0.4, 0.45, 0.5, 1)
+IconLabel = "Helm T2"

@@ -81,6 +81,18 @@ public partial class HealthComponent : Node
 		Armor.Add(new ArmorState(spec));
 	}
 
+	/// <summary>Replaces the worn armor (inventory changed); durability is kept per piece.</summary>
+	public void SetArmor(IEnumerable<(ArmorSpec Spec, float Durability)> worn)
+	{
+		_armorSpecs.Clear();
+		Armor.Clear();
+		foreach (var (spec, durability) in worn)
+		{
+			_armorSpecs.Add(spec);
+			Armor.Add(new ArmorState(spec, durability));
+		}
+	}
+
 	/// <summary>Full health, no effects and fresh armor again (hub restore, dummy respawn).</summary>
 	public void Reset()
 	{

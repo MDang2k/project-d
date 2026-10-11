@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/items/canned_food.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "canned_food"
+NameKey = "item.canned_food"
+Category = 8
+Width = 2
+Height = 1
+WeightKg = 0.45
+MaxStack = 1
+WeaponClass = 0
+Payload = ExtResource("2")
+IconColor = Color(0.5, 0.45, 0.3, 1)
+IconLabel = "Can"

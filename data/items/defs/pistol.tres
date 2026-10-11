@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "pistol"
+NameKey = "item.pistol"
+Category = 0
+Width = 2
+Height = 1
+WeightKg = 0.8
+MaxStack = 1
+WeaponClass = 2
+Payload = ExtResource("2")
+IconColor = Color(0.3, 0.3, 0.33, 1)
+IconLabel = "P"

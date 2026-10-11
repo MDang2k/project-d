@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/items/water_canteen.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "water_canteen"
+NameKey = "item.water_canteen"
+Category = 9
+Width = 1
+Height = 2
+WeightKg = 0.6
+MaxStack = 1
+WeaponClass = 0
+Payload = ExtResource("2")
+IconColor = Color(0.3, 0.45, 0.6, 1)
+IconLabel = "Water"

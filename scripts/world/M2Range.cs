@@ -482,6 +482,7 @@ public partial class M2Range : Node3D
 		var mode = w?.State.Fire.Mode.ToString() ?? "-";
 		_label.Text =
 			$"{name}  mode {mode}  stance {_player.Stance}{(_player.IsSprinting ? "  SPRINT" : "")}\n" +
+			$"kit {_player.TotalCarriedKg:0.0} kg ({_player.Tier})  " +
 			$"height {_player.HeightLevel * 100f:0}%  retract {_player.WeaponRetract * 100f:0} cm  " +
 			$"rest {_player.RestAmount * 100f:0}%{(float.IsNaN(_player.RestSurfaceHeight) ? "" : $" (surface {_player.RestSurfaceHeight:0.00} m)")}{(_player.BipodDeployed ? "  BIPOD" : "")}  " +
 			$"ADS {_player.AdsAmount * 100f:0}%{(_player.IsHoldingBreath ? "  BREATH HELD" : "")}  sway {_player.SwayAmplitudeDeg:0.00} deg  " +

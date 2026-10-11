@@ -14,7 +14,8 @@ namespace ProjectD;
 public partial class Player : CharacterBody3D
 {
 	[Export] public PlayerConfig? Config { get; set; }
-	[Export] public float CarriedWeightKg { get; set; } = 15f;
+	/// <summary>Extra weight on top of the inventory (debug adjust keys); the inventory total is added.</summary>
+	[Export] public float CarriedWeightKg { get; set; }
 	[Export] public float StrengthBonusKg { get; set; }
 	[Export] public WeaponData? StartWeapon { get; set; }
 	[Export] public HealthConfig? HealthConfig { get; set; }
@@ -36,6 +37,12 @@ public partial class Player : CharacterBody3D
 	public event Action<string>? WeaponMessage;
 
 	public WeaponNode? Weapon => _body.HeldItem;
+
+	/// <summary>Everything worn and carried; created with the starting kit on first use.</summary>
+	public InventoryComponent Inventory => _inventory ??= CreateInventory();
+
+	/// <summary>Inventory weight plus any debug extra, in kg.</summary>
+	public float TotalCarriedKg => (_inventory?.Inventory.TotalWeightKg ?? 0f) + CarriedWeightKg;
 
 	/// <summary>Per-limb health and worn armor (hitboxes for AI shots arrive with M5).</summary>
 	public HealthComponent Health => _health ??= CreateHealth();
@@ -76,6 +83,7 @@ public partial class Player : CharacterBody3D
 	private readonly AimModel _aim = new();
 	private SupportModel _support = null!;
 	private HealthComponent? _health;
+	private InventoryComponent? _inventory;
 	private MeleeModel _melee = null!;
 	private PainOverlay _pain = null!;
 	private Penalties _penalties = new(1f, 1f, false, 1f, 0f);
@@ -109,6 +117,8 @@ public partial class Player : CharacterBody3D
 		_heights = new StanceHeightModel(_cfg.HeightWheelStep);
 		_clearance = new ClearanceModel(_cfg.ToClearanceTuning());
 		_ = Health;
+		_ = Inventory;
+		Health.HitTaken += _ => SyncArmorDurability();
 		_melee = new MeleeModel(MeleeWeapon?.ToSpec() ?? new MeleeSpec("fists", 12f, 1, 1.4f, 0.2f, 0.5f, 6f));
 		_pain = new PainOverlay { Name = "PainOverlay" };
 		AddChild(_pain);
@@ -152,6 +162,47 @@ public partial class Player : CharacterBody3D
 			case InputEventKey { PhysicalKeycode: Key.Escape }:
 				Input.MouseMode = Input.MouseModeEnum.Visible;
 				break;
+		}
+	}
+
+	private InventoryComponent CreateInventory()
+	{
+		var inv = new InventoryComponent { Name = "Inventory" };
+		_inventory = inv;
+		AddChild(inv);
+		inv.Changed += SyncWornArmor;
+		inv.GiveStartingKit();
+		return inv;
+	}
+
+	/// <summary>Pushes the vest and helmet from the inventory into the health system.</summary>
+	private void SyncWornArmor()
+	{
+		var worn = new System.Collections.Generic.List<(ArmorSpec, float)>();
+		foreach (var slot in new[] { EquipSlot.Vest, EquipSlot.Head })
+		{
+			if (_inventory!.Inventory.InSlot(slot) is not { } item || ItemDb.Data(item.Spec.Id)?.Payload is not ArmorData data)
+				continue;
+			var spec = data.ToSpec();
+			worn.Add((spec, item.Durability < 0f ? spec.MaxDurability : item.Durability));
+		}
+		Health.SetArmor(worn);
+	}
+
+	/// <summary>Writes armor wear from the health system back onto the item instances.</summary>
+	private void SyncArmorDurability()
+	{
+		if (_inventory is null)
+			return;
+		foreach (var slot in new[] { EquipSlot.Vest, EquipSlot.Head })
+		{
+			if (_inventory.Inventory.InSlot(slot) is not { } item)
+				continue;
+			foreach (var a in Health.Armor)
+			{
+				if (a.Spec.Id == ItemDb.Data(item.Spec.Id)?.Payload?.Get("Id").AsString())
+					item.Durability = a.Durability;
+			}
 		}
 	}
 
@@ -602,7 +653,7 @@ public partial class Player : CharacterBody3D
 	public override void _PhysicsProcess(double deltaD)
 	{
 		var delta = (float)deltaD;
-		Tier = _weights.TierFor(CarriedWeightKg, StrengthBonusKg);
+		Tier = _weights.TierFor(TotalCarriedKg, StrengthBonusKg);
 		UpdateHealthLinks();
 		if (Health.IsDead)
 		{

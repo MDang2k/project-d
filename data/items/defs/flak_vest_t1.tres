@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/armor/flak_vest_t1.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "flak_vest_t1"
+NameKey = "item.flak_vest_t1"
+Category = 3
+Width = 3
+Height = 3
+WeightKg = 3.0
+MaxStack = 1
+WeaponClass = 0
+Payload = ExtResource("2")
+IconColor = Color(0.3, 0.38, 0.3, 1)
+IconLabel = "Vest T1"

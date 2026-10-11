@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Resource" path="res://data/weapons/fal_type.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+Id = "fal_type"
+NameKey = "item.fal_type"
+Category = 0
+Width = 6
+Height = 2
+WeightKg = 4.3
+MaxStack = 1
+WeaponClass = 1
+Payload = ExtResource("2")
+IconColor = Color(0.25, 0.25, 0.28, 1)
+IconLabel = "FAL"
