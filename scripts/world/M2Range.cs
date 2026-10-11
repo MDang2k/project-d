@@ -201,6 +201,43 @@ public partial class M2Range : Node3D
 				GD.Print($"PICKUP ok={ok} ground items left={left} weight={_player.TotalCarriedKg:0.00}");
 				continue;
 			}
+			if (a.StartsWith("walkjitter:"))
+			{
+				// Hold an input action while measuring hand movement (e.g. approaching a crate).
+				var f = a.Split(':');
+				Input.ActionPress(f[1]);
+				var end = Time.GetTicksMsec() / 1000.0 + double.Parse(f[2]);
+				var last = _player.DebugHands();
+				var worst = 0f;
+				var sum = 0f;
+				var n = 0;
+				var worstFrame = "";
+				while (Time.GetTicksMsec() / 1000.0 < end)
+				{
+					await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+					var now = _player.DebugHands();
+					var step = Mathf.Max(now.Left.DistanceTo(last.Left), now.Right.DistanceTo(last.Right));
+					if (step > worst)
+					{
+						worst = step;
+						worstFrame = $"z={_player.GlobalPosition.Z:0.00} rest={_player.RestAmount:0.00} retract={_player.WeaponRetract * 100f:0}cm";
+					}
+					sum += step;
+					n++;
+					last = now;
+				}
+				Input.ActionRelease(f[1]);
+				GD.Print($"WALKJITTER frames={n} mean={sum / Mathf.Max(1, n) * 100f:0.00} cm max={worst * 100f:0.00} cm at {worstFrame}");
+				continue;
+			}
+			if (a.StartsWith("walk:"))
+			{
+				var f = a.Split(':');
+				Input.ActionPress(f[1]);
+				await ToSignal(GetTree().CreateTimer(double.Parse(f[2])), SceneTreeTimer.SignalName.Timeout);
+				Input.ActionRelease(f[1]);
+				continue;
+			}
 			if (a.StartsWith("jitter:"))
 			{
 				var seconds = double.Parse(a[7..]);
@@ -214,6 +251,8 @@ public partial class M2Range : Node3D
 					await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 					var now = _player.DebugHands();
 					var step = Mathf.Max(now.Left.DistanceTo(last.Left), now.Right.DistanceTo(last.Right));
+					if (frames < 40 && step > 0.02f)
+						GD.Print($"  frame {frames}: step={step * 100f:0.0} cm rest={_player.RestAmount:0.00} retract={_player.WeaponRetract * 100f:0} cm surf={_player.RestSurfaceHeight:0.00}");
 					maxStep = Mathf.Max(maxStep, step);
 					sum += step;
 					frames++;

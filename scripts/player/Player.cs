@@ -566,6 +566,8 @@ public partial class Player : CharacterBody3D
 	private bool _muzzleSurface;
 	private bool _wasRested;
 	private float _restSnap;
+	/// <summary>Colliders the weapon is resting on; the spring arm must not retract away from them.</summary>
+	private readonly System.Collections.Generic.List<Rid> _restColliders = new();
 
 	/// <summary>Height of the surface the weapon rests on (debug overlay), NaN when none.</summary>
 	public float RestSurfaceHeight { get; private set; } = float.NaN;
@@ -578,6 +580,7 @@ public partial class Player : CharacterBody3D
 	private bool FindRestSurface(WeaponNode weapon, out float surfaceY)
 	{
 		surfaceY = float.MinValue;
+		_restColliders.Clear();
 		var found = false;
 		var a = (weapon.GripRight.GlobalPosition + weapon.GripLeft.GlobalPosition) * 0.5f;
 		var b = weapon.Muzzle.GlobalPosition;
@@ -592,6 +595,8 @@ public partial class Player : CharacterBody3D
 				continue;
 			found = true;
 			surfaceY = Mathf.Max(surfaceY, y);
+			if (hit.TryGetValue("rid", out var rid))
+				_restColliders.Add(rid.AsRid());
 		}
 		return found;
 	}
@@ -644,6 +649,13 @@ public partial class Player : CharacterBody3D
 				CollisionMask = CollisionMask,
 				Exclude = new Array<Rid> { GetRid() },
 			};
+			// While resting, the surface under the weapon is where it is meant to be: ignore it, or the
+			// snap and the retraction would fight each other every frame and make the arms twitch.
+			if (_support.RestAmount > 0.15f)
+			{
+				foreach (var rid in _restColliders)
+					q.Exclude.Add(rid);
+			}
 			var result = GetWorld3D().DirectSpaceState.CastMotion(q);
 			if (result.Length > 0)
 				hitDistance = result[0] * travel;
@@ -860,7 +872,13 @@ public partial class Player : CharacterBody3D
 	/// <summary>Dev helper: same as scrolling the wheel while holding C (positive = up).</summary>
 	public void DebugAdjustHeight(float notches) => AdjustHeight(notches);
 
-	public (Vector3 Left, Vector3 Right) DebugHands() => _body.DebugHandPositions();
+	/// <summary>Dev: hand positions in camera space, so body movement does not count as jitter.</summary>
+	public (Vector3 Left, Vector3 Right) DebugHands()
+	{
+		var inv = _camera.GlobalTransform.AffineInverse();
+		var (l, r) = _body.DebugHandPositions();
+		return (inv * l, inv * r);
+	}
 
 	/// <summary>Dev helper: same as pressing the melee key.</summary>
 	public bool DebugMelee()
