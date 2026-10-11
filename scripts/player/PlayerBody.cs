@@ -154,7 +154,12 @@ public partial class PlayerBody : Node3D
 	}
 
 	/// <summary>Dev: world positions of both hand bones (after IK) for jitter measurements.</summary>
-	public (Vector3 Left, Vector3 Right) DebugHandPositions()
+	public (Vector3 Left, Vector3 Right) DebugHandPositions() => DebugBonePositions("Hand_L", "Hand_R");
+
+	/// <summary>Dev: world positions of both elbow (forearm) bones after IK.</summary>
+	public (Vector3 Left, Vector3 Right) DebugElbowPositions() => DebugBonePositions("Forearm_L", "Forearm_R");
+
+	private (Vector3 Left, Vector3 Right) DebugBonePositions(string left, string right)
 	{
 		// Bone attachments follow the final (post-IK) pose; raw bone poses do not include modifiers.
 		Vector3 Find(string bone)
@@ -166,7 +171,7 @@ public partial class PlayerBody : Node3D
 			}
 			return Vector3.Zero;
 		}
-		return (Find("Hand_L"), Find("Hand_R"));
+		return (Find(left), Find(right));
 	}
 
 	/// <summary>Poses legs and torso from the current eye height and lean (call every frame).</summary>

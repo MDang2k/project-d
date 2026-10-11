@@ -215,6 +215,9 @@ public partial class M2Range : Node3D
 				var n = 0;
 				var spikes = 0;
 				var worstInfo = "";
+				var lastElbow = _player.DebugElbows();
+				var elbowWorst = 0f;
+				var elbowSpikes = 0;
 				while (true)
 				{
 					var t = (Time.GetTicksMsec() / 1000.0 - t0) / secs;
@@ -224,6 +227,14 @@ public partial class M2Range : Node3D
 					await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 					var now = _player.DebugHands();
 					var step = Mathf.Max(now.Left.DistanceTo(last.Left), now.Right.DistanceTo(last.Right));
+					var elbow = _player.DebugElbows();
+					var estep = Mathf.Max(elbow.Left.DistanceTo(lastElbow.Left), elbow.Right.DistanceTo(lastElbow.Right));
+					lastElbow = elbow;
+					if (OS.GetEnvironment("SWEEPLOG") == "1")
+						GD.Print($"F pitch={Mathf.Lerp(from, to, (float)t):0.0} rest={_player.RestAmount:0.00} retract={_player.WeaponRetract * 100f:0.0} hand={step * 100f:0.0} elbow={estep * 100f:0.0}");
+					elbowWorst = Mathf.Max(elbowWorst, estep);
+					if (estep > 0.03f)
+						elbowSpikes++;
 					// Expected hand movement while pitching is smooth; count big jumps separately.
 					if (step > 0.03f)
 					{
@@ -240,7 +251,7 @@ public partial class M2Range : Node3D
 					n++;
 					last = now;
 				}
-				GD.Print($"PITCHSWEEP frames={n} mean={sum / Mathf.Max(1, n) * 100f:0.00} cm max={worst * 100f:0.00} cm spikes>3cm={spikes} worst at {worstInfo}");
+				GD.Print($"PITCHSWEEP frames={n} mean={sum / Mathf.Max(1, n) * 100f:0.00} cm max={worst * 100f:0.00} cm spikes>3cm={spikes} ELBOW max={elbowWorst * 100f:0.00} cm spikes={elbowSpikes} worst at {worstInfo}");
 				continue;
 			}
 			if (a.StartsWith("walkjitter:"))

@@ -567,9 +567,6 @@ public partial class Player : CharacterBody3D
 	private bool _muzzleSurface;
 	private bool _wasRested;
 	private float _restSnap;
-	/// <summary>Colliders the weapon is resting on; the spring arm must not retract away from them.</summary>
-	private readonly System.Collections.Generic.List<Rid> _restColliders = new();
-	private float _restColliderLatchS;
 	private bool _restPitchOk = true;
 
 	/// <summary>Height of the surface the weapon rests on (debug overlay), NaN when none.</summary>
@@ -583,10 +580,11 @@ public partial class Player : CharacterBody3D
 	private bool FindRestSurface(WeaponNode weapon, out float surfaceY)
 	{
 		surfaceY = float.MinValue;
-		var colliders = new System.Collections.Generic.List<Rid>();
 		var found = false;
-		var a = (weapon.GripRight.GlobalPosition + weapon.GripLeft.GlobalPosition) * 0.5f;
-		var b = weapon.Muzzle.GlobalPosition;
+		// Probe the weapon where it would be with no retraction or snap, so the rest decision cannot
+		// depend on the very motion it causes (that loop flickered rest and the spring arm).
+		var a = (Unretracted(weapon.GripRight) + Unretracted(weapon.GripLeft)) * 0.5f;
+		var b = Unretracted(weapon.Muzzle);
 		foreach (var t in new[] { 0f, 0.5f, 1f })
 		{
 			var p = a.Lerp(b, t);
@@ -598,24 +596,15 @@ public partial class Player : CharacterBody3D
 				continue;
 			found = true;
 			surfaceY = Mathf.Max(surfaceY, y);
-			if (hit.TryGetValue("rid", out var rid))
-				colliders.Add(rid.AsRid());
-		}
-		// Latch the surface briefly so a one-frame ray miss cannot flip the spring arm back on.
-		if (found)
-		{
-			_restColliders.Clear();
-			_restColliders.AddRange(colliders);
-			_restColliderLatchS = 0.35f;
-		}
-		else if (_restColliderLatchS > 0f)
-		{
-			_restColliderLatchS -= Time.GetTicksMsec() > 0 ? (1f / Engine.PhysicsTicksPerSecond) : 0f;
-			if (_restColliderLatchS <= 0f)
-				_restColliders.Clear();
 		}
 		return found;
 	}
+
+	private Transform3D _baseSwayLocal = Transform3D.Identity;
+
+	/// <summary>World position of a weapon part as if retraction, tilt and rest snap were zero.</summary>
+	private Vector3 Unretracted(Node3D part)
+		=> _swayNode.GetParent<Node3D>().GlobalTransform * _baseSwayLocal * _swayNode.ToLocal(part.GlobalPosition);
 
 	/// <summary>True if a restable horizontal surface lies within RestReach below the point.</summary>
 	private bool SurfaceUnder(Vector3 origin)
@@ -648,24 +637,20 @@ public partial class Player : CharacterBody3D
 	/// Spring-arm retraction: sweeps a sphere from the camera toward the muzzle and pulls the
 	/// weapon back (and tips it up) so it never pokes through walls.
 	/// </summary>
-	private void UpdateClearance(float delta, WeaponNode weapon)
+	private void UpdateClearance(float delta, WeaponNode weapon, Vector3 basePosition)
 	{
 		var origin = _camera.GlobalPosition;
-		var toMuzzle = weapon.Muzzle.GlobalPosition - origin;
-		var fullLength = toMuzzle.Length() + _clearance.Retract;
+		// Cast toward where the muzzle would be with NO retraction, snap or tilt. Using the live muzzle
+		// closes a feedback loop (retract tilts the muzzle up, the cast leaves the wall, retract drops,
+		// the muzzle tips back down...) that shows up as arm twitching when looking down at a wall.
+		_baseSwayLocal = new Transform3D(Basis.FromEuler(_swayNode.Rotation), basePosition);
+		var toMuzzle = Unretracted(weapon.Muzzle) - origin;
+		var fullLength = toMuzzle.Length();
 		var travel = fullLength + _cfg.ClearanceMargin;
 		var hitDistance = travel;
 		if (toMuzzle.LengthSquared() > 0.0001f)
 		{
-			// While resting, the surface under the weapon is where it is meant to be: ignore it, or the
-			// snap and the retraction would fight each other and make the arms twitch. (The query's
-			// Exclude property returns a copy, so the list is built first and assigned whole.)
 			var exclude = new Array<Rid> { GetRid() };
-			if (_support.RestAmount > 0.15f)
-			{
-				foreach (var rid in _restColliders)
-					exclude.Add(rid);
-			}
 			var q = new PhysicsShapeQueryParameters3D
 			{
 				Shape = new SphereShape3D { Radius = _cfg.ClearanceRadius },
@@ -679,7 +664,10 @@ public partial class Player : CharacterBody3D
 				hitDistance = result[0] * travel;
 			ClearanceDebug = $"excluded={exclude.Count - 1} cast={(result.Length > 0 ? result[0] : 1f):0.00} restSurf={RestSurfaceHeight:0.00}";
 		}
-		_clearance.Update(delta, _clearance.TargetRetract(fullLength, hitDistance));
+		// While resting, the surface under the weapon is where it is meant to be; the rest snap handles
+		// it. Fade the retraction out by RestAmount (no on/off threshold) so entering and leaving rest
+		// blends smoothly instead of the two systems switching and fighting.
+		_clearance.Update(delta, _clearance.TargetRetract(fullLength, hitDistance) * (1f - _support.RestAmount));
 	}
 
 	private void OnMagazineDropped(WeaponNode weapon, Magazine magazine)
@@ -821,7 +809,7 @@ public partial class Player : CharacterBody3D
 
 		var t = Mathf.SmoothStep(0f, 1f, _aim.Amount);
 		var adsPos = new Vector3(0f, -weapon.Data.SightHeight, -_cfg.AdsEyeRelief);
-		UpdateClearance(delta, weapon);
+		UpdateClearance(delta, weapon, _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset);
 
 		// Weapon visibly settles onto the surface it rests on; ADS keeps the sight line instead.
 		var snapTarget = 0f;
@@ -897,6 +885,13 @@ public partial class Player : CharacterBody3D
 	public void DebugAdjustHeight(float notches) => AdjustHeight(notches);
 
 	/// <summary>Dev: hand positions in camera space, so body movement does not count as jitter.</summary>
+	public (Vector3 Left, Vector3 Right) DebugElbows()
+	{
+		var inv = _camera.GlobalTransform.AffineInverse();
+		var (l, r) = _body.DebugElbowPositions();
+		return (inv * l, inv * r);
+	}
+
 	public (Vector3 Left, Vector3 Right) DebugHands()
 	{
 		var inv = _camera.GlobalTransform.AffineInverse();
