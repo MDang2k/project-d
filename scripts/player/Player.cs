@@ -991,6 +991,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 			StepDeath(delta);
 			return;
 		}
+		if (_noclip)
+		{
+			NoclipStep(delta);
+			return;
+		}
 		UpdateLoader(delta);
 		UpdateInteract();
 		UpdateWeaponInput();
@@ -1073,6 +1078,43 @@ public partial class Player : CharacterBody3D, IPerceivable
 		NoiseBus.Emit(GlobalPosition, radius, "footstep", this);
 	}
 
+	private bool _noclip;
+
+	/// <summary>
+	/// Dev ghost mode: fly through everything, invisible to AI and untouchable. Space up, C down,
+	/// Shift fast.
+	/// </summary>
+	public bool DebugNoclip
+	{
+		get => _noclip;
+		set
+		{
+			_noclip = value;
+			_collision.Disabled = value;
+			foreach (var child in _hitboxRoot.GetChildren())
+			{
+				if (child is HitboxArea area)
+					area.CollisionLayer = value ? 0u : 1u << 4;
+			}
+			Velocity = Vector3.Zero;
+		}
+	}
+
+	private void NoclipStep(float delta)
+	{
+		var input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+		var dir = _camera.GlobalBasis * new Vector3(input.X, 0f, input.Y);
+		if (Input.IsActionPressed("jump"))
+			dir += Vector3.Up;
+		if (Input.IsKeyPressed(Key.C))
+			dir += Vector3.Down;
+		var speed = Input.IsActionPressed("sprint") ? 40f : 12f;
+		GlobalPosition += dir.LimitLength(1f) * speed * delta;
+		Velocity = Vector3.Zero;
+		UpdateHandling(delta);
+		UpdateRig(delta);
+	}
+
 	private Node3D _hitboxRoot = null!;
 	private readonly Array<Rid> _ownRids = new();
 
@@ -1103,7 +1145,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	// --- IPerceivable ----------------------------------------------------------------------
 
 	public Faction Faction => _cfg.PlayerFaction;
-	public bool IsAlive => !Health.IsDead;
+	public bool IsAlive => !Health.IsDead && !_noclip;
 	public Stance PerceivedStance => Stance;
 	public float PerceivedSpeedFraction
 		=> Mathf.Clamp(new Vector2(Velocity.X, Velocity.Z).Length() / Mathf.Max(0.1f, _cfg.SprintSpeed), 0f, 1f);

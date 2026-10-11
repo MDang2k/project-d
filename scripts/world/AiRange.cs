@@ -6,7 +6,7 @@ namespace ProjectD;
 
 /// <summary>
 /// M5 AI test range, built in code: open ground, cover walls and one AI of each faction preset.
-/// Keys: F4 toggles AI debug (cones and awareness labels), Backspace respawns the player.
+/// Keys: F2 noclip ghost fly, F4 toggles AI debug (cones and awareness labels), Backspace respawns the player.
 /// Dev args after "--": --pos=x,z --yaw=deg --crouch --prone --fire=secs --wait=secs --report --shot=path.
 /// </summary>
 public partial class AiRange : Node3D
@@ -35,24 +35,29 @@ public partial class AiRange : Node3D
 		var only = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--only="))?["--only=".Length..];
 		var standStill = OS.GetCmdlineUserArgs().Contains("--stand");
 		var standSolo = OS.GetCmdlineUserArgs().Contains("--solo");
+		// Two firefights set up ~55 m apart: looter vs bandit at z -30, allied vs soviet PMC at z -90.
+		// Each side patrols toward the other so they meet around the cover in the middle.
 		var spots = new[]
 		{
-			(new Vector3(10f, 0.1f, -18f), 150f), (new Vector3(-12f, 0.1f, -26f), 200f),
-			(new Vector3(16f, 0.1f, -34f), 170f), (new Vector3(-6f, 0.1f, -48f), 180f),
+			(new Vector3(-30f, 0.1f, -30f), 1f), (new Vector3(25f, 0.1f, -30f), -1f),
+			(new Vector3(-30f, 0.1f, -90f), 1f), (new Vector3(25f, 0.1f, -90f), -1f),
 		};
+		var order = new[] { 0, 1, 2, 3 }; // preset ids: looter, bandit, allied_pmc, soviet_pmc
 		for (var i = 0; i < PresetIds.Length; i++)
 		{
-			if (only is not null && only != PresetIds[i])
+			var id = PresetIds[order[i]];
+			if (only is not null && only != id)
 				continue;
-			// Each AI patrols a small loop around its start point (or stands with --stand).
-			var c = spots[i].Item1;
+			var (c, toward) = spots[i];
+			var forward = new Vector3(toward * 18f, 0f, 0f);
 			var patrol = standStill
 				? System.Array.Empty<Vector3>()
-				: new[] { c, c + new Vector3(8f, 0f, 0f), c + new Vector3(8f, 0f, -8f), c + new Vector3(0f, 0f, -8f) };
-			SpawnAi(PresetIds[i], c, spots[i].Item2, patrol);
+				: new[] { c, c + forward, c + forward + new Vector3(0f, 0f, -8f), c + new Vector3(0f, 0f, -8f) };
+			var yaw = toward > 0f ? -90f : 90f;
+			SpawnAi(id, c, yaw, patrol);
 			// A partner standing close by so pairs can flank together.
 			if (!standSolo)
-				SpawnAi(PresetIds[i], c + new Vector3(2.5f, 0f, 1.5f), spots[i].Item2, patrol, "_2");
+				SpawnAi(id, c + new Vector3(0f, 0f, 3f), yaw, patrol, "_2");
 		}
 
 		NoiseBus.Noise += n => _lastNoise = $"{n.Kind} ({n.Radius:0} m)";
@@ -114,6 +119,14 @@ public partial class AiRange : Node3D
 		Box(new Vector3(-3f, 0.45f, -5f), new Vector3(3f, 0.9f, 0.5f), cover);
 		Box(new Vector3(8f, 1.25f, -26f), new Vector3(0.5f, 2.5f, 10f), new Color(0.5f, 0.45f, 0.45f));
 		Box(new Vector3(-10f, 0.6f, -36f), new Vector3(5f, 1.2f, 0.5f), cover);
+		// Cover in the middle of both firefights.
+		foreach (var z in new[] { -30f, -90f })
+		{
+			Box(new Vector3(-12f, 0.45f, z + 4f), new Vector3(4f, 0.9f, 0.5f), cover);
+			Box(new Vector3(-2f, 1.25f, z), new Vector3(0.5f, 2.5f, 8f), new Color(0.5f, 0.45f, 0.45f));
+			Box(new Vector3(6f, 0.45f, z - 5f), new Vector3(4f, 0.9f, 0.5f), cover);
+			Box(new Vector3(12f, 0.6f, z + 3f), new Vector3(0.5f, 1.2f, 4f), cover);
+		}
 		_nav.BakeNavigationMesh(false);
 		AddChild(new DirectionalLight3D { RotationDegrees = new Vector3(-50f, 30f, 0f), ShadowEnabled = true });
 		AddChild(new WorldEnvironment
@@ -134,6 +147,9 @@ public partial class AiRange : Node3D
 			return;
 		switch (key.Keycode)
 		{
+			case Key.F2:
+				_player.DebugNoclip = !_player.DebugNoclip;
+				break;
 			case Key.F4:
 				_debug = !_debug;
 				foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
@@ -172,7 +188,7 @@ public partial class AiRange : Node3D
 			var d = ai.GlobalPosition.DistanceTo(_player.GlobalPosition);
 			sb.AppendLine($"{ai.Preset?.Id,-11} {d,5:0} m  {ai.Perception.Level,-10} {ai.Perception.Awareness * 100f,3:0}%  {ai.LastCue}");
 		}
-		sb.Append("V fire  RMB aim  Shift sprint  C crouch  Z prone  F4 AI debug " + (_debug ? "ON" : "off") + "  Backspace respawn");
+		sb.Append("V fire  RMB aim  Shift sprint  C crouch  Z prone  F4 AI debug " + (_debug ? "ON" : "off") + "  F2 noclip " + (_player.DebugNoclip ? "ON (Space up, C down, Shift fast)" : "off") + "  Backspace respawn");
 		_label.Text = sb.ToString();
 		_ = w;
 	}
@@ -197,6 +213,8 @@ public partial class AiRange : Node3D
 				_player.DebugSetStance(Stance.Crouch);
 			else if (arg == "--prone")
 				_player.DebugSetStance(Stance.Prone);
+			else if (arg == "--noclip")
+				_player.DebugNoclip = true;
 			else if (arg == "--report")
 				report = true;
 			else if (arg.StartsWith("--pos=") && arg["--pos=".Length..].Split(',') is { Length: 2 } xy
