@@ -112,14 +112,14 @@ public sealed class LootContainerModel
 	public float Progress => SecondsPerItem > 0f ? Math.Clamp(_timer / SecondsPerItem, 0f, 1f) : 0f;
 }
 
-/// <summary>Where a sound happened and how far it carries; AI subscribes in M5.</summary>
-public readonly record struct NoiseEvent(Vector3 Position, float Radius, string Kind);
+/// <summary>Where a sound happened and how far it carries. Source is the emitter, so it can ignore its own noise.</summary>
+public readonly record struct NoiseEvent(Vector3 Position, float Radius, string Kind, object? Source = null);
 
 /// <summary>Global noise broadcast. Static so any system can emit without a node.</summary>
 public static class NoiseBus
 {
 	public static event Action<NoiseEvent>? Noise;
 
-	public static void Emit(Vector3 position, float radius, string kind)
-		=> Noise?.Invoke(new NoiseEvent(position, radius, kind));
+	public static void Emit(Vector3 position, float radius, string kind, object? source = null)
+		=> Noise?.Invoke(new NoiseEvent(position, radius, kind, source));
 }

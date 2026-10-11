@@ -26,6 +26,17 @@ public partial class PlayerConfig : Resource
 	[Export] public float JumpVelocity { get; set; } = 4.2f;
 	[Export] public float JumpStaminaCost { get; set; } = 12f;
 
+	[ExportGroup("Noise and faction")]
+	/// <summary>Which side the player is on (decides who is hostile); the story picks it later.</summary>
+	[Export] public Faction PlayerFaction { get; set; } = Faction.AlliedPmc;
+	/// <summary>How far footsteps carry, metres, by movement.</summary>
+	[Export] public float FootstepWalkRadius { get; set; } = 7f;
+	[Export] public float FootstepSprintRadius { get; set; } = 16f;
+	[Export] public float FootstepCrouchRadius { get; set; } = 2.5f;
+	[Export] public float FootstepProneRadius { get; set; } = 1f;
+	[Export] public float StepIntervalWalkS { get; set; } = 0.55f;
+	[Export] public float StepIntervalSprintS { get; set; } = 0.33f;
+
 	[ExportGroup("Stances")]
 	[Export] public float StandHeight { get; set; } = 1.8f;
 	[Export] public float CrouchHeight { get; set; } = 1.2f;

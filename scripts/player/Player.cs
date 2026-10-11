@@ -11,7 +11,7 @@ namespace ProjectD;
 /// FreeLook (free-look offset) > Camera, with WeaponSway (sway + hip/ADS position) under Recoil.
 /// Weapon sway and recoil nodes join the rig in M2.
 /// </summary>
-public partial class Player : CharacterBody3D
+public partial class Player : CharacterBody3D, IPerceivable
 {
 	[Export] public PlayerConfig? Config { get; set; }
 	/// <summary>Extra weight on top of the inventory (debug adjust keys); the inventory total is added.</summary>
@@ -122,6 +122,9 @@ public partial class Player : CharacterBody3D
 	public override void _Ready()
 	{
 		_cfg = Config ?? new PlayerConfig();
+		AddToGroup("perceivables");
+		// AI movement capsules live on layer 4 so bullets pass through them to the hitboxes.
+		CollisionMask |= 1u << 3;
 		_collision = GetNode<CollisionShape3D>("Collision");
 		_pivot = GetNode<Node3D>("LeanPivot");
 		_head = GetNode<Node3D>("LeanPivot/Head");
@@ -557,6 +560,7 @@ public partial class Player : CharacterBody3D
 	{
 		_projectiles ??= GetTree().GetFirstNodeInGroup("projectiles") as ProjectileManager;
 		_projectiles?.Spawn(ammo, position, direction, GetRid());
+		NoiseBus.Emit(position, Weapon?.Data.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)
 			_recoil.Kick(w.Data.ToRecoilTuning(),
 				HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount, _support.RestAmount,
@@ -1037,8 +1041,55 @@ public partial class Player : CharacterBody3D
 			Legs.Spend(_cfg.SprintDrainPerS * _weights.StaminaDrainMult(Tier) * delta);
 		TickStamina(delta);
 		MoveAndSlide();
+		UpdateFootsteps(delta);
 		UpdateHandling(delta);
 		UpdateRig(delta);
+	}
+
+	private float _stepTimer;
+
+	/// <summary>Walking makes noise AI can hear; sprinting is loud, crouching and crawling are quiet.</summary>
+	private void UpdateFootsteps(float delta)
+	{
+		var speed = new Vector2(Velocity.X, Velocity.Z).Length();
+		if (!IsOnFloor() || speed < 0.6f)
+		{
+			_stepTimer = 0f;
+			return;
+		}
+		_stepTimer += delta;
+		var interval = IsSprinting ? _cfg.StepIntervalSprintS : _cfg.StepIntervalWalkS;
+		if (_stepTimer < interval)
+			return;
+		_stepTimer = 0f;
+		var radius = Stance switch
+		{
+			Stance.Prone => _cfg.FootstepProneRadius,
+			Stance.Crouch => _cfg.FootstepCrouchRadius,
+			_ => IsSprinting ? _cfg.FootstepSprintRadius : _cfg.FootstepWalkRadius,
+		};
+		NoiseBus.Emit(GlobalPosition, radius, "footstep", this);
+	}
+
+	// --- IPerceivable ----------------------------------------------------------------------
+
+	public Faction Faction => _cfg.PlayerFaction;
+	public bool IsAlive => !Health.IsDead;
+	public Stance PerceivedStance => Stance;
+	public float PerceivedSpeedFraction
+		=> Mathf.Clamp(new Vector2(Velocity.X, Velocity.Z).Length() / Mathf.Max(0.1f, _cfg.SprintSpeed), 0f, 1f);
+	public Rid BodyRid => GetRid();
+
+	public Vector3[] BodyPoints()
+	{
+		var h = HeightFor(Stance);
+		var p = GlobalPosition;
+		return new[]
+		{
+			p + Vector3.Up * (h * 0.92f),
+			p + Vector3.Up * (h * 0.62f),
+			p + Vector3.Up * (h * 0.2f),
+		};
 	}
 
 	private void TickStamina(float delta)

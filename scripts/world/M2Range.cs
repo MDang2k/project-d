@@ -64,6 +64,8 @@ public partial class M2Range : Node3D
 		AddContainers();
 		NoiseBus.Noise += n =>
 		{
+			if (n.Kind is "footstep" or "gunshot")
+				return;
 			_message = $"noise: {n.Kind}, heard within {n.Radius:0} m";
 			_messageUntil = Time.GetTicksMsec() / 1000.0 + 1.5;
 		};

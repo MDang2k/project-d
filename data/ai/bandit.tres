@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AiPreset" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/ai/AiPreset.cs" id="1"]
+[ext_resource type="Resource" path="res://data/weapons/ak_type.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/health/ArmorData.cs" id="3"]
+[ext_resource type="Resource" path="res://data/armor/flak_vest_t1.tres" id="10"]
+[ext_resource type="Resource" path="res://data/armor/steel_helmet_t1.tres" id="11"]
+
+[resource]
+script = ExtResource("1")
+Id = "bandit"
+Faction = 1
+BodyColor = Color(0.55, 0.3, 0.25, 1)
+ViewDistance = 80.0
+FovDeg = 110.0
+HearingMultiplier = 1.0
+NoticeSeconds = 1.2
+Weapon = ExtResource("2")
+Armor = Array[ExtResource("3")]([ExtResource("10"), ExtResource("11")])

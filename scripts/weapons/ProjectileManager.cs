@@ -35,7 +35,8 @@ public partial class ProjectileManager : Node3D
 	[Export] public bool ShowTracers { get; set; } = true;
 	/// <summary>Debug: keep each bullet flight path as a line for a few seconds. Off by default.</summary>
 	[Export] public bool ShowTrajectories { get; set; }
-	[Export(PropertyHint.Layers3DPhysics)] public uint HitMask { get; set; } = 0xFFFFFFFF;
+	/// <summary>Everything but the AI movement capsules (layer 4): bullets must hit the per-limb hitboxes instead.</summary>
+	[Export(PropertyHint.Layers3DPhysics)] public uint HitMask { get; set; } = 0xFFFFFFFF & ~(1u << 3);
 
 	public event Action<BulletImpact>? Impact;
 

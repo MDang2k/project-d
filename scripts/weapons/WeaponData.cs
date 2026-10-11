@@ -28,6 +28,9 @@ public partial class WeaponData : Resource
 
 	[Export] public bool HasBipod { get; set; }
 
+	/// <summary>How far a shot carries (metres) for AI hearing. Suppressors will lower this later.</summary>
+	[Export] public float NoiseRadius { get; set; } = 150f;
+
 	[ExportGroup("Actions (seconds)")]
 	[Export] public float TacticalReloadS { get; set; } = 2.4f;
 	[Export] public float FastReloadS { get; set; } = 1.6f;
