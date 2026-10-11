@@ -34,6 +34,7 @@ public partial class AiRange : Node3D
 		// Dev: --only=bandit keeps a single AI so one faction's senses can be measured alone.
 		var only = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--only="))?["--only=".Length..];
 		var standStill = OS.GetCmdlineUserArgs().Contains("--stand");
+		var standSolo = OS.GetCmdlineUserArgs().Contains("--solo");
 		var spots = new[]
 		{
 			(new Vector3(10f, 0.1f, -18f), 150f), (new Vector3(-12f, 0.1f, -26f), 200f),
@@ -49,6 +50,9 @@ public partial class AiRange : Node3D
 				? System.Array.Empty<Vector3>()
 				: new[] { c, c + new Vector3(8f, 0f, 0f), c + new Vector3(8f, 0f, -8f), c + new Vector3(0f, 0f, -8f) };
 			SpawnAi(PresetIds[i], c, spots[i].Item2, patrol);
+			// A partner standing close by so pairs can flank together.
+			if (!standSolo)
+				SpawnAi(PresetIds[i], c + new Vector3(2.5f, 0f, 1.5f), spots[i].Item2, patrol, "_2");
 		}
 
 		NoiseBus.Noise += n => _lastNoise = $"{n.Kind} ({n.Radius:0} m)";
@@ -59,11 +63,11 @@ public partial class AiRange : Node3D
 		ApplyDevArgs();
 	}
 
-	private void SpawnAi(string presetId, Vector3 position, float yawDeg, Vector3[] patrol)
+	private void SpawnAi(string presetId, Vector3 position, float yawDeg, Vector3[] patrol, string suffix = "")
 	{
 		var ai = new AiHuman
 		{
-			Name = presetId,
+			Name = presetId + suffix,
 			Preset = GD.Load<AiPreset>($"res://data/ai/{presetId}.tres"),
 			Position = position,
 			RotationDegrees = new Vector3(0f, yawDeg, 0f),
@@ -143,8 +147,22 @@ public partial class AiRange : Node3D
 		}
 	}
 
+	private readonly System.Collections.Generic.Dictionary<AiHuman, string> _trace = new();
+	private readonly bool _traceOn = OS.GetCmdlineUserArgs().Contains("--trace");
+
 	public override void _Process(double delta)
 	{
+		if (_traceOn)
+		{
+			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
+			{
+				var now = $"{ai.Brain.State}/{ai.CombatState}";
+				if (_trace.TryGetValue(ai, out var old) && old == now)
+					continue;
+				_trace[ai] = now;
+				GD.Print($"TRACE {Time.GetTicksMsec() / 1000.0:0.0}s {ai.Preset?.Id} {now}");
+			}
+		}
 		var sb = new StringBuilder();
 		var w = _player.Weapon;
 		sb.AppendLine($"you: {_player.Faction}  stance {_player.Stance}{(_player.IsSprinting ? " sprinting" : "")}  hp {(_player.IsDead ? "DEAD" : "ok")}");
@@ -196,8 +214,10 @@ public partial class AiRange : Node3D
 			await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
 		if (report)
 		{
+			var b = _player.Health.Body;
+			GD.Print($"PLAYER dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
-				GD.Print($"AI {ai.Preset?.Id} state={ai.Brain.State} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue}");
+				GD.Print($"AI {ai.Preset?.Id} state={ai.Brain.State}/{ai.CombatState} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired}");
 		}
 		if (shot is null)
 		{

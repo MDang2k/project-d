@@ -123,6 +123,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	{
 		_cfg = Config ?? new PlayerConfig();
 		AddToGroup("perceivables");
+		BuildHitboxes();
 		// AI movement capsules live on layer 4 so bullets pass through them to the hitboxes.
 		CollisionMask |= 1u << 3;
 		_collision = GetNode<CollisionShape3D>("Collision");
@@ -559,7 +560,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private void OnShotFired(AmmoType ammo, Vector3 position, Vector3 direction)
 	{
 		_projectiles ??= GetTree().GetFirstNodeInGroup("projectiles") as ProjectileManager;
-		_projectiles?.Spawn(ammo, position, direction, GetRid());
+		_projectiles?.Spawn(ammo, position, direction, GetRid(), _ownRids);
 		NoiseBus.Emit(position, Weapon?.Data.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)
 			_recoil.Kick(w.Data.ToRecoilTuning(),
@@ -1042,6 +1043,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		TickStamina(delta);
 		MoveAndSlide();
 		UpdateFootsteps(delta);
+		UpdateHitboxes();
 		UpdateHandling(delta);
 		UpdateRig(delta);
 	}
@@ -1069,6 +1071,33 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_ => IsSprinting ? _cfg.FootstepSprintRadius : _cfg.FootstepWalkRadius,
 		};
 		NoiseBus.Emit(GlobalPosition, radius, "footstep", this);
+	}
+
+	private Node3D _hitboxRoot = null!;
+	private readonly Array<Rid> _ownRids = new();
+
+	/// <summary>Per-limb hitboxes so AI bullets hurt the player; on layer 5 so the player's own melee ignores them.</summary>
+	private void BuildHitboxes()
+	{
+		_hitboxRoot = new Node3D { Name = "Hitboxes" };
+		AddChild(_hitboxRoot);
+		HitboxRig.Build(_hitboxRoot, Health);
+		_ownRids.Add(GetRid());
+		foreach (var child in _hitboxRoot.GetChildren())
+		{
+			if (child is not HitboxArea area)
+				continue;
+			area.CollisionLayer = 1u << 4;
+			area.CollisionMask = 0;
+			_ownRids.Add(area.GetRid());
+		}
+	}
+
+	/// <summary>Squashes the standing hitbox set to the current stance height.</summary>
+	private void UpdateHitboxes()
+	{
+		var scale = Mathf.Clamp(HeightFor(Stance) / Mathf.Max(0.1f, _cfg.StandHeight), 0.3f, 1f);
+		HitboxRig.SetHeightScale(_hitboxRoot, scale);
 	}
 
 	// --- IPerceivable ----------------------------------------------------------------------

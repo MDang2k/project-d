@@ -20,6 +20,7 @@ public partial class ProjectileManager : Node3D
 	{
 		public BulletState State;
 		public AmmoType Ammo = null!;
+		public Array<Rid> Exclude = new();
 		public Rid Shooter;
 		public Vector3 Origin;
 		public MeshInstance3D? Tracer;
@@ -40,6 +41,9 @@ public partial class ProjectileManager : Node3D
 
 	public event Action<BulletImpact>? Impact;
 
+	/// <summary>A bullet travelled from one point to another this frame (AI uses it to feel near misses).</summary>
+	public event Action<Vector3, Vector3, Rid>? Passed;
+
 	public override void _Ready()
 	{
 		AddToGroup("projectiles");
@@ -47,12 +51,17 @@ public partial class ProjectileManager : Node3D
 	}
 
 	public void Spawn(AmmoType ammo, Vector3 position, Vector3 direction, Rid shooter)
+		=> Spawn(ammo, position, direction, shooter, new Array<Rid> { shooter });
+
+	/// <summary>Spawns a bullet that ignores every collider in exclude (the shooter's body and own hitboxes).</summary>
+	public void Spawn(AmmoType ammo, Vector3 position, Vector3 direction, Rid shooter, Array<Rid> exclude)
 	{
 		var b = new Bullet
 		{
 			State = new BulletState { Position = position, Velocity = direction.Normalized() * ammo.MuzzleVelocity },
 			Ammo = ammo,
 			Shooter = shooter,
+			Exclude = exclude,
 			Origin = position,
 		};
 		b.Path.Add(position);
@@ -82,9 +91,10 @@ public partial class ProjectileManager : Node3D
 			var b = _bullets[i];
 			var (from, to) = Ballistics.Step(ref b.State, _gravity, delta);
 			b.Path.Add(to);
-			var q = PhysicsRayQueryParameters3D.Create(from, to, HitMask, new Array<Rid> { b.Shooter });
+			var q = PhysicsRayQueryParameters3D.Create(from, to, HitMask, b.Exclude);
 			q.CollideWithAreas = true;
 			var hit = space.IntersectRay(q);
+			Passed?.Invoke(from, hit.Count > 0 ? hit["position"].AsVector3() : to, b.Shooter);
 			if (hit.Count > 0)
 			{
 				var pos = hit["position"].AsVector3();

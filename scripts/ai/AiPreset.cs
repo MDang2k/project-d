@@ -42,10 +42,35 @@ public partial class AiPreset : Resource
 	[Export] public float SearchS { get; set; } = 10f;
 	[Export] public float PatrolWaitS { get; set; } = 2f;
 
+	[ExportGroup("Combat")]
+	/// <summary>0 hopeless .. 1 deadly shot (see AimTuning).</summary>
+	[Export] public float Accuracy { get; set; } = 0.5f;
+	/// <summary>0 cowardly .. 1 fearless: when injury and incoming fire make the AI back off.</summary>
+	[Export] public float Courage { get; set; } = 0.5f;
+	/// <summary>0 passive .. 1 pushes and flanks.</summary>
+	[Export] public float Aggression { get; set; } = 0.5f;
+	[Export] public int BurstMin { get; set; } = 2;
+	[Export] public int BurstMax { get; set; } = 5;
+	[Export] public float BurstPauseMinS { get; set; } = 0.5f;
+	[Export] public float BurstPauseMaxS { get; set; } = 1.4f;
+	/// <summary>Delay between first seeing a target and the first shot.</summary>
+	[Export] public float ReactionS { get; set; } = 0.6f;
+	[Export] public int BurstsBeforeCover { get; set; } = 3;
+	/// <summary>Bandage-like item used when badly hurt; null means this AI cannot heal.</summary>
+	[Export] public MedicalData? HealItem { get; set; }
+
 	[ExportGroup("Loadout")]
 	[Export] public WeaponData? Weapon { get; set; }
 	[Export] public Array<ArmorData> Armor { get; set; } = new();
 	[Export] public HealthConfig? Health { get; set; }
+
+	public TacticsTuning ToTacticsTuning() => TacticsTuning.Default with
+	{
+		Courage = Courage,
+		Aggression = Aggression,
+		EngageDistance = EngageDistance,
+		BurstsBeforeCover = BurstsBeforeCover,
+	};
 
 	public BrainTuning ToBrainTuning() => new(ArrivalRadius, LookAroundS, LostTargetS, SearchS, PatrolWaitS);
 

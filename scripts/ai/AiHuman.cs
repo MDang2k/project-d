@@ -57,7 +57,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	public Faction Faction => Preset?.Faction ?? Faction.Looters;
 	public bool IsAlive => !Health.IsDead;
-	public Stance PerceivedStance => Stance.Stand;
+	public Stance PerceivedStance => IsCrouching ? Stance.Crouch : Stance.Stand;
 	public float PerceivedSpeedFraction
 		=> Mathf.Clamp(new Vector2(Velocity.X, Velocity.Z).Length() / 5.2f, 0f, 1f);
 	public Rid BodyRid => GetRid();
@@ -102,24 +102,32 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		foreach (var a in Preset.Armor)
 			Health.Equip(a);
 		Health.Died += _ => _deadTimer = RespawnS;
-		HitboxRig.Build(this, Health);
+		_hitboxRoot = new Node3D { Name = "Hitboxes" };
+		AddChild(_hitboxRoot);
+		HitboxRig.Build(_hitboxRoot, Health);
 
 		BuildBody();
 		BuildDebug();
 		NoiseBus.Noise += OnNoise;
+		InitCombat();
 	}
 
-	public override void _ExitTree() => NoiseBus.Noise -= OnNoise;
+	public override void _ExitTree()
+	{
+		NoiseBus.Noise -= OnNoise;
+		ExitCombat();
+	}
 
 	private void BuildBody()
 	{
 		var mat = new StandardMaterial3D { AlbedoColor = Preset!.BodyColor };
-		AddChild(new MeshInstance3D
+		_bodyMesh = new MeshInstance3D
 		{
 			Mesh = new CapsuleMesh { Radius = 0.24f, Height = 1.45f },
 			Position = new Vector3(0f, 0.85f, 0f),
 			MaterialOverride = mat,
-		});
+		};
+		AddChild(_bodyMesh);
 		AddChild(new MeshInstance3D
 		{
 			Mesh = new SphereMesh { Radius = 0.11f, Height = 0.22f },
@@ -231,14 +239,23 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var speed = Brain.State == AiState.Patrol ? Preset!.WalkSpeed : Preset!.RunSpeed * 0.75f;
 		float? faceYaw = null;
 
-		if (Brain.State == AiState.Combat && Perception.InterestPoint is { } target)
+		var crouch = false;
+		var inCombat = Brain.State == AiState.Combat;
+		if (inCombat)
 		{
-			var to = target - GlobalPosition;
-			faceYaw = Mathf.Atan2(-to.X, -to.Z);
-			var close = new Vector2(to.X, to.Z).Length() <= Preset.EngageDistance && Perception.SeesTarget;
-			destination = close ? null : target;
-			speed = Preset.RunSpeed;
+			var plan = PlanCombat(delta);
+			destination = plan.Destination;
+			speed = plan.Speed;
+			faceYaw = plan.FaceYaw;
+			crouch = plan.Crouch;
 		}
+		else
+		{
+			_wantsFire = false;
+			_suppression = Mathf.Max(0f, _suppression - 0.3f * delta);
+		}
+		UpdateWeapon(delta, inCombat);
+		ApplyCrouch(delta, crouch);
 
 		var flatVel = Vector3.Zero;
 		_arrived = destination is null;
@@ -374,7 +391,8 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			return;
 		}
 		var seeing = Perception.SeesTarget ? "  SEES" : "";
-		_label.Text = $"{Preset!.Id}  [{Brain.State}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
+		var tactic = Brain.State == AiState.Combat ? $"/{_tactics.State}" : "";
+		_label.Text = $"{Preset!.Id}  [{Brain.State}{tactic}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
 		_label.Modulate = Perception.Level switch
 		{
 			AwarenessLevel.Alert => new Color(1f, 0.3f, 0.25f),

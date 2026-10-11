@@ -39,9 +39,25 @@ public static class HitboxRig
 			new Vector3(0.1f, 0.44f, 0f));
 	}
 
+	/// <summary>
+	/// Lowers the hitboxes toward the ground for crouched or prone bodies. Only positions move (Jolt does
+	/// not support non-uniform scale on spheres and capsules), so the shapes keep their size.
+	/// </summary>
+	public static void SetHeightScale(Node3D parent, float scale)
+	{
+		foreach (var child in parent.GetChildren())
+		{
+			if (child is not HitboxArea area)
+				continue;
+			var baseY = area.GetMeta("base_y").AsSingle();
+			area.Position = new Vector3(area.Position.X, baseY * scale, area.Position.Z);
+		}
+	}
+
 	private static void Add(Node3D parent, HealthComponent health, BodyPart part, Shape3D shape, Vector3 position)
 	{
 		var area = new HitboxArea { Name = $"Hitbox{part}", Part = part, Health = health, Position = position };
+		area.SetMeta("base_y", position.Y);
 		area.AddChild(new CollisionShape3D { Shape = shape });
 		parent.AddChild(area);
 	}
