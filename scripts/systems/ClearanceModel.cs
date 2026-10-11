@@ -16,7 +16,7 @@ public sealed record ClearanceTuning(
 	float FireBlockFraction)
 {
 	public static ClearanceTuning Default => new(
-		Margin: 0.04f, MaxRetract: 0.4f, MaxTiltDeg: 25f, InSpeed: 10f, OutSpeed: 4f, FireBlockFraction: 0.6f);
+		Margin: 0.04f, MaxRetract: 0.4f, MaxTiltDeg: 25f, InSpeed: 4f, OutSpeed: 2.5f, FireBlockFraction: 0.6f);
 }
 
 /// <summary>

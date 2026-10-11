@@ -61,6 +61,7 @@ public partial class Player : CharacterBody3D
 	public float HeightLevel => _heights.LevelFor(Stance);
 	/// <summary>Current spring-arm retraction of the weapon in metres (debug).</summary>
 	public float WeaponRetract => _clearance.Retract;
+	public string ClearanceDebug { get; private set; } = "";
 	public Penalties CurrentPenalties => _penalties;
 	public bool IsDead => Health.IsDead;
 	public bool IsHoldingBreath { get; private set; }
@@ -568,6 +569,8 @@ public partial class Player : CharacterBody3D
 	private float _restSnap;
 	/// <summary>Colliders the weapon is resting on; the spring arm must not retract away from them.</summary>
 	private readonly System.Collections.Generic.List<Rid> _restColliders = new();
+	private float _restColliderLatchS;
+	private bool _restPitchOk = true;
 
 	/// <summary>Height of the surface the weapon rests on (debug overlay), NaN when none.</summary>
 	public float RestSurfaceHeight { get; private set; } = float.NaN;
@@ -580,7 +583,7 @@ public partial class Player : CharacterBody3D
 	private bool FindRestSurface(WeaponNode weapon, out float surfaceY)
 	{
 		surfaceY = float.MinValue;
-		_restColliders.Clear();
+		var colliders = new System.Collections.Generic.List<Rid>();
 		var found = false;
 		var a = (weapon.GripRight.GlobalPosition + weapon.GripLeft.GlobalPosition) * 0.5f;
 		var b = weapon.Muzzle.GlobalPosition;
@@ -596,7 +599,20 @@ public partial class Player : CharacterBody3D
 			found = true;
 			surfaceY = Mathf.Max(surfaceY, y);
 			if (hit.TryGetValue("rid", out var rid))
-				_restColliders.Add(rid.AsRid());
+				colliders.Add(rid.AsRid());
+		}
+		// Latch the surface briefly so a one-frame ray miss cannot flip the spring arm back on.
+		if (found)
+		{
+			_restColliders.Clear();
+			_restColliders.AddRange(colliders);
+			_restColliderLatchS = 0.35f;
+		}
+		else if (_restColliderLatchS > 0f)
+		{
+			_restColliderLatchS -= Time.GetTicksMsec() > 0 ? (1f / Engine.PhysicsTicksPerSecond) : 0f;
+			if (_restColliderLatchS <= 0f)
+				_restColliders.Clear();
 		}
 		return found;
 	}
@@ -641,24 +657,27 @@ public partial class Player : CharacterBody3D
 		var hitDistance = travel;
 		if (toMuzzle.LengthSquared() > 0.0001f)
 		{
+			// While resting, the surface under the weapon is where it is meant to be: ignore it, or the
+			// snap and the retraction would fight each other and make the arms twitch. (The query's
+			// Exclude property returns a copy, so the list is built first and assigned whole.)
+			var exclude = new Array<Rid> { GetRid() };
+			if (_support.RestAmount > 0.15f)
+			{
+				foreach (var rid in _restColliders)
+					exclude.Add(rid);
+			}
 			var q = new PhysicsShapeQueryParameters3D
 			{
 				Shape = new SphereShape3D { Radius = _cfg.ClearanceRadius },
 				Transform = new Transform3D(Basis.Identity, origin),
 				Motion = toMuzzle.Normalized() * travel,
 				CollisionMask = CollisionMask,
-				Exclude = new Array<Rid> { GetRid() },
+				Exclude = exclude,
 			};
-			// While resting, the surface under the weapon is where it is meant to be: ignore it, or the
-			// snap and the retraction would fight each other every frame and make the arms twitch.
-			if (_support.RestAmount > 0.15f)
-			{
-				foreach (var rid in _restColliders)
-					q.Exclude.Add(rid);
-			}
 			var result = GetWorld3D().DirectSpaceState.CastMotion(q);
 			if (result.Length > 0)
 				hitDistance = result[0] * travel;
+			ClearanceDebug = $"excluded={exclude.Count - 1} cast={(result.Length > 0 ? result[0] : 1f):0.00} restSurf={RestSurfaceHeight:0.00}";
 		}
 		_clearance.Update(delta, _clearance.TargetRetract(fullLength, hitDistance));
 	}
@@ -770,7 +789,10 @@ public partial class Player : CharacterBody3D
 			return;
 		var speedFraction = new Vector2(Velocity.X, Velocity.Z).Length() / Mathf.Max(0.1f, _cfg.SprintSpeed);
 		var speed = new Vector2(Velocity.X, Velocity.Z).Length();
-		var restSurface = FindRestSurface(weapon, out var surfaceY);
+		var pitchDeg = Mathf.RadToDeg(_head.Rotation.X);
+		var pitchLimit = -_cfg.RestMaxPitchDownDeg - (_restPitchOk ? _cfg.RestPitchHysteresisDeg : 0f);
+		_restPitchOk = pitchDeg >= pitchLimit;
+		var restSurface = FindRestSurface(weapon, out var surfaceY) && _restPitchOk;
 		RestSurfaceHeight = restSurface ? surfaceY - GlobalPosition.Y : float.NaN;
 		var muzzleSurface = SurfaceUnder(weapon.Muzzle.GlobalPosition);
 		if (_support.Update(delta, restSurface, muzzleSurface, weapon.Data.HasBipod, Stance, speed, IsSprinting))
@@ -809,7 +831,9 @@ public partial class Player : CharacterBody3D
 			var wanted = surfaceY + weapon.Data.BodySize.Y * 0.5f + 0.01f - weaponY;
 			snapTarget = Mathf.Clamp(wanted, -_cfg.RestSnapMax, _cfg.RestSnapMax);
 		}
-		_restSnap = snapTarget * _support.RestAmount * (1f - t);
+		// Ease toward the target: when rest is released the weapon must glide off the surface, not jump.
+		_restSnap = Mathf.MoveToward(_restSnap, snapTarget * _support.RestAmount * (1f - t),
+			_cfg.RestSnapSpeed * delta);
 		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset
 			+ new Vector3(0f, _restSnap, _clearance.Retract);
 		_swayNode.Rotation += new Vector3(Mathf.DegToRad(_clearance.TiltDeg), 0f, 0f);

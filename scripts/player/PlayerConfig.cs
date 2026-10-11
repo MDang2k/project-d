@@ -128,6 +128,12 @@ public partial class PlayerConfig : Resource
 	[Export] public float RestUpReach { get; set; } = 0.25f;
 	/// <summary>Largest visual shift when the weapon settles onto a surface, metres.</summary>
 	[Export] public float RestSnapMax { get; set; } = 0.25f;
+	/// <summary>How fast the weapon eases onto or off a rest surface, metres per second.</summary>
+	[Export] public float RestSnapSpeed { get; set; } = 1.2f;
+	/// <summary>Looking down further than this releases the rest so the weapon can pull back from the surface.</summary>
+	[Export] public float RestMaxPitchDownDeg { get; set; } = 28f;
+	/// <summary>Extra degrees of look-down tolerated once resting (stops flicker at the limit).</summary>
+	[Export] public float RestPitchHysteresisDeg { get; set; } = 5f;
 	[Export] public float RestBlendTimeS { get; set; } = 0.25f;
 	[Export] public float SupportMoveSpeedLimit { get; set; } = 0.6f;
 	[Export] public float BipodYawLimitDeg { get; set; } = 30f;
@@ -145,8 +151,8 @@ public partial class PlayerConfig : Resource
 	[Export] public float ClearanceMargin { get; set; } = 0.04f;
 	[Export] public float ClearanceMaxRetract { get; set; } = 0.4f;
 	[Export] public float ClearanceMaxTiltDeg { get; set; } = 25f;
-	[Export] public float ClearanceInSpeed { get; set; } = 10f;
-	[Export] public float ClearanceOutSpeed { get; set; } = 4f;
+	[Export] public float ClearanceInSpeed { get; set; } = 4f;
+	[Export] public float ClearanceOutSpeed { get; set; } = 2.5f;
 	[Export] public float ClearanceFireBlockFraction { get; set; } = 0.6f;
 
 	[ExportGroup("Magazines")]

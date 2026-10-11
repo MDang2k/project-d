@@ -23,11 +23,11 @@ public class ClearanceModelTests
 	{
 		var a = new ClearanceModel(ClearanceTuning.Default);
 		a.Update(0.01f, 0.4f);
-		Assert.Equal(0.1f, a.Retract, 3);
+		Assert.Equal(0.04f, a.Retract, 3);
 		a.Update(1f, 0.4f);
 		Assert.Equal(0.4f, a.Retract, 3);
 		a.Update(0.1f, 0f);
-		Assert.Equal(0.4f - 0.4f, a.Retract, 3);
+		Assert.Equal(0.4f - 0.25f, a.Retract, 3);
 	}
 
 	[Fact]

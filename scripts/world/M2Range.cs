@@ -201,6 +201,48 @@ public partial class M2Range : Node3D
 				GD.Print($"PICKUP ok={ok} ground items left={left} weight={_player.TotalCarriedKg:0.00}");
 				continue;
 			}
+			if (a.StartsWith("pitchsweep:"))
+			{
+				// pitchsweep:fromDeg:toDeg:seconds - slowly changes view pitch while measuring hand jitter.
+				var f = a.Split(':');
+				var from = float.Parse(f[1]);
+				var to = float.Parse(f[2]);
+				var secs = double.Parse(f[3]);
+				var t0 = Time.GetTicksMsec() / 1000.0;
+				var last = _player.DebugHands();
+				var worst = 0f;
+				var sum = 0f;
+				var n = 0;
+				var spikes = 0;
+				var worstInfo = "";
+				while (true)
+				{
+					var t = (Time.GetTicksMsec() / 1000.0 - t0) / secs;
+					if (t >= 1.0)
+						break;
+					_player.DebugSetPitchDeg(Mathf.Lerp(from, to, (float)t));
+					await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+					var now = _player.DebugHands();
+					var step = Mathf.Max(now.Left.DistanceTo(last.Left), now.Right.DistanceTo(last.Right));
+					// Expected hand movement while pitching is smooth; count big jumps separately.
+					if (step > 0.03f)
+					{
+						spikes++;
+						if (spikes <= 12)
+							GD.Print($"  spike {step * 100f:0.0} cm pitch={Mathf.Lerp(from, to, (float)t):0} rest={_player.RestAmount:0.00} retract={_player.WeaponRetract * 100f:0}cm {_player.ClearanceDebug}");
+					}
+					if (step > worst)
+					{
+						worst = step;
+						worstInfo = $"pitch={Mathf.Lerp(from, to, (float)t):0} rest={_player.RestAmount:0.00} retract={_player.WeaponRetract * 100f:0}cm {_player.ClearanceDebug}";
+					}
+					sum += step;
+					n++;
+					last = now;
+				}
+				GD.Print($"PITCHSWEEP frames={n} mean={sum / Mathf.Max(1, n) * 100f:0.00} cm max={worst * 100f:0.00} cm spikes>3cm={spikes} worst at {worstInfo}");
+				continue;
+			}
 			if (a.StartsWith("walkjitter:"))
 			{
 				// Hold an input action while measuring hand movement (e.g. approaching a crate).
