@@ -37,6 +37,12 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	public InventoryScreen Screen => _screen;
 
+	/// <summary>Items bound to the quick-use keys (kept across raids in <see cref="RunState"/>).</summary>
+	public QuickUseBar QuickUse => RunState.Current.QuickUse;
+
+	/// <summary>A quick-use key was pressed (slot 0-3); the HUD shows the bar briefly.</summary>
+	public event Action<int>? QuickUsePressed;
+
 	/// <summary>Dev helper: same as pressing Tab.</summary>
 	public void DebugToggleInventory() => _screen.Toggle();
 
@@ -149,6 +155,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_screen = new InventoryScreen { Name = "InventoryScreen" };
 		AddChild(_screen);
 		_screen.Bind(this);
+		PlayerHud.Attach(this);
 		var promptLayer = new CanvasLayer { Layer = 2 };
 		_prompt = new Label
 		{
@@ -517,6 +524,25 @@ public partial class Player : CharacterBody3D, IPerceivable
 		}
 	}
 
+	/// <summary>Keys 4-7: use the item bound to that slot, if one is carried.</summary>
+	private void UpdateQuickUse()
+	{
+		if (_screen.IsOpen || Input.MouseMode != Input.MouseModeEnum.Captured || _mantling)
+			return;
+		for (var i = 0; i < QuickUseBar.SlotCount; i++)
+		{
+			if (!Input.IsActionJustPressed($"quick_use_{i + 1}"))
+				continue;
+			QuickUsePressed?.Invoke(i);
+			if (QuickUse.IdAt(i) is null)
+				WeaponMessage?.Invoke(GameText.Get("msg.quickuse.unbound"));
+			else if (QuickUse.Resolve(i, Inventory.Inventory) is not { } item)
+				WeaponMessage?.Invoke(GameText.Get("msg.quickuse.none", GameText.ItemName(QuickUse.IdAt(i)!)));
+			else
+				UseItem(item);
+		}
+	}
+
 	/// <summary>Uses a medical, food or drink item from the inventory; consumed when finished.</summary>
 	public bool UseItem(ItemInstance item)
 	{
@@ -860,7 +886,10 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (Input.IsActionJustPressed("fire") || DebugForceTrigger)
 			weapon.TriggerPressed = true;
 		if (Input.IsActionJustPressed("fire_mode"))
+		{
 			weapon.State.Fire.CycleMode();
+			WeaponMessage?.Invoke(GameText.Get("msg.firemode", weapon.State.Fire.Mode));
+		}
 		if (!captured)
 			return;
 		if (Input.IsActionJustPressed("rest_bipod"))
@@ -1005,6 +1034,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		}
 		UpdateLoader(delta);
 		UpdateInteract();
+		UpdateQuickUse();
 		UpdateWeaponInput();
 		UpdateMelee(delta);
 		if (_mantling)

@@ -125,6 +125,9 @@ public partial class InventoryScreen : CanvasLayer
 				Close();
 				GetViewport().SetInputAsHandled();
 				break;
+			case InputEventKey { Pressed: true, Echo: false } when _held is null && TryBindQuickUse(@event):
+				GetViewport().SetInputAsHandled();
+				break;
 			case InputEventMouseButton { ButtonIndex: MouseButton.Left } mb:
 				if (mb.Pressed)
 					OnPress(mb.GlobalPosition, mb.DoubleClick);
@@ -136,6 +139,24 @@ public partial class InventoryScreen : CanvasLayer
 				OnMove(mm.GlobalPosition);
 				break;
 		}
+	}
+
+	/// <summary>Hover an item and press 4-7 to bind it to that quick-use slot.</summary>
+	private bool TryBindQuickUse(InputEvent e)
+	{
+		for (var slot = 0; slot < QuickUseBar.SlotCount; slot++)
+		{
+			if (!e.IsActionPressed($"quick_use_{slot + 1}"))
+				continue;
+			if (ItemAt(GetViewport().GetMousePosition()) is not { } hit
+				|| ItemDb.Data(hit.Item.Spec.Id)?.Payload is not (MedicalData or ConsumableData))
+				return true;
+			_player.QuickUse.Bind(slot, hit.Item.Spec.Id);
+			_tooltipText.Text = GameText.Get("msg.quickuse.bound", GameText.ItemName(hit.Item.Spec.Id), slot + 4);
+			_tooltip.Visible = true;
+			return true;
+		}
+		return false;
 	}
 
 	public void Toggle()

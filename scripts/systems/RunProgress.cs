@@ -13,6 +13,16 @@ public sealed class RunProgress
 	/// <summary>True when the next raid must hand out the starting kit (after death or MIA).</summary>
 	public bool NeedsKit { get; private set; }
 
+	/// <summary>Quick-use bindings; they survive raids.</summary>
+	public QuickUseBar QuickUse { get; } = CreateBar();
+
+	private static QuickUseBar CreateBar()
+	{
+		var bar = new QuickUseBar();
+		bar.ApplyDefaults();
+		return bar;
+	}
+
 	public int Raids { get; private set; }
 	public int Extractions { get; private set; }
 	public int Deaths { get; private set; }
