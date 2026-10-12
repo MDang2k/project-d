@@ -9,7 +9,14 @@ namespace ProjectD;
 /// </summary>
 public partial class InventoryComponent : Node
 {
-	public CharacterInventory Inventory { get; } = new();
+	public CharacterInventory Inventory { get; private set; } = new();
+
+	/// <summary>Takes over gear carried out of a previous raid (replaces the empty inventory).</summary>
+	public void Adopt(CharacterInventory carried)
+	{
+		Inventory = carried;
+		NotifyChanged();
+	}
 
 	public event Action? Changed;
 
@@ -38,6 +45,8 @@ public partial class InventoryComponent : Node
 	/// <summary>Developer loadout used until the stash and traders exist (M7).</summary>
 	public void GiveStartingKit()
 	{
+		// After a death the secure container (and what is in it) is already worn: keep it.
+		var hadSecure = Inventory.InSlot(EquipSlot.SecureContainer) is not null;
 		Load(Equip("ak_type", EquipSlot.Primary), "ak_mag", "7_62x39", 30);
 		Load(Equip("pistol", EquipSlot.Pistol), "pistol_mag", "9x19", 8);
 		Equip("combat_knife", EquipSlot.Melee);
@@ -45,7 +54,8 @@ public partial class InventoryComponent : Node
 		Equip("steel_helmet_t1", EquipSlot.Head);
 		Equip("light_rig", EquipSlot.Rig);
 		Equip("field_pack", EquipSlot.Backpack);
-		Equip("secure_pouch", EquipSlot.SecureContainer);
+		if (!hadSecure)
+			Equip("secure_pouch", EquipSlot.SecureContainer);
 
 		for (var i = 0; i < 3; i++)
 			Store(MakeMagazine("ak_mag", "7_62x39", 30));

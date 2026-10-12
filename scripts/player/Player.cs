@@ -223,7 +223,14 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_inventory = inv;
 		AddChild(inv);
 		inv.Changed += SyncWornArmor;
-		inv.GiveStartingKit();
+		var run = RunState.Current;
+		if (run.Inventory is { } carried)
+			inv.Adopt(carried);
+		if (run.Inventory is null || run.NeedsKit)
+		{
+			inv.GiveStartingKit();
+			run.MarkKitGiven();
+		}
 		return inv;
 	}
 

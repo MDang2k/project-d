@@ -30,15 +30,48 @@ public partial class RaidLevel : Node3D
 		AddChild(Player);
 		PlacePlayer();
 
-		Raid = new RaidManager { Name = "Raid", Config = Config };
+		// Dev: --raidtime=secs overrides the raid length (testing the MIA path).
+		var dev = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--raidtime="));
+		var cfg = Config ?? new RaidConfig();
+		if (dev is not null && float.TryParse(dev["--raidtime=".Length..], out var seconds))
+			cfg = new RaidConfig { MapId = cfg.MapId, DurationS = seconds, AiCount = cfg.AiCount };
+		Raid = new RaidManager { Name = "Raid", Config = cfg };
 		AddChild(Raid);
-		Raid.Ended += (outcome, lost) => GD.Print($"RAID {outcome} lost={lost.Count}");
+		Raid.Ended += OnRaidEnded;
 		Raid.Start(Player);
+		var inv0 = Player.Inventory.Inventory;
+		GD.Print($"RAIDSTART run={RunState.Current.Raids} items={inv0.AllItems().Count()} " +
+			$"primary={inv0.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"} secure={inv0.SecureGrids.SelectMany(g => g.Items).Count()}");
 		// Bodies stay where they fell for the whole raid.
 		AiHuman.AutoRespawn = false;
 		AiHuman.Paused = false;
 		SpawnPopulation();
 		ApplyDevArgs();
+	}
+
+	private async void OnRaidEnded(RaidOutcome outcome, System.Collections.Generic.IReadOnlyList<ItemInstance> lost)
+	{
+		var inv = Player.Inventory.Inventory;
+		var run = RunState.Current;
+		run.Record(outcome, inv);
+		GD.Print($"RAID {outcome} lost={lost.Count} runs={run.Raids} extracted={run.Extractions}");
+		// Let the death play out for a moment; everything else shows at once.
+		if (outcome == RaidOutcome.Killed)
+			await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
+		var kept = System.Linq.Enumerable.ToList(inv.AllItems());
+		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run);
+		screen.NewRaidRequested += () => GetTree().ReloadCurrentScene();
+		// Dev: --autonew presses the button for headless flow tests (stops after 3 raids).
+		if (OS.GetCmdlineUserArgs().Contains("--autonew") && run.Raids < 3)
+		{
+			await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+			GetTree().Paused = false;
+			GetTree().ReloadCurrentScene();
+		}
+		else if (OS.GetCmdlineUserArgs().Contains("--autonew"))
+		{
+			GetTree().Quit();
+		}
 	}
 
 	private void BakeNavigation()
