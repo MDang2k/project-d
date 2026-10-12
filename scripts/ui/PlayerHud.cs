@@ -11,7 +11,11 @@ namespace ProjectD;
 /// </summary>
 public partial class PlayerHud : CanvasLayer
 {
-	private const float QuickShowS = 2.5f;
+	/// <summary>
+	/// Keeps every element on screen (for now). Later this becomes an options entry:
+	/// off / auto-hide / always on.
+	/// </summary>
+	public static bool AlwaysVisible { get; set; } = true;
 
 	private Player _player = null!;
 	private HudCanvas _canvas = null!;
@@ -87,6 +91,14 @@ public partial class HudCanvas : Control
 		_health.Update(delta, HudRules.HealthShown(lowest, fx.BleedingParts.Any(), fx.Fractures.Count > 0,
 			fx.Pain > 8f));
 
+		if (PlayerHud.AlwaysVisible)
+		{
+			_stamina.Pulse();
+			_vitals.Pulse();
+			_health.Pulse();
+			_stance.Pulse();
+			_quick.Pulse();
+		}
 		_stance.Update(delta, false);
 		_quick.Update(delta, QuickWantsVisible());
 		_message.Update(delta, false);
