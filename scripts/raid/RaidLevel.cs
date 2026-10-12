@@ -34,6 +34,10 @@ public partial class RaidLevel : Node3D
 		AddChild(Raid);
 		Raid.Ended += (outcome, lost) => GD.Print($"RAID {outcome} lost={lost.Count}");
 		Raid.Start(Player);
+		// Bodies stay where they fell for the whole raid.
+		AiHuman.AutoRespawn = false;
+		AiHuman.Paused = false;
+		SpawnPopulation();
 		ApplyDevArgs();
 	}
 
@@ -61,6 +65,51 @@ public partial class RaidLevel : Node3D
 		});
 	}
 
+	/// <summary>Shows AI cones and labels (dev); off in a normal raid.</summary>
+	[Export] public bool ShowAiDebug { get; set; }
+
+	/// <summary>
+	/// Places AI on a random subset of the map's AiSpawnPoints, away from the player's start, each
+	/// patrolling a loop around its point. Waits two physics frames so the navmesh is live.
+	/// </summary>
+	private async void SpawnPopulation()
+	{
+		var map = GetWorld3D().NavigationMap;
+		for (var i = 0; i < 120 && NavigationServer3D.MapGetIterationId(map) == 0; i++)
+			await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+		var cfg = Config ?? new RaidConfig();
+		var points = GetTree().GetNodesInGroup("ai_spawns").OfType<AiSpawnPoint>()
+			.Where(p => p.GlobalPosition.DistanceTo(Player.GlobalPosition) >= cfg.AiMinDistanceFromPlayer)
+			.OrderBy(_ => GD.Randi())
+			.Take(cfg.AiCount)
+			.ToList();
+		var n = 0;
+		foreach (var point in points)
+		{
+			var preset = GD.Load<AiPreset>($"res://data/ai/{point.PresetId}.tres");
+			if (preset is null)
+				continue;
+			var centre = NavigationServer3D.MapGetClosestPoint(map, point.GlobalPosition);
+			var loop = new Vector3[4];
+			for (var i = 0; i < loop.Length; i++)
+			{
+				var a = Mathf.Tau * i / loop.Length + GD.Randf() * 0.5f;
+				var spot = centre + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * point.PatrolRadius;
+				loop[i] = NavigationServer3D.MapGetClosestPoint(map, spot);
+			}
+			var ai = new AiHuman
+			{
+				Name = $"{point.PresetId}_{++n}",
+				Preset = preset,
+				PatrolPoints = loop,
+				Position = centre + Vector3.Up * 0.1f,
+				Rotation = new Vector3(0f, GD.Randf() * Mathf.Tau, 0f),
+			};
+			AddChild(ai);
+			ai.ShowDebug = ShowAiDebug;
+		}
+	}
+
 	/// <summary>Random spawn point from the map's set, facing the middle of the map.</summary>
 	private void PlacePlayer()
 	{
@@ -78,8 +127,16 @@ public partial class RaidLevel : Node3D
 
 	public override void _UnhandledKeyInput(InputEvent @event)
 	{
-		if (OS.IsDebugBuild() && @event is InputEventKey { Pressed: true, Echo: false, Keycode: Key.F2 })
+		if (!OS.IsDebugBuild() || @event is not InputEventKey { Pressed: true, Echo: false } key)
+			return;
+		if (key.Keycode == Key.F2)
 			Player.DebugNoclip = !Player.DebugNoclip;
+		else if (key.Keycode == Key.F4)
+		{
+			ShowAiDebug = !ShowAiDebug;
+			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
+				ai.ShowDebug = ShowAiDebug;
+		}
 	}
 
 	private void PrintReport()
@@ -88,6 +145,8 @@ public partial class RaidLevel : Node3D
 		GD.Print($"MAP spawns={GetTree().GetNodesInGroup("player_spawns").Count} " +
 			$"ai={GetTree().GetNodesInGroup("ai_spawns").Count} zones={GetTree().GetNodesInGroup("extraction_zones").Count} " +
 			$"loot={GetTree().GetNodesInGroup("loot_containers").Count} navpolys={polys} raid={Raid.IsRunning} " +
+			$"bots={GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Count()} " +
+			string.Join(",", GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Select(a => $"{a.Preset?.Id}:{a.Brain.State}")) + " " +
 			$"player={Player.GlobalPosition.X:0},{Player.GlobalPosition.Z:0}");
 	}
 

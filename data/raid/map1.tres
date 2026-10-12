@@ -6,3 +6,5 @@
 script = ExtResource("1")
 MapId = "map1"
 DurationS = 1200.0
+AiCount = 10
+AiMinDistanceFromPlayer = 30.0
