@@ -66,4 +66,34 @@ public sealed class SaveFileStoreTests : IDisposable
 		Assert.Equal(SaveSource.None, source);
 		Assert.Equal(2, Files().Count(f => f.StartsWith("save.corrupt-")));
 	}
+
+	[Fact]
+	public void TryWriteReturnsFalseInsteadOfThrowingWhenThePathIsUnwritable()
+	{
+		Directory.CreateDirectory(_dir);
+		var blocker = Path.Combine(_dir, "blocker");
+		File.WriteAllText(blocker, "x");
+		var store = new SaveFileStore(Path.Combine(blocker, "save.json"));
+		Assert.False(store.TryWrite("ok", out var error));
+		Assert.False(string.IsNullOrEmpty(error));
+	}
+
+	[Fact]
+	public void TooNewSaveIsNotQuarantinedAndSurfaces()
+	{
+		_store.Write("ok-1");
+		Assert.Throws<SaveTooNewException>(() => _store.Load<string>(_ => throw new SaveTooNewException(2, 1)));
+		Assert.Equal(new[] { "save.json" }, Files());
+	}
+
+	[Fact]
+	public void QuarantineIsReportedToTheCaller()
+	{
+		_store.Write("ok-1");
+		_store.Write("ok-2");
+		File.WriteAllText(Path.Combine(_dir, "save.json"), "garbage");
+		string? reported = null;
+		_store.Load(Parse, (file, e) => reported = Path.GetFileName(file) + ":" + e.Message);
+		Assert.Equal("save.json:bad", reported);
+	}
 }

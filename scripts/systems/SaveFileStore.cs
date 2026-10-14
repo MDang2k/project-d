@@ -30,8 +30,25 @@ public sealed class SaveFileStore
 		File.Move(temp, _path, true);
 	}
 
-	/// <param name="parse">Throws when the text is not a usable save (corrupt, too new).</param>
-	public (T? Value, SaveSource Source) Load<T>(Func<string, T> parse) where T : class
+	/// <summary>Like <see cref="Write"/> but reports an IO failure instead of throwing, so a locked or full disk cannot break a raid.</summary>
+	public bool TryWrite(string json, out string? error)
+	{
+		try
+		{
+			Write(json);
+			error = null;
+			return true;
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+		{
+			error = e.Message;
+			return false;
+		}
+	}
+
+	/// <param name="parse">Throws when the text is not a usable save. A <see cref="SaveTooNewException"/> propagates
+	/// and leaves the file untouched; any other failure quarantines the file and is reported to <paramref name="onQuarantined"/>.</param>
+	public (T? Value, SaveSource Source) Load<T>(Func<string, T> parse, Action<string, Exception>? onQuarantined = null) where T : class
 	{
 		foreach (var (file, source, tag) in new[] { (_path, SaveSource.Main, "main"), (BackupPath, SaveSource.Backup, "bak") })
 		{
@@ -41,9 +58,14 @@ public sealed class SaveFileStore
 			{
 				return (parse(File.ReadAllText(file)), source);
 			}
-			catch (Exception)
+			catch (SaveTooNewException)
+			{
+				throw;
+			}
+			catch (Exception e)
 			{
 				Quarantine(file, tag);
+				onQuarantined?.Invoke(file, e);
 			}
 		}
 		return (null, SaveSource.None);

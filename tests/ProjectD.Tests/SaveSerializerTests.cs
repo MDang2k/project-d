@@ -131,4 +131,29 @@ public class SaveSerializerTests
 		Assert.Empty(run.Inventory!.Pockets[0].Items);
 		Assert.Single(warnings);
 	}
+
+	[Theory]
+	[InlineData("""{"version":1,"raidInProgress":false,"needsKit":false,"quickUse":[null,null,null,null]}""")]
+	[InlineData("""{"version":1,"raidInProgress":false,"needsKit":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0}}""")]
+	[InlineData("""{"version":1,"raidInProgress":false,"needsKit":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"character":{"slots":{"Melee":null},"pockets":[]}}""")]
+	[InlineData("""{"version":1,"raidInProgress":false,"needsKit":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"character":{"slots":{},"pockets":[{"width":1,"height":2}]}}""")]
+	[InlineData("""{"version":1,"raidInProgress":false,"needsKit":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"character":{"slots":{"Melee":{}},"pockets":[]}}""")]
+	public void IncompleteButValidJsonIsRejectedAtParse(string json)
+		=> Assert.Throws<System.Text.Json.JsonException>(() => SaveSerializer.Parse(json));
+
+	[Fact]
+	public void PocketLayoutComesFromTheCurrentDesignNotTheFile()
+	{
+		const string json = """
+			{"version":1,"raidInProgress":false,"needsKit":false,
+			 "counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[null,null,null,null],
+			 "character":{"slots":{},"pockets":[{"width":5,"height":5,"items":[{"x":0,"y":0,"item":{"id":"vest"}}]}]}}
+			""";
+		var run = new RunProgress();
+		var warnings = new List<string>();
+		SaveSerializer.Apply(SaveSerializer.Parse(json), run, Lookup, warnings);
+		Assert.Equal(CharacterInventory.DefaultPockets.Length, run.Inventory!.Pockets.Count);
+		Assert.Equal(CharacterInventory.DefaultPockets[0].Width, run.Inventory.Pockets[0].Width);
+		Assert.Single(warnings);
+	}
 }

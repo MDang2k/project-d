@@ -8,7 +8,8 @@ namespace ProjectD;
 /// Autoload (CLAUDE.md approved list): loads the single autosave at boot into
 /// <see cref="RunState.Current"/> and writes it at raid start (loadout at risk) and raid end.
 /// All rules live in the pure classes; this node only touches files and the engine.
-/// Dev args after "--": --nosave (no load, no write), --savepath=&lt;file&gt; (override location).
+/// Dev args after "--": --nosave (no load, no write), --savepath=&lt;file&gt; (override location). Headless,
+/// --autonew and --shot runs disable saving unless --savepath is given (see <see cref="SavePathPolicy"/>).
 /// </summary>
 public partial class SaveManager : Node
 {
@@ -19,11 +20,10 @@ public partial class SaveManager : Node
 	public override void _Ready()
 	{
 		Instance = this;
-		var args = OS.GetCmdlineUserArgs();
-		if (args.Contains("--nosave"))
+		var path = SavePathPolicy.Resolve(OS.GetCmdlineUserArgs(), DisplayServer.GetName() == "headless",
+			ProjectSettings.GlobalizePath("user://save.json"), ProjectSettings.GlobalizePath);
+		if (path is null)
 			return;
-		var path = args.FirstOrDefault(a => a.StartsWith("--savepath="))?["--savepath=".Length..]
-			?? ProjectSettings.GlobalizePath("user://save.json");
 		_store = new SaveFileStore(path);
 		Load();
 	}
@@ -39,12 +39,25 @@ public partial class SaveManager : Node
 		if (_store is null)
 			return;
 		var file = SaveSerializer.ToFile(RunState.Current, character, raidInProgress);
-		_store.Write(SaveSerializer.ToJson(file));
+		if (!_store.TryWrite(SaveSerializer.ToJson(file), out var error))
+			GD.PushError($"[Save] could not write the save: {error}");
 	}
 
 	private void Load()
 	{
-		var (file, source) = _store!.Load(json => SaveSerializer.Parse(json));
+		SaveFile? file;
+		SaveSource source;
+		try
+		{
+			(file, source) = _store!.Load(json => SaveSerializer.Parse(json),
+				(path, e) => GD.PushWarning($"[Save] unreadable file moved aside ({path}): {e.Message}"));
+		}
+		catch (SaveTooNewException e)
+		{
+			GD.PushError($"[Save] {e.Message}; saving is disabled this session and the file is left untouched");
+			_store = null;
+			return;
+		}
 		if (file is null)
 		{
 			GD.Print("SAVE none, starting a new profile");

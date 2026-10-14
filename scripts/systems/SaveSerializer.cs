@@ -24,7 +24,48 @@ public static class SaveSerializer
 	public static SaveFile Parse(string json) => Parse(json, SaveMigrator.Default);
 
 	public static SaveFile Parse(string json, SaveMigrator migrator)
-		=> migrator.Migrate(json).Deserialize<SaveFile>(Options) ?? throw new JsonException("empty save");
+	{
+		var file = migrator.Migrate(json).Deserialize<SaveFile>(Options) ?? throw new JsonException("empty save");
+		Validate(file);
+		return file;
+	}
+
+	// System.Text.Json does not enforce non-nullable members; reject incomplete files here so the
+	// store quarantines them and falls back to the backup instead of failing later in Apply.
+	private static void Validate(SaveFile f)
+	{
+		if (f.Counters is null || f.QuickUse is null)
+			throw new JsonException("save is missing counters or quickUse");
+		if (f.Character is not { } c)
+			return;
+		if (c.Slots is null || c.Pockets is null)
+			throw new JsonException("save character is missing slots or pockets");
+		foreach (var item in c.Slots.Values)
+			ValidateItem(item);
+		foreach (var grid in c.Pockets)
+			ValidateGrid(grid);
+	}
+
+	private static void ValidateGrid(GridSave? grid)
+	{
+		if (grid?.Items is null)
+			throw new JsonException("save grid has no items list");
+		foreach (var placed in grid.Items)
+			ValidateItem(placed?.Item);
+	}
+
+	private static void ValidateItem(ItemSave? item)
+	{
+		if (item is null || string.IsNullOrEmpty(item.Id))
+			throw new JsonException("save item has no id");
+		if (item.Magazine is not null)
+			ValidateItem(item.Magazine);
+		if (item.Grids is not null)
+		{
+			foreach (var grid in item.Grids)
+				ValidateGrid(grid);
+		}
+	}
 
 	public static SaveFile ToFile(RunProgress run, CharacterInventory? character, bool raidInProgress)
 		=> new(SaveFile.CurrentVersion, raidInProgress, run.NeedsKit,
@@ -67,9 +108,17 @@ public static class SaveSerializer
 
 	public static CharacterInventory LoadCharacter(CharacterSave save, Func<string, ItemSpec?> lookup, List<string> warnings)
 	{
-		var inv = new CharacterInventory(save.Pockets.Select(p => new GridSize(p.Width, p.Height)));
+		// Pocket layout is a design constant, not save data: use the current one and re-place the items.
+		var inv = new CharacterInventory();
 		for (var i = 0; i < save.Pockets.Count; i++)
+		{
+			if (i >= inv.Pockets.Count)
+			{
+				warnings.Add($"pocket {i} no longer exists, its items were dropped");
+				continue;
+			}
 			PlaceAll(inv.Pockets[i], save.Pockets[i], lookup, warnings);
+		}
 		foreach (var (key, itemSave) in save.Slots)
 		{
 			if (!Enum.TryParse<EquipSlot>(key, out var slot))
