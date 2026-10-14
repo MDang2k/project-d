@@ -18,6 +18,7 @@ config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 
 MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 ItemDb="*res://scripts/core/ItemDb.cs"
+SaveManager="*res://scripts/core/SaveManager.cs"
 
 [debug]
 

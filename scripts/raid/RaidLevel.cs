@@ -40,6 +40,7 @@ public partial class RaidLevel : Node3D
 		Raid.Ended += OnRaidEnded;
 		Raid.Start(Player);
 		var inv0 = Player.Inventory.Inventory;
+		SaveManager.Instance?.BeginRaid(inv0);
 		GD.Print($"RAIDSTART run={RunState.Current.Raids} items={inv0.AllItems().Count()} " +
 			$"primary={inv0.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"} secure={inv0.SecureGrids.SelectMany(g => g.Items).Count()}");
 		// Bodies stay where they fell for the whole raid.
@@ -54,6 +55,7 @@ public partial class RaidLevel : Node3D
 		var inv = Player.Inventory.Inventory;
 		var run = RunState.Current;
 		run.Record(outcome, inv);
+		SaveManager.Instance?.EndRaid();
 		GD.Print($"RAID {outcome} lost={lost.Count} runs={run.Raids} extracted={run.Extractions}");
 		// Let the death play out for a moment; everything else shows at once.
 		if (outcome == RaidOutcome.Killed)
