@@ -53,6 +53,17 @@ public sealed class RunProgress
 	/// <summary>Called once the next raid took the gear.</summary>
 	public void MarkKitGiven() => NeedsKit = false;
 
+	/// <summary>Replaces the run with state read from the save file.</summary>
+	public void Restore(CharacterInventory? inventory, bool needsKit, int raids, int extractions, int deaths, int mia)
+	{
+		Inventory = inventory;
+		NeedsKit = needsKit;
+		Raids = raids;
+		Extractions = extractions;
+		Deaths = deaths;
+		Mia = mia;
+	}
+
 	public void Reset()
 	{
 		Inventory = null;
