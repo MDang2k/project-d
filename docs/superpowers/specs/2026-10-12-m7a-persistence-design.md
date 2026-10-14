@@ -1,6 +1,6 @@
 # M7a: Persistence (save system)
 
-Status: approved design, not implemented. First of five M7 sub-projects (7a persistence, 7b hub shell and stash, 7c economy and traders, 7d insurance, 7e quests). Implements GDD §15 (Saving) and CLAUDE.md "Saving".
+Status: implemented (plan 2026-10-15-m7a-persistence). First of five M7 sub-projects (7a persistence, 7b hub shell and stash, 7c economy and traders, 7d insurance, 7e quests). Implements GDD §15 (Saving) and CLAUDE.md "Saving".
 
 ## Intent
 
