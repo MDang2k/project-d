@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace ProjectD;
 
@@ -20,8 +21,10 @@ public static class SaveSerializer
 
 	public static string ToJson(SaveFile file) => JsonSerializer.Serialize(file, Options);
 
-	public static SaveFile Parse(string json)
-		=> JsonSerializer.Deserialize<SaveFile>(json, Options) ?? throw new JsonException("empty save");
+	public static SaveFile Parse(string json) => Parse(json, SaveMigrator.Default);
+
+	public static SaveFile Parse(string json, SaveMigrator migrator)
+		=> migrator.Migrate(json).Deserialize<SaveFile>(Options) ?? throw new JsonException("empty save");
 
 	public static SaveFile ToFile(RunProgress run, CharacterInventory? character, bool raidInProgress)
 		=> new(SaveFile.CurrentVersion, raidInProgress, run.NeedsKit,
