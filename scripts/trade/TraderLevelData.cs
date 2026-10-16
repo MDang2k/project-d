@@ -16,6 +16,13 @@ public partial class TraderLevelData : Resource
 	[Export] public float SellFraction { get; set; } = 0.45f;
 	[Export] public Array<BarterOfferData> Barters { get; set; } = new();
 
+	[ExportGroup("Insurance (quartermasters)")]
+	[Export] public bool HasInsurance { get; set; }
+	/// <summary>Premium = ceil(BaseValue x this).</summary>
+	[Export] public float PremiumFraction { get; set; } = 0.1f;
+	/// <summary>Chance 0..1 that an insured lost item comes back.</summary>
+	[Export] public float ReturnChance { get; set; } = 0.35f;
+
 	public TraderLevelSpec ToSpec()
 	{
 		var categories = BuyCategories
@@ -23,6 +30,7 @@ public partial class TraderLevelData : Resource
 			.Where(c => c is not null).Select(c => c!.Value).ToHashSet();
 		return new TraderLevelSpec(
 			Sells.Select(s => s.ToSpec()).ToList(), categories, BuyMultiplier, SellFraction,
-			Barters.Select(b => b.ToSpec()).ToList());
+			Barters.Select(b => b.ToSpec()).ToList(),
+			HasInsurance ? new InsuranceTerms(PremiumFraction, ReturnChance) : null);
 	}
 }

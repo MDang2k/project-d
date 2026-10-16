@@ -37,7 +37,9 @@ public sealed record ItemSpec(
 	/// <summary>Trade value in currency units; 0 means not sellable (GDD s13).</summary>
 	int BaseValue = 0,
 	/// <summary>Armor and helmets: full durability, so wear can price them down; 0 for everything else.</summary>
-	float MaxDurability = 0f);
+	float MaxDurability = 0f,
+	/// <summary>False for money, ammo, medical, food, drink and the secure container (GDD s15).</summary>
+	bool Insurable = true);
 
 /// <summary>One concrete item in the world, a grid or a slot: spec plus mutable state.</summary>
 public sealed class ItemInstance
@@ -68,6 +70,10 @@ public sealed class ItemInstance
 	public ItemInstance? InsertedMagazine { get; set; }
 	/// <summary>Weapons: ammo id of the round in the chamber, if any.</summary>
 	public string? Chambered { get; set; }
+	/// <summary>Insured for the next raid (GDD s15); cleared at the end of every raid.</summary>
+	public bool Insured { get; set; }
+	/// <summary>Id of the trader that sold the insurance; null when not insured.</summary>
+	public string? InsuredWith { get; set; }
 
 	public int Width => Rotated ? Spec.Height : Spec.Width;
 	public int Height => Rotated ? Spec.Width : Spec.Height;

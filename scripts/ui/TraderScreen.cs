@@ -145,7 +145,7 @@ public partial class TraderScreen : Control
 			return;
 		}
 		var level = trader.LevelSpec(state.Level);
-		if (level.Sells.Count == 0 && level.Buys.Count == 0 && level.Barters.Count == 0)
+		if (level.Sells.Count == 0 && level.Buys.Count == 0 && level.Barters.Count == 0 && level.Insurance is null)
 		{
 			_page.AddChild(new Label { Text = GameText.Get("trader.nothing") });
 			return;
@@ -159,6 +159,53 @@ public partial class TraderScreen : Control
 			tabs.AddChild(SellPage(trader, level, state, engine));
 		if (level.Barters.Count > 0)
 			tabs.AddChild(BarterPage(trader, level, state, engine));
+		if (level.Insurance is { } terms)
+			tabs.AddChild(InsurancePage(trader, terms, engine));
+	}
+
+	/// <summary>Insurance tab (GDD s15): carried insurable items with the premium; unused insurance is lost at raid end.</summary>
+	private ScrollContainer InsurancePage(TraderSpec trader, InsuranceTerms terms, TradeEngine engine)
+	{
+		var scroll = Scroll("Insurance", out var list);
+		var unit = GameText.Get("currency.unit");
+		list.AddChild(new Label
+		{
+			Text = $"Premium {terms.PremiumFraction * 100f:0}% of value, {terms.ReturnChance * 100f:0}% of insured lost items come back "
+				+ "(after your next raid). Covers only the next raid. Insure what you carry before you deploy.",
+			AutowrapMode = TextServer.AutowrapMode.WordSmart,
+		});
+		var items = InsuranceService.InsurableItems(Character).ToList();
+		if (items.Count == 0)
+			list.AddChild(new Label { Text = "You carry nothing that can be insured (equip gear from the stash first)." });
+		foreach (var item in items)
+		{
+			var premium = InsuranceService.Premium(terms, item);
+			var text = ItemLine(item) + (item.Insured ? "   [INSURED]" : "");
+			list.AddChild(Row(text, $"{premium:N0} {unit}", item.Insured ? "Insured" : "Insure",
+				() => FinishInsure(InsuranceService.Insure(_profile, Character, trader, item)),
+				!item.Insured && engine.Money >= premium));
+		}
+		return scroll;
+	}
+
+	private void FinishInsure(InsureResult result)
+	{
+		_message.Text = result.Ok
+			? $"Insured for {result.Premium:N0} {GameText.Get("currency.unit")}."
+			: result.Failure switch
+			{
+				InsureFailure.NotEnoughMoney => "Not enough money.",
+				InsureFailure.AlreadyInsured => "Already insured.",
+				InsureFailure.NotInsurable => "That cannot be insured.",
+				InsureFailure.NotCarried => "Only carried items can be insured.",
+				_ => "This trader does not insure you.",
+			};
+		if (result.Ok)
+		{
+			SaveManager.Instance?.SaveInHub();
+			_changed();
+		}
+		Rebuild();
 	}
 
 	private ScrollContainer Scroll(string name, out VBoxContainer list)

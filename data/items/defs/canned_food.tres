@@ -17,3 +17,4 @@ Payload = ExtResource("2")
 IconColor = Color(0.5, 0.45, 0.3, 1)
 IconLabel = "Can"
 BaseValue = 50
+Insurable = false

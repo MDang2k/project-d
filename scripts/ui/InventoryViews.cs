@@ -17,6 +17,12 @@ public static class ItemIcon
 		var label = !string.IsNullOrEmpty(data?.IconLabel) ? data!.IconLabel : item.Spec.Id;
 		canvas.DrawString(font, rect.Position + new Vector2(3f, 14f), label, HorizontalAlignment.Left,
 			rect.Size.X - 4f, 12, Colors.White);
+		if (item.Insured)
+		{
+			canvas.DrawRect(new Rect2(rect.End.X - 22f, rect.Position.Y + 1f, 21f, 11f), new Color(0.1f, 0.35f, 0.7f, 0.9f));
+			canvas.DrawString(font, new Vector2(rect.End.X - 21f, rect.Position.Y + 10f), "INS", HorizontalAlignment.Left, -1, 9,
+				Colors.White);
+		}
 		if (item.Count > 1)
 		{
 			canvas.DrawString(font, rect.Position + new Vector2(0f, rect.Size.Y - 4f), $"x{item.Count}",

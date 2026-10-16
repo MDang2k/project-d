@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace ProjectD;
 
 /// <summary>
@@ -8,13 +11,15 @@ namespace ProjectD;
 public static class RaidRecovery
 {
 	/// <returns>True when a death was recorded.</returns>
-	public static bool Apply(bool raidInProgress, RunProgress run)
+	/// <param name="onLost">Receives the gear lost to the death, so insurance can roll for it (M7d).</param>
+	public static bool Apply(bool raidInProgress, RunProgress run, Action<IReadOnlyList<ItemInstance>>? onLost = null)
 	{
 		if (!raidInProgress)
 			return false;
 		var inventory = run.Inventory ?? new CharacterInventory();
-		RaidOutcomeRules.Apply(RaidOutcome.Killed, inventory);
+		var lost = RaidOutcomeRules.Apply(RaidOutcome.Killed, inventory);
 		run.Record(RaidOutcome.Killed, inventory);
+		onLost?.Invoke(lost);
 		return true;
 	}
 }

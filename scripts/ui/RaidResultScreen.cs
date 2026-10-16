@@ -15,10 +15,11 @@ public partial class RaidResultScreen : CanvasLayer
 	public event Action? NewRaidRequested;
 
 	public static RaidResultScreen Show(Node parent, RaidOutcome outcome, float elapsedS,
-		IReadOnlyList<ItemInstance> lost, IReadOnlyList<ItemInstance> kept, RunProgress run)
+		IReadOnlyList<ItemInstance> lost, IReadOnlyList<ItemInstance> kept, RunProgress run,
+		InsuranceRaidResult? insurance = null)
 	{
 		var screen = new RaidResultScreen { Layer = 100, ProcessMode = Node.ProcessModeEnum.Always };
-		screen.Build(outcome, elapsedS, lost, kept, run);
+		screen.Build(outcome, elapsedS, lost, kept, run, insurance);
 		parent.AddChild(screen);
 		parent.GetTree().Paused = true;
 		Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -40,7 +41,7 @@ public partial class RaidResultScreen : CanvasLayer
 	}
 
 	private void Build(RaidOutcome outcome, float elapsedS, IReadOnlyList<ItemInstance> lost,
-		IReadOnlyList<ItemInstance> kept, RunProgress run)
+		IReadOnlyList<ItemInstance> kept, RunProgress run, InsuranceRaidResult? insurance)
 	{
 		var key = outcome switch
 		{
@@ -86,6 +87,14 @@ public partial class RaidResultScreen : CanvasLayer
 			summary.Append(Names(lost, 10));
 			summary.AppendLine("\nKept in the secure container:");
 			summary.Append(Names(kept, 8));
+		}
+		if (outcome != RaidOutcome.Extracted && insurance is not null)
+		{
+			summary.AppendLine(insurance.Returned.Count > 0
+				? "\nInsured items returning after your next raid:"
+				: "\nNo insured items returned.");
+			if (insurance.Returned.Count > 0)
+				summary.Append(Names(insurance.Returned, 6));
 		}
 		summary.AppendLine($"\nRun: {run.Raids} raids, {run.Extractions} extracted, {run.Deaths} killed, {run.Mia} MIA");
 		box.AddChild(new Label { Text = summary.ToString() });

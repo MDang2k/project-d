@@ -24,6 +24,7 @@ public partial class HubScreen : CanvasLayer
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
+	private string _pendingNote = "";
 	private ItemInstance? _held;
 	private ItemLocation _heldFrom;
 	private bool _heldWasRotated;
@@ -104,12 +105,21 @@ public partial class HubScreen : CanvasLayer
 			SaveManager.Instance?.SaveInHub();
 			Rebuild();
 		}
+		if (args.Contains("--insure") && Run.Inventory is { } ch && TraderCatalog.Find("allied_qm") is { } qm)
+		{
+			var bought = 0;
+			foreach (var item in InsuranceService.InsurableItems(ch).ToList())
+				bought += InsuranceService.Insure(Profile, ch, args.Contains("--soviet") ? TraderCatalog.Find("soviet_qm")! : qm, item).Ok ? 1 : 0;
+			GD.Print($"INSURE insured={bought} money={_traders.MakeEngine().Money}");
+			SaveManager.Instance?.SaveInHub();
+		}
 		if (args.Contains("--hubreport"))
 		{
 			var carried = Run.Inventory?.AllItems().Count() ?? 0;
 			GD.Print($"HUB side={Profile.Side} stash={Profile.Stash.ItemCount} carried={carried} " +
 				$"weapon={Run.Inventory?.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"} raids={Run.Raids} " +
-				$"money={_traders.MakeEngine().Money} traders={TraderCatalog.All.Count}");
+				$"money={_traders.MakeEngine().Money} traders={TraderCatalog.All.Count} returns={Profile.InsuranceReturns.Count} " +
+				$"insuredCarried={Run.Inventory?.AllItems().Count(i => i.Insured) ?? 0}");
 		}
 		if (args.Contains("--tradetest"))
 			TradeSelfTest();
@@ -154,6 +164,13 @@ public partial class HubScreen : CanvasLayer
 
 	private void Rebuild()
 	{
+		// Insured returns that are due go to the stash; a full stash keeps them waiting for the next try.
+		var delivered = InsuranceService.TryDeliver(Profile);
+		if (delivered.Count > 0)
+		{
+			SaveManager.Instance?.SaveInHub();
+			_pendingNote = $"{delivered.Count} insured item(s) came back to your stash.";
+		}
 		foreach (var child in _content.GetChildren())
 			child.QueueFree();
 		_grids.Clear();
@@ -216,7 +233,8 @@ public partial class HubScreen : CanvasLayer
 		deploy.Pressed += Deploy;
 		top.AddChild(deploy);
 		_content.AddChild(top);
-		_message = new Label { Modulate = new Color(1f, 0.85f, 0.4f) };
+		_message = new Label { Modulate = new Color(1f, 0.85f, 0.4f), Text = _pendingNote };
+		_pendingNote = "";
 		_content.AddChild(_message);
 
 		var columns = new HBoxContainer();
@@ -302,7 +320,10 @@ public partial class HubScreen : CanvasLayer
 			return;
 		_header.Text = $"Side: {Profile.Side}    Carried {c.TotalWeightKg:0.0} kg    Raids {Run.Raids}  " +
 			$"Extracted {Run.Extractions}  Killed {Run.Deaths}  MIA {Run.Mia}\n" +
-			"Drag items between the stash and your character, R rotates the held item, then Deploy.";
+			"Drag items between the stash and your character, R rotates the held item, then Deploy." +
+			(Profile.InsuranceReturns.Count > 0
+				? $"\nInsured returns waiting: {Profile.InsuranceReturns.Count}"
+				: "");
 		foreach (var g in _grids)
 			g.QueueRedraw();
 		foreach (var s in _slots)

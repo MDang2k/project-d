@@ -20,3 +20,4 @@ RoundWeightKg = 0.0
 Caliber = "7.92x57"
 AmmoId = "7_92x57"
 BaseValue = 3
+Insurable = false

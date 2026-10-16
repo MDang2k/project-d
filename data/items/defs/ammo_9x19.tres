@@ -20,3 +20,4 @@ RoundWeightKg = 0.0
 Caliber = "9x19"
 AmmoId = "9x19"
 BaseValue = 1
+Insurable = false

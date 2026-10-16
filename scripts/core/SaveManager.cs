@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -37,6 +38,10 @@ public partial class SaveManager : Node
 	/// <summary>Writes the profile and character after a hub change (stash move, side choice) and on hub entry.</summary>
 	public void SaveInHub() => Write(RunState.Current.Inventory, false);
 
+	/// <summary>The trader level a given trader is at now (for insurance terms).</summary>
+	public static TraderLevelSpec? LevelOf(string traderId)
+		=> TraderCatalog.Find(traderId)?.LevelSpec((GameState.Instance?.Profile ?? new GameProfile()).Trader(traderId).Level);
+
 	private static GameProfile Profile => GameState.Instance?.Profile ?? new GameProfile();
 
 	private void Write(CharacterInventory? character, bool raidInProgress)
@@ -75,7 +80,8 @@ public partial class SaveManager : Node
 		foreach (var w in warnings)
 			GD.PushWarning($"[Save] {w}");
 		GD.Print($"SAVE loaded raids={RunState.Current.Raids} inRaid={file.RaidInProgress}");
-		if (RaidRecovery.Apply(file.RaidInProgress, RunState.Current))
+		if (RaidRecovery.Apply(file.RaidInProgress, RunState.Current, lost =>
+			InsuranceService.OnRaidEnd(RaidOutcome.Killed, lost, Profile, RunState.Current.Inventory, LevelOf, Random.Shared.NextDouble)))
 		{
 			GD.Print("SAVE raid was in progress at launch: counted as death");
 			Write(RunState.Current.Inventory, false);

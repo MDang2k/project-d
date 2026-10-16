@@ -55,13 +55,18 @@ public partial class RaidLevel : Node3D
 		var inv = Player.Inventory.Inventory;
 		var run = RunState.Current;
 		run.Record(outcome, inv);
+		// Insurance rolls for the lost gear and ages the return queue, before the save is written.
+		var profile = GameState.Instance?.Profile ?? new GameProfile();
+		var insurance = InsuranceService.OnRaidEnd(outcome, lost, profile, inv, SaveManager.LevelOf,
+			System.Random.Shared.NextDouble);
+		InsuranceService.TryDeliver(profile);
 		SaveManager.Instance?.EndRaid();
 		GD.Print($"RAID {outcome} lost={lost.Count} runs={run.Raids} extracted={run.Extractions}");
 		// Let the death play out for a moment; everything else shows at once.
 		if (outcome == RaidOutcome.Killed)
 			await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
 		var kept = System.Linq.Enumerable.ToList(inv.AllItems());
-		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run);
+		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run, insurance);
 		screen.NewRaidRequested += () => GetTree().ChangeSceneToFile("res://scenes/hub/hub.tscn");
 		if (OS.GetCmdlineUserArgs().Contains("--quitafterraid"))
 		{

@@ -38,6 +38,8 @@ public static class SaveSerializer
 			throw new JsonException("save is missing counters or quickUse");
 		if (f.Stash is not null)
 			ValidateGrid(f.Stash);
+		foreach (var ret in f.InsuranceReturns ?? new List<InsuranceReturnSave>())
+			ValidateItem(ret?.Item);
 		if (f.Character is not { } c)
 			return;
 		if (c.Slots is null || c.Pockets is null)
@@ -79,7 +81,8 @@ public static class SaveSerializer
 			character is null ? null : ToSave(character),
 			profile.Side?.ToString(),
 			ToSave(profile.Stash),
-			profile.Traders.ToDictionary(kv => kv.Key, kv => new TraderSave(kv.Value.Level, kv.Value.Spent)));
+			profile.Traders.ToDictionary(kv => kv.Key, kv => new TraderSave(kv.Value.Level, kv.Value.Spent)),
+			profile.InsuranceReturns.Entries.Select(e => new InsuranceReturnSave(ToSave(e.Item), e.RaidsRemaining)).ToList());
 
 	public static void Apply(SaveFile file, RunProgress run, Func<string, ItemSpec?> lookup, List<string> warnings)
 		=> Apply(file, run, new GameProfile(), lookup, warnings);
@@ -95,6 +98,12 @@ public static class SaveSerializer
 		if (file.Stash is { } stashSave)
 			PlaceAll(stash, stashSave, lookup, warnings);
 		profile.ReplaceStash(stash);
+		profile.InsuranceReturns.Clear();
+		foreach (var ret in file.InsuranceReturns ?? new List<InsuranceReturnSave>())
+		{
+			if (FromSave(ret.Item, lookup, warnings) is { } returned)
+				profile.InsuranceReturns.Add(new PendingReturn(returned, Math.Max(0, ret.RaidsRemaining)));
+		}
 		profile.ReplaceTraders((file.Traders ?? new Dictionary<string, TraderSave>()).Select(kv =>
 			new KeyValuePair<string, TraderState>(kv.Key,
 				new TraderState { Level = Math.Clamp(kv.Value.Level, 1, TraderSpec.MaxLevel), Spent = Math.Max(0, kv.Value.Spent) })));
@@ -124,7 +133,8 @@ public static class SaveSerializer
 		item.Rounds.Count > 0 ? item.Rounds.ToList() : null,
 		item.InsertedMagazine is { } m ? ToSave(m) : null,
 		item.Chambered,
-		item.Grids.Count > 0 ? item.Grids.Select(ToSave).ToList() : null);
+		item.Grids.Count > 0 ? item.Grids.Select(ToSave).ToList() : null,
+		item.Insured, item.InsuredWith);
 
 	public static CharacterInventory LoadCharacter(CharacterSave save, Func<string, ItemSpec?> lookup, List<string> warnings)
 	{
@@ -178,6 +188,8 @@ public static class SaveSerializer
 		if (save.Magazine is not null)
 			item.InsertedMagazine = FromSave(save.Magazine, lookup, warnings);
 		item.Chambered = save.Chambered;
+		item.Insured = save.Insured;
+		item.InsuredWith = save.InsuredWith;
 		if (save.Grids is not null)
 		{
 			for (var i = 0; i < save.Grids.Count && i < item.Grids.Count; i++)

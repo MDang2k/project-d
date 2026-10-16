@@ -26,6 +26,9 @@ public sealed class GameProfile
 
 	public bool HasChosenSide => Side is not null;
 
+	/// <summary>Insured items waiting to come back after the raid that follows the loss (GDD s15).</summary>
+	public InsuranceQueue InsuranceReturns { get; } = new();
+
 	private readonly Dictionary<string, TraderState> _traders = new();
 	private readonly HashSet<string> _unlockedTraders = new();
 
@@ -72,6 +75,7 @@ public sealed class GameProfile
 		Stash = new InventoryGrid(StashWidth, StashHeight);
 		_traders.Clear();
 		_unlockedTraders.Clear();
+		InsuranceReturns.Clear();
 	}
 
 	/// <summary>Every item in the stash, nested grids included.</summary>

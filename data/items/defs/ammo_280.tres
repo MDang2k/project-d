@@ -20,3 +20,4 @@ RoundWeightKg = 0.0
 Caliber = "280 British"
 AmmoId = "280_british"
 BaseValue = 3
+Insurable = false

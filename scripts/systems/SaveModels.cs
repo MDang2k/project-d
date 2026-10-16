@@ -11,7 +11,10 @@ public sealed record ItemSave(
 	List<string>? Rounds = null,
 	ItemSave? Magazine = null,
 	string? Chambered = null,
-	List<GridSave>? Grids = null);
+	List<GridSave>? Grids = null,
+	/// <summary>Insured for the next raid, and by whom (v4).</summary>
+	bool Insured = false,
+	string? InsuredWith = null);
 
 public sealed record PlacedItemSave(int X, int Y, ItemSave Item);
 
@@ -19,6 +22,9 @@ public sealed record GridSave(int Width, int Height, List<PlacedItemSave> Items)
 
 /// <summary>Equipment by <see cref="EquipSlot"/> name, plus the pocket grids.</summary>
 public sealed record CharacterSave(Dictionary<string, ItemSave> Slots, List<GridSave> Pockets);
+
+/// <summary>An insured item waiting for delivery (v4).</summary>
+public sealed record InsuranceReturnSave(ItemSave Item, int RaidsRemaining);
 
 /// <summary>Per-trader progress (v3).</summary>
 public sealed record TraderSave(int Level = 1, long Spent = 0);
@@ -35,7 +41,8 @@ public sealed record SaveFile(
 	/// <summary>"Allied", "Soviet" or null until chosen (v2).</summary>
 	string? Side = null,
 	GridSave? Stash = null,
-	Dictionary<string, TraderSave>? Traders = null)
+	Dictionary<string, TraderSave>? Traders = null,
+	List<InsuranceReturnSave>? InsuranceReturns = null)
 {
-	public const int CurrentVersion = 3;
+	public const int CurrentVersion = 4;
 }

@@ -92,6 +92,9 @@ PriceMultiplier = 1.0
 
 [sub_resource type="Resource" id="lv0"]
 script = ExtResource("4")
+HasInsurance = true
+PremiumFraction = 0.12
+ReturnChance = 0.35
 Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11"), SubResource("s0_12"), SubResource("s0_13"), SubResource("s0_14"), SubResource("s0_15"), SubResource("s0_16")])
 BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
 BuyMultiplier = 1.25
@@ -184,6 +187,9 @@ PriceMultiplier = 1.0
 
 [sub_resource type="Resource" id="lv1"]
 script = ExtResource("4")
+HasInsurance = true
+PremiumFraction = 0.1
+ReturnChance = 0.5
 Sells = Array[ExtResource("2")]([SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3"), SubResource("s1_4"), SubResource("s1_5"), SubResource("s1_6"), SubResource("s1_7"), SubResource("s1_8"), SubResource("s1_9"), SubResource("s1_10"), SubResource("s1_11"), SubResource("s1_12"), SubResource("s1_13"), SubResource("s1_14"), SubResource("s1_15"), SubResource("s1_16")])
 BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
 BuyMultiplier = 1.2
@@ -276,6 +282,9 @@ PriceMultiplier = 1.0
 
 [sub_resource type="Resource" id="lv2"]
 script = ExtResource("4")
+HasInsurance = true
+PremiumFraction = 0.08
+ReturnChance = 0.65
 Sells = Array[ExtResource("2")]([SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3"), SubResource("s2_4"), SubResource("s2_5"), SubResource("s2_6"), SubResource("s2_7"), SubResource("s2_8"), SubResource("s2_9"), SubResource("s2_10"), SubResource("s2_11"), SubResource("s2_12"), SubResource("s2_13"), SubResource("s2_14"), SubResource("s2_15"), SubResource("s2_16")])
 BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
 BuyMultiplier = 1.15
@@ -368,6 +377,9 @@ PriceMultiplier = 1.0
 
 [sub_resource type="Resource" id="lv3"]
 script = ExtResource("4")
+HasInsurance = true
+PremiumFraction = 0.06
+ReturnChance = 0.8
 Sells = Array[ExtResource("2")]([SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3"), SubResource("s3_4"), SubResource("s3_5"), SubResource("s3_6"), SubResource("s3_7"), SubResource("s3_8"), SubResource("s3_9"), SubResource("s3_10"), SubResource("s3_11"), SubResource("s3_12"), SubResource("s3_13"), SubResource("s3_14"), SubResource("s3_15"), SubResource("s3_16")])
 BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
 BuyMultiplier = 1.1
