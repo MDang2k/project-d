@@ -127,7 +127,12 @@ public partial class RaidLevel : Node3D
 	private async void SpawnPopulation()
 	{
 		var map = GetWorld3D().NavigationMap;
-		for (var i = 0; i < 120 && NavigationServer3D.MapGetIterationId(map) == 0; i++)
+		// The baked region only joins the navigation map after a few physics frames; until then closest-point
+		// queries answer with the map origin, which put every bot on the same spot.
+		for (var i = 0; i < 120 && (NavigationServer3D.MapGetIterationId(map) == 0
+			|| NavigationServer3D.MapGetRegions(map).Count == 0); i++)
+			await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+		for (var i = 0; i < 6; i++)
 			await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 		var cfg = Config ?? new RaidConfig();
 		var points = GetTree().GetNodesInGroup("ai_spawns").OfType<AiSpawnPoint>()
@@ -141,13 +146,13 @@ public partial class RaidLevel : Node3D
 			var preset = GD.Load<AiPreset>($"res://data/ai/{point.PresetId}.tres");
 			if (preset is null)
 				continue;
-			var centre = NavigationServer3D.MapGetClosestPoint(map, point.GlobalPosition);
+			var centre = Snap(map, point.GlobalPosition);
 			var loop = new Vector3[4];
 			for (var i = 0; i < loop.Length; i++)
 			{
 				var a = Mathf.Tau * i / loop.Length + GD.Randf() * 0.5f;
 				var spot = centre + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * point.PatrolRadius;
-				loop[i] = NavigationServer3D.MapGetClosestPoint(map, spot);
+				loop[i] = Snap(map, spot);
 			}
 			var ai = new AiHuman
 			{
@@ -160,6 +165,13 @@ public partial class RaidLevel : Node3D
 			AddChild(ai);
 			ai.ShowDebug = ShowAiDebug;
 		}
+	}
+
+	/// <summary>Closest navmesh point, or the point itself when the answer is implausibly far (map not ready).</summary>
+	private static Vector3 Snap(Rid map, Vector3 p)
+	{
+		var snapped = NavigationServer3D.MapGetClosestPoint(map, p);
+		return snapped.DistanceTo(p) < 6f ? snapped : p;
 	}
 
 	/// <summary>Random spawn point from the map's set, facing the middle of the map.</summary>
@@ -198,6 +210,7 @@ public partial class RaidLevel : Node3D
 			$"ai={GetTree().GetNodesInGroup("ai_spawns").Count} zones={GetTree().GetNodesInGroup("extraction_zones").Count} " +
 			$"loot={GetTree().GetNodesInGroup("loot_containers").Count} navpolys={polys} raid={Raid.IsRunning} " +
 			$"bots={GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Count()} " +
+			string.Join(" ", GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Select(b => $"[{b.GlobalPosition.X:0},{b.GlobalPosition.Z:0}]")) + " " +
 			string.Join(",", GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Select(a => $"{a.Preset?.Id}:{a.Brain.State}")) + " " +
 			$"player={Player.GlobalPosition.X:0},{Player.GlobalPosition.Z:0}");
 	}
