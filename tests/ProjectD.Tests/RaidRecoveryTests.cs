@@ -18,13 +18,12 @@ public class RaidRecoveryTests
 		inv.TryEquip(Item("vest", ItemCategory.Armor, 3, 3), EquipSlot.Vest);
 		inv.TryAutoStore(Item("bandage", ItemCategory.Medical));
 		var run = new RunProgress();
-		run.Restore(inv, false, 3, 2, 0, 1);
+		run.Restore(inv, 3, 2, 0, 1);
 
 		Assert.True(RaidRecovery.Apply(true, run));
 
 		Assert.Equal(4, run.Raids);
 		Assert.Equal(1, run.Deaths);
-		Assert.True(run.NeedsKit);
 		Assert.Equal(new[] { "secure", "note" }, run.Inventory!.AllItems().Select(i => i.Spec.Id).ToArray());
 	}
 
@@ -32,10 +31,9 @@ public class RaidRecoveryTests
 	public void CleanSaveIsLeftAlone()
 	{
 		var run = new RunProgress();
-		run.Restore(new CharacterInventory(), false, 3, 2, 0, 1);
+		run.Restore(new CharacterInventory(), 3, 2, 0, 1);
 		Assert.False(RaidRecovery.Apply(false, run));
 		Assert.Equal(3, run.Raids);
-		Assert.False(run.NeedsKit);
 	}
 
 	[Fact]
@@ -44,7 +42,6 @@ public class RaidRecoveryTests
 		var run = new RunProgress();
 		Assert.True(RaidRecovery.Apply(true, run));
 		Assert.NotNull(run.Inventory);
-		Assert.True(run.NeedsKit);
 		Assert.Equal(1, run.Deaths);
 	}
 }

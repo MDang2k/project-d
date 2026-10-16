@@ -62,7 +62,12 @@ public partial class RaidLevel : Node3D
 			await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
 		var kept = System.Linq.Enumerable.ToList(inv.AllItems());
 		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run);
-		screen.NewRaidRequested += () => GetTree().ReloadCurrentScene();
+		screen.NewRaidRequested += () => GetTree().ChangeSceneToFile("res://scenes/hub/hub.tscn");
+		if (OS.GetCmdlineUserArgs().Contains("--quitafterraid"))
+		{
+			GetTree().Quit();
+			return;
+		}
 		// Dev: --autonew presses the button for headless flow tests (stops after 3 raids).
 		if (OS.GetCmdlineUserArgs().Contains("--autonew") && run.Raids < 3)
 		{

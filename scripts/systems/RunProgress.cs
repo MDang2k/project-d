@@ -1,17 +1,14 @@
 namespace ProjectD;
 
 /// <summary>
-/// What carries over between raids until the save system and hub exist (M7): the character's gear
-/// and a few counters. Extraction keeps all gear; death or MIA leaves only the secure container,
-/// and the next raid then starts with the basic kit on top of it. Pure logic.
+/// What carries over between raids: the character's gear and a few counters. Extraction keeps all
+/// gear; death or MIA leaves only the secure container. The stash and side live in
+/// <see cref="GameProfile"/>; new gear only comes from the hub. Pure logic.
 /// </summary>
 public sealed class RunProgress
 {
 	/// <summary>Gear to adopt at the next raid, or null for a fresh character.</summary>
 	public CharacterInventory? Inventory { get; private set; }
-
-	/// <summary>True when the next raid must hand out the starting kit (after death or MIA).</summary>
-	public bool NeedsKit { get; private set; }
 
 	/// <summary>Quick-use bindings; they survive raids.</summary>
 	public QuickUseBar QuickUse { get; } = CreateBar();
@@ -47,17 +44,12 @@ public sealed class RunProgress
 				break;
 		}
 		Inventory = inventory;
-		NeedsKit = outcome != RaidOutcome.Extracted;
 	}
 
-	/// <summary>Called once the next raid took the gear.</summary>
-	public void MarkKitGiven() => NeedsKit = false;
-
 	/// <summary>Replaces the run with state read from the save file.</summary>
-	public void Restore(CharacterInventory? inventory, bool needsKit, int raids, int extractions, int deaths, int mia)
+	public void Restore(CharacterInventory? inventory, int raids, int extractions, int deaths, int mia)
 	{
 		Inventory = inventory;
-		NeedsKit = needsKit;
 		Raids = raids;
 		Extractions = extractions;
 		Deaths = deaths;
@@ -67,7 +59,6 @@ public sealed class RunProgress
 	public void Reset()
 	{
 		Inventory = null;
-		NeedsKit = false;
 		Raids = Extractions = Deaths = Mia = 0;
 	}
 }

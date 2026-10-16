@@ -1,0 +1,156 @@
+[gd_resource type="Resource" script_class="StarterKitData" load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/StarterKitData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/player/StarterKitEntryData.cs" id="2"]
+
+[sub_resource type="Resource" id="e_0"]
+script = ExtResource("2")
+ItemId = "ak_type"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_1"]
+script = ExtResource("2")
+ItemId = "ak_mag"
+Count = 4
+AmmoId = "7_62x39"
+Rounds = -1
+
+[sub_resource type="Resource" id="e_2"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x39"
+Count = 60
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_3"]
+script = ExtResource("2")
+ItemId = "pistol"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_4"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+Count = 2
+AmmoId = "9x19"
+Rounds = -1
+
+[sub_resource type="Resource" id="e_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+Count = 24
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_6"]
+script = ExtResource("2")
+ItemId = "combat_knife"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_7"]
+script = ExtResource("2")
+ItemId = "flak_vest_t2"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_8"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t1"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_9"]
+script = ExtResource("2")
+ItemId = "light_rig"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_10"]
+script = ExtResource("2")
+ItemId = "field_pack"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_11"]
+script = ExtResource("2")
+ItemId = "bandage"
+Count = 4
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_12"]
+script = ExtResource("2")
+ItemId = "tourniquet"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_13"]
+script = ExtResource("2")
+ItemId = "splint"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_14"]
+script = ExtResource("2")
+ItemId = "morphine"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_15"]
+script = ExtResource("2")
+ItemId = "canned_food"
+Count = 2
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="e_16"]
+script = ExtResource("2")
+ItemId = "water_canteen"
+Count = 2
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="s_0"]
+script = ExtResource("2")
+ItemId = "ak_type"
+Count = 1
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="s_1"]
+script = ExtResource("2")
+ItemId = "ak_mag"
+Count = 2
+AmmoId = "7_62x39"
+Rounds = -1
+
+[sub_resource type="Resource" id="s_2"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x39"
+Count = 30
+AmmoId = ""
+Rounds = -1
+
+[sub_resource type="Resource" id="s_3"]
+script = ExtResource("2")
+ItemId = "bandage"
+Count = 2
+AmmoId = ""
+Rounds = -1
+
+[resource]
+script = ExtResource("1")
+Entries = Array[ExtResource("2")]([SubResource("e_0"), SubResource("e_1"), SubResource("e_2"), SubResource("e_3"), SubResource("e_4"), SubResource("e_5"), SubResource("e_6"), SubResource("e_7"), SubResource("e_8"), SubResource("e_9"), SubResource("e_10"), SubResource("e_11"), SubResource("e_12"), SubResource("e_13"), SubResource("e_14"), SubResource("e_15"), SubResource("e_16")])
+SafetyNet = Array[ExtResource("2")]([SubResource("s_0"), SubResource("s_1"), SubResource("s_2"), SubResource("s_3")])

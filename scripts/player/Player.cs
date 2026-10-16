@@ -231,13 +231,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 		AddChild(inv);
 		inv.Changed += SyncWornArmor;
 		var run = RunState.Current;
+		// A raid adopts the character saved in the hub; the dev kit only exists for ranges opened from the editor.
 		if (run.Inventory is { } carried)
 			inv.Adopt(carried);
-		if (run.Inventory is null || run.NeedsKit)
-		{
+		else
 			inv.GiveStartingKit();
-			run.MarkKitGiven();
-		}
 		return inv;
 	}
 
@@ -1184,7 +1182,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Dev: overrides the configured side to test who is hostile.</summary>
 	public Faction? DebugFaction { get; set; }
 
-	public Faction Faction => DebugFaction ?? _cfg.PlayerFaction;
+	public Faction Faction => DebugFaction ?? GameState.Instance?.Profile.Side?.ToFaction() ?? _cfg.PlayerFaction;
 	public bool IsAlive => !Health.IsDead && !_noclip;
 	public Stance PerceivedStance => Stance;
 	public float PerceivedSpeedFraction

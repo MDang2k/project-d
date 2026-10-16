@@ -20,7 +20,11 @@ public class SaveMigratorTests
 	public void FrozenV1FixtureStillParses()
 	{
 		var file = SaveSerializer.Parse(V1Fixture);
-		Assert.Equal(1, file.Version);
+		Assert.Equal(2, file.Version);
+		Assert.Null(file.Side);
+		Assert.NotNull(file.Stash);
+		Assert.Empty(file.Stash!.Items);
+		Assert.Equal(GameProfile.StashHeight, file.Stash.Height);
 		Assert.True(file.RaidInProgress);
 		Assert.Equal(4, file.Counters.Raids);
 		Assert.Equal("morphine", file.QuickUse[1]);

@@ -36,6 +36,8 @@ public static class SaveSerializer
 	{
 		if (f.Counters is null || f.QuickUse is null)
 			throw new JsonException("save is missing counters or quickUse");
+		if (f.Stash is not null)
+			ValidateGrid(f.Stash);
 		if (f.Character is not { } c)
 			return;
 		if (c.Slots is null || c.Pockets is null)
@@ -68,16 +70,30 @@ public static class SaveSerializer
 	}
 
 	public static SaveFile ToFile(RunProgress run, CharacterInventory? character, bool raidInProgress)
-		=> new(SaveFile.CurrentVersion, raidInProgress, run.NeedsKit,
+		=> ToFile(run, new GameProfile(), character, raidInProgress);
+
+	public static SaveFile ToFile(RunProgress run, GameProfile profile, CharacterInventory? character, bool raidInProgress)
+		=> new(SaveFile.CurrentVersion, raidInProgress,
 			new CountersSave(run.Raids, run.Extractions, run.Deaths, run.Mia),
 			Enumerable.Range(0, QuickUseBar.SlotCount).Select(run.QuickUse.IdAt).ToList(),
-			character is null ? null : ToSave(character));
+			character is null ? null : ToSave(character),
+			profile.Side?.ToString(),
+			ToSave(profile.Stash));
 
 	public static void Apply(SaveFile file, RunProgress run, Func<string, ItemSpec?> lookup, List<string> warnings)
+		=> Apply(file, run, new GameProfile(), lookup, warnings);
+
+	public static void Apply(SaveFile file, RunProgress run, GameProfile profile, Func<string, ItemSpec?> lookup,
+		List<string> warnings)
 	{
 		var inventory = file.Character is null ? null : LoadCharacter(file.Character, lookup, warnings);
-		run.Restore(inventory, file.NeedsKit, file.Counters.Raids, file.Counters.Extractions,
+		run.Restore(inventory, file.Counters.Raids, file.Counters.Extractions,
 			file.Counters.Deaths, file.Counters.Mia);
+		profile.Side = Enum.TryParse<PlayerSide>(file.Side, out var side) ? side : null;
+		var stash = new InventoryGrid(GameProfile.StashWidth, GameProfile.StashHeight);
+		if (file.Stash is { } stashSave)
+			PlaceAll(stash, stashSave, lookup, warnings);
+		profile.ReplaceStash(stash);
 		for (var i = 0; i < QuickUseBar.SlotCount; i++)
 		{
 			var id = i < file.QuickUse.Count ? file.QuickUse[i] : null;

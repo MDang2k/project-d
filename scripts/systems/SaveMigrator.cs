@@ -25,7 +25,21 @@ public sealed class SaveMigrator
 	}
 
 	// Each entry N upgrades a version-N object in place to the shape of N+1; the migrator stamps the version.
-	public static SaveMigrator Default { get; } = new(SaveFile.CurrentVersion, new Dictionary<int, Action<JsonObject>>());
+	public static SaveMigrator Default { get; } = new(SaveFile.CurrentVersion, new Dictionary<int, Action<JsonObject>>
+	{
+		// 1 -> 2: side and stash arrive with the hub; needsKit is retired (extra properties are ignored on read).
+		[1] = root =>
+		{
+			root["side"] = null;
+			root["stash"] = new JsonObject
+			{
+				["width"] = GameProfile.StashWidth,
+				["height"] = GameProfile.StashHeight,
+				["items"] = new JsonArray(),
+			};
+			root.Remove("needsKit");
+		},
+	});
 
 	public JsonObject Migrate(string json)
 	{

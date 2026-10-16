@@ -26,10 +26,12 @@ public sealed record CountersSave(int Raids, int Extractions, int Deaths, int Mi
 public sealed record SaveFile(
 	int Version,
 	bool RaidInProgress,
-	bool NeedsKit,
 	CountersSave Counters,
 	List<string?> QuickUse,
-	CharacterSave? Character)
+	CharacterSave? Character,
+	/// <summary>"Allied", "Soviet" or null until chosen (v2).</summary>
+	string? Side = null,
+	GridSave? Stash = null)
 {
-	public const int CurrentVersion = 1;
+	public const int CurrentVersion = 2;
 }

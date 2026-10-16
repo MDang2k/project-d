@@ -34,11 +34,16 @@ public partial class SaveManager : Node
 	/// <summary>Writes the state after the outcome rules were applied and recorded.</summary>
 	public void EndRaid() => Write(RunState.Current.Inventory, false);
 
+	/// <summary>Writes the profile and character after a hub change (stash move, side choice) and on hub entry.</summary>
+	public void SaveInHub() => Write(RunState.Current.Inventory, false);
+
+	private static GameProfile Profile => GameState.Instance?.Profile ?? new GameProfile();
+
 	private void Write(CharacterInventory? character, bool raidInProgress)
 	{
 		if (_store is null)
 			return;
-		var file = SaveSerializer.ToFile(RunState.Current, character, raidInProgress);
+		var file = SaveSerializer.ToFile(RunState.Current, Profile, character, raidInProgress);
 		if (!_store.TryWrite(SaveSerializer.ToJson(file), out var error))
 			GD.PushError($"[Save] could not write the save: {error}");
 	}
@@ -66,7 +71,7 @@ public partial class SaveManager : Node
 		if (source == SaveSource.Backup)
 			GD.PushWarning("[Save] main save unreadable, loaded the backup");
 		var warnings = new List<string>();
-		SaveSerializer.Apply(file, RunState.Current, id => ItemDb.Instance?.Registry.Spec(id), warnings);
+		SaveSerializer.Apply(file, RunState.Current, Profile, id => ItemDb.Instance?.Registry.Spec(id), warnings);
 		foreach (var w in warnings)
 			GD.PushWarning($"[Save] {w}");
 		GD.Print($"SAVE loaded raids={RunState.Current.Raids} inRaid={file.RaidInProgress}");

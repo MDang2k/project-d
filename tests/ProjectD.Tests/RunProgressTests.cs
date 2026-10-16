@@ -6,13 +6,12 @@ namespace ProjectD.Tests;
 public class RunProgressTests
 {
 	[Fact]
-	public void ExtractionKeepsGearAndNeedsNoKit()
+	public void ExtractionKeepsGear()
 	{
 		var p = new RunProgress();
 		var inv = new CharacterInventory();
 		p.Record(RaidOutcome.Extracted, inv);
 		Assert.Same(inv, p.Inventory);
-		Assert.False(p.NeedsKit);
 		Assert.Equal(1, p.Raids);
 		Assert.Equal(1, p.Extractions);
 	}
@@ -20,14 +19,11 @@ public class RunProgressTests
 	[Theory]
 	[InlineData(RaidOutcome.Killed)]
 	[InlineData(RaidOutcome.Mia)]
-	public void DeathAndMiaNeedAFreshKit(RaidOutcome outcome)
+	public void DeathAndMiaAreCounted(RaidOutcome outcome)
 	{
 		var p = new RunProgress();
 		p.Record(outcome, new CharacterInventory());
-		Assert.True(p.NeedsKit);
 		Assert.Equal(1, outcome == RaidOutcome.Killed ? p.Deaths : p.Mia);
-		p.MarkKitGiven();
-		Assert.False(p.NeedsKit);
 	}
 
 	[Fact]

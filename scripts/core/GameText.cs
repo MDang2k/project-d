@@ -72,7 +72,7 @@ public static class GameText
 		["raid.extracted.detail"] = "You made it out. Everything you carried is yours.",
 		["raid.killed.detail"] = "You died. Everything is lost except what was in your secure container.",
 		["raid.mia.detail"] = "Time ran out. Everything is lost except what was in your secure container.",
-		["raid.new"] = "Start a new raid",
+		["raid.new"] = "Return to hub",
 		["container.dropped"] = "Dropped item",
 		["msg.search.prompt"] = "F: search {0}",
 		["msg.pickup.prompt"] = "F: pick up {0}",

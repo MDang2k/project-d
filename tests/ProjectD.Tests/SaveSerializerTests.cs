@@ -70,7 +70,7 @@ public class SaveSerializerTests
 	}
 
 	[Fact]
-	public void CountersNeedsKitAndQuickUseSurvive()
+	public void CountersAndQuickUseSurvive()
 	{
 		var run = new RunProgress();
 		run.Record(RaidOutcome.Extracted, new CharacterInventory());
@@ -80,7 +80,6 @@ public class SaveSerializerTests
 		Assert.Equal(2, loaded.Raids);
 		Assert.Equal(1, loaded.Extractions);
 		Assert.Equal(1, loaded.Deaths);
-		Assert.True(loaded.NeedsKit);
 		Assert.Equal(run.QuickUse.IdAt(0), loaded.QuickUse.IdAt(0));
 		Assert.Null(loaded.QuickUse.IdAt(2));
 	}
