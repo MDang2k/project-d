@@ -43,6 +43,15 @@ public sealed class SaveMigrator
 		[2] = root => root["traders"] = new JsonObject(),
 		// 3 -> 4: insurance returns queue (item flags default to not insured).
 		[3] = root => root["insuranceReturns"] = new JsonArray(),
+		// 4 -> 5: quests, tracking, unlocked traders, pending rewards (item flag foundInRaid defaults to false).
+		[4] = root =>
+		{
+			root["quests"] = new JsonObject();
+			root["tracked"] = null;
+			root["unlockedTraders"] = new JsonArray();
+			root["pendingRewards"] = new JsonArray();
+			root["reputation"] = new JsonObject();
+		},
 	});
 
 	public JsonObject Migrate(string json)

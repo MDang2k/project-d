@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/QuestData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/quests/QuestObjectiveData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/quests/QuestRewardData.cs" id="3"]
+
+[sub_resource type="Resource" id="o0"]
+script = ExtResource("2")
+Kind = 3
+Count = 1
+ItemId = ""
+FactionName = ""
+MapId = ""
+WeaponClassName = ""
+ZoneId = "tower_zone"
+
+[sub_resource type="Resource" id="o1"]
+script = ExtResource("2")
+Kind = 3
+Count = 1
+ItemId = ""
+FactionName = ""
+MapId = ""
+WeaponClassName = ""
+ZoneId = "plaza_zone"
+
+[sub_resource type="Resource" id="r0"]
+script = ExtResource("3")
+Kind = 2
+Amount = 0
+ItemId = ""
+TraderId = "engineer"
+Level = 2
+Target = ""
+
+[sub_resource type="Resource" id="r1"]
+script = ExtResource("3")
+Kind = 1
+Amount = 1
+ItemId = "ak_mag"
+TraderId = ""
+Level = 0
+Target = ""
+
+[resource]
+script = ExtResource("1")
+Id = "q04_recon"
+TitleKey = "quest.q04_recon.title"
+DescriptionKey = "quest.q04_recon.desc"
+GiverTraderId = "engineer"
+MinTraderLevel = 1
+RequiresQuestIds = PackedStringArray()
+RequiresSide = ""
+Objectives = Array[ExtResource("2")]([SubResource("o0"), SubResource("o1")])
+Rewards = Array[ExtResource("3")]([SubResource("r0"), SubResource("r1")])

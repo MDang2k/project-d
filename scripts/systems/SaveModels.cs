@@ -14,7 +14,9 @@ public sealed record ItemSave(
 	List<GridSave>? Grids = null,
 	/// <summary>Insured for the next raid, and by whom (v4).</summary>
 	bool Insured = false,
-	string? InsuredWith = null);
+	string? InsuredWith = null,
+	/// <summary>Taken from a container or body during a raid (v5).</summary>
+	bool FoundInRaid = false);
 
 public sealed record PlacedItemSave(int X, int Y, ItemSave Item);
 
@@ -22,6 +24,12 @@ public sealed record GridSave(int Width, int Height, List<PlacedItemSave> Items)
 
 /// <summary>Equipment by <see cref="EquipSlot"/> name, plus the pocket grids.</summary>
 public sealed record CharacterSave(Dictionary<string, ItemSave> Slots, List<GridSave> Pockets);
+
+/// <summary>Quest state by name and per-objective progress (v5).</summary>
+public sealed record QuestSave(string State, List<int> Progress);
+
+/// <summary>A reward waiting for stash space (v5).</summary>
+public sealed record PendingRewardSave(string ItemId, int Count);
 
 /// <summary>An insured item waiting for delivery (v4).</summary>
 public sealed record InsuranceReturnSave(ItemSave Item, int RaidsRemaining);
@@ -42,7 +50,12 @@ public sealed record SaveFile(
 	string? Side = null,
 	GridSave? Stash = null,
 	Dictionary<string, TraderSave>? Traders = null,
-	List<InsuranceReturnSave>? InsuranceReturns = null)
+	List<InsuranceReturnSave>? InsuranceReturns = null,
+	Dictionary<string, QuestSave>? Quests = null,
+	string? Tracked = null,
+	List<string>? UnlockedTraders = null,
+	List<PendingRewardSave>? PendingRewards = null,
+	Dictionary<string, int>? Reputation = null)
 {
-	public const int CurrentVersion = 4;
+	public const int CurrentVersion = 5;
 }

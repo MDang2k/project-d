@@ -46,6 +46,16 @@ public partial class TraderScreen : Control
 			(id, count) => registry?.Create(id, count), ammoId => roundValues.GetValueOrDefault(ammoId));
 	}
 
+	/// <summary>Dev: opens a given trader and tab (--trader=medic:Tasks).</summary>
+	public void DebugShow(string traderId, string? tab)
+	{
+		_selected = traderId;
+		_debugTab = tab;
+		Open();
+	}
+
+	private string? _debugTab;
+
 	public void Open()
 	{
 		Visible = true;
@@ -105,6 +115,8 @@ public partial class TraderScreen : Control
 
 	private void Rebuild()
 	{
+		if (QuestSync.Run(_profile, Character) is { } rewardNote)
+			_message.Text = rewardNote;
 		var engine = MakeEngine();
 		_money.Text = $"{engine.Money:N0} {GameText.Get("currency.unit")}";
 
@@ -145,7 +157,12 @@ public partial class TraderScreen : Control
 			return;
 		}
 		var level = trader.LevelSpec(state.Level);
-		if (level.Sells.Count == 0 && level.Buys.Count == 0 && level.Barters.Count == 0 && level.Insurance is null)
+		var quests = QuestCatalog.All
+			.Where(q => QuestEngine.ResolveTrader(q.GiverTraderId, _profile.Side) == trader.Id
+				&& _profile.Quests.StateOf(q) != QuestState.Locked)
+			.ToList();
+		if (level.Sells.Count == 0 && level.Buys.Count == 0 && level.Barters.Count == 0 && level.Insurance is null
+			&& quests.Count == 0)
 		{
 			_page.AddChild(new Label { Text = GameText.Get("trader.nothing") });
 			return;
@@ -161,6 +178,88 @@ public partial class TraderScreen : Control
 			tabs.AddChild(BarterPage(trader, level, state, engine));
 		if (level.Insurance is { } terms)
 			tabs.AddChild(InsurancePage(trader, terms, engine));
+		if (quests.Count > 0)
+			tabs.AddChild(TasksPage(quests));
+		if (_debugTab is not null)
+		{
+			for (var i = 0; i < tabs.GetChildCount(); i++)
+			{
+				if (tabs.GetChild(i).Name == _debugTab)
+					tabs.CurrentTab = i;
+			}
+		}
+	}
+
+	/// <summary>Tasks tab (GDD s14): accept, track and turn in this trader's quests.</summary>
+	private ScrollContainer TasksPage(List<QuestSpec> quests)
+	{
+		var scroll = Scroll("Tasks", out var list);
+		var log = _profile.Quests;
+		foreach (var q in quests.Where(q => log.StateOf(q) != QuestState.Completed))
+		{
+			var state = log.StateOf(q);
+			var entry = log.Entry(q);
+			var box = new VBoxContainer();
+			box.AddThemeConstantOverride("separation", 2);
+			var head = new HBoxContainer();
+			var tracked = log.TrackedId == q.Id ? "  [tracked]" : "";
+			head.AddChild(new Label
+			{
+				Text = QuestText.Title(q) + (state == QuestState.ReadyToTurnIn ? "  - ready to turn in" : "") + tracked,
+				SizeFlagsHorizontal = SizeFlags.ExpandFill,
+				Modulate = state == QuestState.ReadyToTurnIn ? new Color(0.6f, 1f, 0.6f) : Colors.White,
+			});
+			if (state == QuestState.Available)
+				head.AddChild(ActionButton("Accept", () => FinishQuest(QuestEngine.Accept(log, q) ? "Task accepted." : "Cannot accept.")));
+			if (state is QuestState.Active or QuestState.ReadyToTurnIn && log.TrackedId != q.Id)
+				head.AddChild(ActionButton("Track", () => FinishQuest(QuestEngine.Track(log, q) ? "Tracking." : "Cannot track.")));
+			if (state == QuestState.ReadyToTurnIn)
+				head.AddChild(ActionButton("Turn in", () => TurnIn(q)));
+			box.AddChild(head);
+			box.AddChild(new Label
+			{
+				Text = QuestText.Description(q),
+				AutowrapMode = TextServer.AutowrapMode.WordSmart,
+				Modulate = new Color(0.8f, 0.8f, 0.85f),
+			});
+			for (var i = 0; i < q.Objectives.Count; i++)
+				box.AddChild(new Label { Text = "   - " + QuestText.Objective(q.Objectives[i], entry.Progress[i]) });
+			box.AddChild(new Label { Text = "   Reward: " + QuestText.Rewards(q), Modulate = new Color(0.9f, 0.85f, 0.5f) });
+			box.AddChild(new HSeparator());
+			list.AddChild(box);
+		}
+		var done = quests.Count(q => log.StateOf(q) == QuestState.Completed);
+		if (done > 0)
+			list.AddChild(new Label { Text = $"{done} task(s) completed", Modulate = new Color(0.6f, 0.6f, 0.65f) });
+		return scroll;
+	}
+
+	private static Button ActionButton(string text, Action onPress)
+	{
+		var b = new Button { Text = text, CustomMinimumSize = new Vector2(90f, 0f) };
+		b.Pressed += onPress;
+		return b;
+	}
+
+	private void TurnIn(QuestSpec q)
+	{
+		var result = QuestEngine.TurnIn(QuestCatalog.All, _profile.Quests, _profile, Character, q);
+		if (result != TurnInFailure.None)
+		{
+			_message.Text = result == TurnInFailure.MissingItems ? "You do not have the items." : "Not ready yet.";
+			Rebuild();
+			return;
+		}
+		var note = QuestSync.Run(_profile, Character);
+		FinishQuest(note ?? "Task completed.");
+	}
+
+	private void FinishQuest(string message)
+	{
+		_message.Text = message;
+		SaveManager.Instance?.SaveInHub();
+		_changed();
+		Rebuild();
 	}
 
 	/// <summary>Insurance tab (GDD s15): carried insurable items with the premium; unused insurance is lost at raid end.</summary>

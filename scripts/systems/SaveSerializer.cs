@@ -82,7 +82,12 @@ public static class SaveSerializer
 			profile.Side?.ToString(),
 			ToSave(profile.Stash),
 			profile.Traders.ToDictionary(kv => kv.Key, kv => new TraderSave(kv.Value.Level, kv.Value.Spent)),
-			profile.InsuranceReturns.Entries.Select(e => new InsuranceReturnSave(ToSave(e.Item), e.RaidsRemaining)).ToList());
+			profile.InsuranceReturns.Entries.Select(e => new InsuranceReturnSave(ToSave(e.Item), e.RaidsRemaining)).ToList(),
+			profile.Quests.Entries.ToDictionary(kv => kv.Key, kv => new QuestSave(kv.Value.State.ToString(), kv.Value.Progress.ToList())),
+			profile.Quests.TrackedId,
+			profile.UnlockedTraders.ToList(),
+			profile.Quests.Pending.Select(p => new PendingRewardSave(p.ItemId, p.Count)).ToList(),
+			profile.Quests.Reputation.ToDictionary(kv => kv.Key, kv => kv.Value));
 
 	public static void Apply(SaveFile file, RunProgress run, Func<string, ItemSpec?> lookup, List<string> warnings)
 		=> Apply(file, run, new GameProfile(), lookup, warnings);
@@ -98,6 +103,19 @@ public static class SaveSerializer
 		if (file.Stash is { } stashSave)
 			PlaceAll(stash, stashSave, lookup, warnings);
 		profile.ReplaceStash(stash);
+		foreach (var id in file.UnlockedTraders ?? new List<string>())
+			profile.UnlockTrader(id);
+		profile.Quests.Clear();
+		foreach (var (id, q) in file.Quests ?? new Dictionary<string, QuestSave>())
+		{
+			var state = Enum.TryParse<QuestState>(q.State, out var parsed) ? parsed : QuestState.Locked;
+			profile.Quests.SetEntry(id, new QuestEntry(q.Progress?.Count ?? 0) { State = state, Progress = q.Progress?.ToArray() ?? Array.Empty<int>() });
+		}
+		profile.Quests.TrackedId = file.Tracked;
+		foreach (var pending in file.PendingRewards ?? new List<PendingRewardSave>())
+			profile.Quests.AddPending(new PendingReward(pending.ItemId, pending.Count));
+		foreach (var (target, value) in file.Reputation ?? new Dictionary<string, int>())
+			profile.Quests.SetReputation(target, value);
 		profile.InsuranceReturns.Clear();
 		foreach (var ret in file.InsuranceReturns ?? new List<InsuranceReturnSave>())
 		{
@@ -134,7 +152,7 @@ public static class SaveSerializer
 		item.InsertedMagazine is { } m ? ToSave(m) : null,
 		item.Chambered,
 		item.Grids.Count > 0 ? item.Grids.Select(ToSave).ToList() : null,
-		item.Insured, item.InsuredWith);
+		item.Insured, item.InsuredWith, item.FoundInRaid);
 
 	public static CharacterInventory LoadCharacter(CharacterSave save, Func<string, ItemSpec?> lookup, List<string> warnings)
 	{
@@ -190,6 +208,7 @@ public static class SaveSerializer
 		item.Chambered = save.Chambered;
 		item.Insured = save.Insured;
 		item.InsuredWith = save.InsuredWith;
+		item.FoundInRaid = save.FoundInRaid;
 		if (save.Grids is not null)
 		{
 			for (var i = 0; i < save.Grids.Count && i < item.Grids.Count; i++)

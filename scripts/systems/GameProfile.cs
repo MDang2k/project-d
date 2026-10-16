@@ -29,6 +29,9 @@ public sealed class GameProfile
 	/// <summary>Insured items waiting to come back after the raid that follows the loss (GDD s15).</summary>
 	public InsuranceQueue InsuranceReturns { get; } = new();
 
+	/// <summary>Quest states, progress, tracking and pending rewards (GDD s14).</summary>
+	public QuestLog Quests { get; } = new();
+
 	private readonly Dictionary<string, TraderState> _traders = new();
 	private readonly HashSet<string> _unlockedTraders = new();
 
@@ -76,6 +79,7 @@ public sealed class GameProfile
 		_traders.Clear();
 		_unlockedTraders.Clear();
 		InsuranceReturns.Clear();
+		Quests.Clear();
 	}
 
 	/// <summary>Every item in the stash, nested grids included.</summary>

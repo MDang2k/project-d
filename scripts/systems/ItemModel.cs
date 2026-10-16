@@ -10,7 +10,7 @@ public enum ItemCategory
 }
 
 /// <summary>Primary weapons go in the primary or secondary slot, pistols only in the pistol slot.</summary>
-public enum WeaponClass { None, Primary, Pistol }
+public enum WeaponClass { None, Primary, Pistol, Melee }
 
 /// <param name="Width">Grid cells wide (before rotation).</param>
 public readonly record struct GridSize(int Width, int Height);
@@ -74,6 +74,8 @@ public sealed class ItemInstance
 	public bool Insured { get; set; }
 	/// <summary>Id of the trader that sold the insurance; null when not insured.</summary>
 	public string? InsuredWith { get; set; }
+	/// <summary>Taken from a container or body during a raid (GDD s14); quests can ask for found items.</summary>
+	public bool FoundInRaid { get; set; }
 
 	public int Width => Rotated ? Spec.Height : Spec.Width;
 	public int Height => Rotated ? Spec.Width : Spec.Height;

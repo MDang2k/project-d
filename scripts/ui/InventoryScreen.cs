@@ -392,6 +392,9 @@ public partial class InventoryScreen : CanvasLayer
 				return;
 			}
 			done = inv.TryMoveToGrid(item, _heldFrom, g.Grid, x, y);
+			// Taking something out of a container or body counts as finding it (quests).
+			if (done && _container is { } box && _heldFrom.Grid == box.Model.Grid && g.Grid != box.Model.Grid)
+				MarkFound(item);
 			break;
 		}
 		if (!done)
@@ -441,6 +444,12 @@ public partial class InventoryScreen : CanvasLayer
 		return true;
 	}
 
+	private static void MarkFound(ItemInstance item)
+	{
+		foreach (var i in InsuranceService.WithNested(item))
+			i.FoundInRaid = true;
+	}
+
 	private void CancelDrag()
 	{
 		if (_held is { } item)
@@ -459,7 +468,10 @@ public partial class InventoryScreen : CanvasLayer
 			&& action.Kind != QuickActionKind.Equip)
 		{
 			if (inv.TryTake(item, from))
+			{
+				MarkFound(item);
 				_player.Inventory.NotifyChanged();
+			}
 			return;
 		}
 		switch (action.Kind)

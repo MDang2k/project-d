@@ -170,6 +170,7 @@ public static class InsuranceService
 	{
 		var copy = ItemInstance.Create(item.Spec, 1);
 		copy.Durability = item.Durability;
+		copy.FoundInRaid = item.FoundInRaid;
 		return copy;
 	}
 

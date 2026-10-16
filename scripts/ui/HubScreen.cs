@@ -121,10 +121,56 @@ public partial class HubScreen : CanvasLayer
 				$"money={_traders.MakeEngine().Money} traders={TraderCatalog.All.Count} returns={Profile.InsuranceReturns.Count} " +
 				$"insuredCarried={Run.Inventory?.AllItems().Count(i => i.Insured) ?? 0}");
 		}
+		foreach (var a in args)
+		{
+			if (a.StartsWith("--accept="))
+			{
+				QuestSync.Run(Profile, Run.Inventory);
+				var q = QuestCatalog.Find(a["--accept=".Length..]);
+				GD.Print($"QUEST accept {q?.Id}: {(q is not null && QuestEngine.Accept(Profile.Quests, q))}");
+			}
+			else if (a.StartsWith("--turnin="))
+			{
+				QuestSync.Run(Profile, Run.Inventory);
+				var q = QuestCatalog.Find(a["--turnin=".Length..]);
+				var result = q is null ? TurnInFailure.UnknownQuest : QuestEngine.TurnIn(QuestCatalog.All, Profile.Quests, Profile, Run.Inventory!, q);
+				var note = QuestSync.Run(Profile, Run.Inventory);
+				GD.Print($"QUEST turnin {q?.Id}: {result} {note}");
+			}
+			else if (a == "--givefound" && Run.Inventory is not null)
+			{
+				foreach (var (id, n) in new[] { ("bandage", 3), ("morphine", 1) })
+				{
+					if (ItemDb.Create(id, n) is { } found)
+					{
+						found.FoundInRaid = true;
+						Profile.Stash.TryPlaceAnywhere(found);
+					}
+				}
+			}
+		}
+		if (args.Any(x => x.StartsWith("--accept=") || x.StartsWith("--turnin=") || x == "--givefound"))
+			SaveManager.Instance?.SaveInHub();
+		if (args.Contains("--questreport"))
+		{
+			QuestSync.Run(Profile, Run.Inventory);
+			foreach (var q in QuestCatalog.All)
+				GD.Print($"QUEST {q.Id} state={Profile.Quests.StateOf(q)} progress=[{string.Join(",", Profile.Quests.Entry(q).Progress)}] tracked={Profile.Quests.TrackedId == q.Id}");
+			GD.Print($"QUEST traders: medic L{Profile.Trader("medic").Level} engineer L{Profile.Trader("engineer").Level} " +
+				$"allied_qm L{Profile.Trader("allied_qm").Level} soviet_unlocked={Profile.UnlockedTraders.Contains("soviet_qm")} money={_traders.MakeEngine().Money}");
+		}
 		if (args.Contains("--tradetest"))
 			TradeSelfTest();
 		if (args.Contains("--traders"))
 			_traders.Open();
+		foreach (var a in args)
+		{
+			if (a.StartsWith("--trader="))
+			{
+				var parts = a["--trader=".Length..].Split(':');
+				_traders.DebugShow(parts[0], parts.Length > 1 ? parts[1] : null);
+			}
+		}
 		if (shot is not null)
 		{
 			await ToSignal(GetTree().CreateTimer(0.6), SceneTreeTimer.SignalName.Timeout);
@@ -165,12 +211,17 @@ public partial class HubScreen : CanvasLayer
 	private void Rebuild()
 	{
 		// Insured returns that are due go to the stash; a full stash keeps them waiting for the next try.
+		var questNote = QuestSync.Run(Profile, Run.Inventory);
+		if (questNote is not null)
+			SaveManager.Instance?.SaveInHub();
 		var delivered = InsuranceService.TryDeliver(Profile);
 		if (delivered.Count > 0)
 		{
 			SaveManager.Instance?.SaveInHub();
 			_pendingNote = $"{delivered.Count} insured item(s) came back to your stash.";
 		}
+		if (questNote is not null)
+			_pendingNote = (_pendingNote == "" ? "" : _pendingNote + "  ") + questNote;
 		foreach (var child in _content.GetChildren())
 			child.QueueFree();
 		_grids.Clear();

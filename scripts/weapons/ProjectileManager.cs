@@ -41,6 +41,9 @@ public partial class ProjectileManager : Node3D
 
 	public event Action<BulletImpact>? Impact;
 
+	/// <summary>A bullet dealt the killing damage to a body (victim health, shooter body Rid); quests use it.</summary>
+	public event Action<HealthComponent, Rid>? Killed;
+
 	/// <summary>A bullet travelled from one point to another this frame (AI uses it to feel near misses).</summary>
 	public event Action<Vector3, Vector3, Rid>? Passed;
 
@@ -100,7 +103,11 @@ public partial class ProjectileManager : Node3D
 				var pos = hit["position"].AsVector3();
 				b.Path[^1] = pos;
 				var collider = hit["collider"].AsGodotObject();
-				var result = (collider as HitboxArea)?.ReceiveBullet(b.Ammo);
+				var area = collider as HitboxArea;
+				var wasAlive = area?.Health is { IsDead: false };
+				var result = area?.ReceiveBullet(b.Ammo);
+				if (wasAlive && area?.Health is { IsDead: true } victim)
+					Killed?.Invoke(victim, b.Shooter);
 				Impact?.Invoke(new BulletImpact(pos, hit["normal"].AsVector3(), collider,
 					b.Ammo, b.State.Velocity, b.Origin.DistanceTo(pos), result));
 				Remove(i);

@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/QuestData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/quests/QuestObjectiveData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/quests/QuestRewardData.cs" id="3"]
+
+[sub_resource type="Resource" id="o0"]
+script = ExtResource("2")
+Kind = 1
+Count = 3
+ItemId = "bandage"
+FactionName = ""
+MapId = ""
+WeaponClassName = ""
+ZoneId = ""
+
+[sub_resource type="Resource" id="o1"]
+script = ExtResource("2")
+Kind = 1
+Count = 1
+ItemId = "morphine"
+FactionName = ""
+MapId = ""
+WeaponClassName = ""
+ZoneId = ""
+
+[sub_resource type="Resource" id="r0"]
+script = ExtResource("3")
+Kind = 2
+Amount = 0
+ItemId = ""
+TraderId = "medic"
+Level = 2
+Target = ""
+
+[sub_resource type="Resource" id="r1"]
+script = ExtResource("3")
+Kind = 0
+Amount = 800
+ItemId = ""
+TraderId = ""
+Level = 0
+Target = ""
+
+[resource]
+script = ExtResource("1")
+Id = "q02_medical"
+TitleKey = "quest.q02_medical.title"
+DescriptionKey = "quest.q02_medical.desc"
+GiverTraderId = "medic"
+MinTraderLevel = 1
+RequiresQuestIds = PackedStringArray()
+RequiresSide = ""
+Objectives = Array[ExtResource("2")]([SubResource("o0"), SubResource("o1")])
+Rewards = Array[ExtResource("3")]([SubResource("r0"), SubResource("r1")])

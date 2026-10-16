@@ -49,6 +49,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Result of a melee strike that landed on a hitbox.</summary>
 	public event Action<HitResult>? MeleeHit;
 
+	/// <summary>The player's melee strike dealt the killing damage to this body (quests use it).</summary>
+	public event Action<HealthComponent>? MeleeKilled;
+
 	/// <summary>Short player-facing feedback (mag/chamber check results, empty click).</summary>
 	public event Action<string>? WeaponMessage;
 
@@ -437,12 +440,15 @@ public partial class Player : CharacterBody3D, IPerceivable
 			area = FindMeleeTarget(space, from, -_camera.GlobalBasis.Z, spec.Range);
 		if (area?.Health is { } target)
 		{
+			var wasAlive = !target.IsDead;
 			var result = spec.IgnoresArmor
 				? target.ReceiveUnarmoredDamage(area.Part, spec.Damage)
 				: target.ReceiveDamage(area.Part, spec.Damage, spec.PenetrationTier);
 			var key = !result.ArmorHit ? "msg.melee.hit" : result.Penetrated ? "msg.melee.hit_armor" : "msg.melee.hit_stopped";
 			WeaponMessage?.Invoke(GameText.Get(key, area.Part, result.Damage.ToString("0.#")));
 			MeleeHit?.Invoke(result);
+			if (wasAlive && target.IsDead)
+				MeleeKilled?.Invoke(target);
 			return;
 		}
 		WeaponMessage?.Invoke(GameText.Get("msg.melee.miss"));

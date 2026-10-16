@@ -43,6 +43,9 @@ public sealed class RaidSession
 	public float ExtractProgress { get; private set; }
 	public ExtractBlock Blocked { get; private set; }
 
+	/// <summary>The zone the player extracted through; null until the raid ends extracted.</summary>
+	public string? ExtractedZoneId { get; private set; }
+
 	/// <summary>Banknotes the player must pay for the extraction that just completed (0 for free extracts).</summary>
 	public int PaidCost { get; private set; }
 
@@ -96,6 +99,7 @@ public sealed class RaidSession
 		if (ExtractProgress >= 1f)
 		{
 			PaidCost = spec.Kind == ExtractKind.RequiresPayment ? spec.Cost : 0;
+			ExtractedZoneId = spec.Id;
 			End(RaidOutcome.Extracted);
 		}
 	}

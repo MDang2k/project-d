@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/QuestData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/quests/QuestObjectiveData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/quests/QuestRewardData.cs" id="3"]
+
+[sub_resource type="Resource" id="o0"]
+script = ExtResource("2")
+Kind = 0
+Count = 2
+ItemId = "steel_helmet_t1"
+FactionName = ""
+MapId = ""
+WeaponClassName = ""
+ZoneId = ""
+
+[sub_resource type="Resource" id="r0"]
+script = ExtResource("3")
+Kind = 1
+Amount = 1
+ItemId = "prototype_vest_t4"
+TraderId = ""
+Level = 0
+Target = ""
+
+[resource]
+script = ExtResource("1")
+Id = "q06_helmets"
+TitleKey = "quest.q06_helmets.title"
+DescriptionKey = "quest.q06_helmets.desc"
+GiverTraderId = "engineer"
+MinTraderLevel = 1
+RequiresQuestIds = PackedStringArray("q04_recon")
+RequiresSide = ""
+Objectives = Array[ExtResource("2")]([SubResource("o0")])
+Rewards = Array[ExtResource("3")]([SubResource("r0")])

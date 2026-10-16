@@ -17,6 +17,7 @@ public partial class RaidLevel : Node3D
 	public Player Player { get; private set; } = null!;
 	public RaidManager Raid { get; private set; } = null!;
 	public ProjectileManager Projectiles { get; private set; } = null!;
+	private RaidQuests _quests = null!;
 
 	public override void _Ready()
 	{
@@ -47,6 +48,10 @@ public partial class RaidLevel : Node3D
 		AiHuman.AutoRespawn = false;
 		AiHuman.Paused = false;
 		SpawnPopulation();
+		_quests = new RaidQuests { Name = "Quests", MapId = Config?.MapId ?? "map1" };
+		AddChild(_quests);
+		_quests.Start(Player, Projectiles);
+		AddChild(new ObjectiveHud { Name = "ObjectiveHud" });
 		ApplyDevArgs();
 	}
 
@@ -55,6 +60,8 @@ public partial class RaidLevel : Node3D
 		var inv = Player.Inventory.Inventory;
 		var run = RunState.Current;
 		run.Record(outcome, inv);
+		if (outcome == RaidOutcome.Extracted && Raid.Session.ExtractedZoneId is { } zoneId)
+			_quests.OnExtracted(zoneId);
 		// Insurance rolls for the lost gear and ages the return queue, before the save is written.
 		var profile = GameState.Instance?.Profile ?? new GameProfile();
 		var insurance = InsuranceService.OnRaidEnd(outcome, lost, profile, inv, SaveManager.LevelOf,
@@ -212,6 +219,11 @@ public partial class RaidLevel : Node3D
 				Player.DebugSetPitchDeg(pitch);
 			else if (arg == "--report")
 				report = true;
+			else if (arg.StartsWith("--questkill=") && arg["--questkill=".Length..].Split(':') is { Length: 2 } kv
+				&& System.Enum.TryParse<Faction>(kv[0], out var killFaction) && int.TryParse(kv[1], out var kills))
+				_quests.DebugKills(killFaction, kills);
+			else if (arg.StartsWith("--questzone="))
+				_quests.DebugZone(arg["--questzone=".Length..]);
 			else if (arg == "--noclip")
 				Player.DebugNoclip = true;
 			else if (arg.StartsWith("--pos=") && arg["--pos=".Length..].Split(',') is { Length: 3 } xyz

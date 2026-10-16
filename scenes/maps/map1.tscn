@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/raid/AiSpawnPoint.cs" id="3"]
 [ext_resource type="Script" path="res://scripts/raid/LootSpot.cs" id="4"]
 [ext_resource type="Script" path="res://scripts/raid/ExtractionZone.cs" id="5"]
+[ext_resource type="Script" path="res://scripts/raid/QuestZone.cs" id="6"]
 [ext_resource type="Resource" path="res://data/raid/map1.tres" id="9"]
 
 [sub_resource type="NavigationMesh" id="nav"]
@@ -4409,3 +4410,18 @@ transform = Transform3D(1.0000, 0.0000, 0.0000, 0.0000, 1.0000, 0.0000, -0.0000,
 script = ExtResource("4")
 Tier = 2
 
+[node name="QuestZones" type="Node3D" parent="."]
+
+[node name="TowerZone" type="Node3D" parent="QuestZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55, 7.5, -52)
+script = ExtResource("6")
+ZoneId = "tower_zone"
+MapId = "map1"
+Size = Vector3(6, 4, 6)
+
+[node name="PlazaZone" type="Node3D" parent="QuestZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+script = ExtResource("6")
+ZoneId = "plaza_zone"
+MapId = "map1"
+Size = Vector3(12, 4, 12)
