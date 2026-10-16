@@ -39,6 +39,8 @@ public sealed class SaveMigrator
 			};
 			root.Remove("needsKit");
 		},
+		// 2 -> 3: per-trader level and spent money.
+		[2] = root => root["traders"] = new JsonObject(),
 	});
 
 	public JsonObject Migrate(string json)

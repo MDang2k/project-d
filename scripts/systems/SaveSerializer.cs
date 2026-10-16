@@ -78,7 +78,8 @@ public static class SaveSerializer
 			Enumerable.Range(0, QuickUseBar.SlotCount).Select(run.QuickUse.IdAt).ToList(),
 			character is null ? null : ToSave(character),
 			profile.Side?.ToString(),
-			ToSave(profile.Stash));
+			ToSave(profile.Stash),
+			profile.Traders.ToDictionary(kv => kv.Key, kv => new TraderSave(kv.Value.Level, kv.Value.Spent)));
 
 	public static void Apply(SaveFile file, RunProgress run, Func<string, ItemSpec?> lookup, List<string> warnings)
 		=> Apply(file, run, new GameProfile(), lookup, warnings);
@@ -94,6 +95,9 @@ public static class SaveSerializer
 		if (file.Stash is { } stashSave)
 			PlaceAll(stash, stashSave, lookup, warnings);
 		profile.ReplaceStash(stash);
+		profile.ReplaceTraders((file.Traders ?? new Dictionary<string, TraderSave>()).Select(kv =>
+			new KeyValuePair<string, TraderState>(kv.Key,
+				new TraderState { Level = Math.Clamp(kv.Value.Level, 1, TraderSpec.MaxLevel), Spent = Math.Max(0, kv.Value.Spent) })));
 		for (var i = 0; i < QuickUseBar.SlotCount; i++)
 		{
 			var id = i < file.QuickUse.Count ? file.QuickUse[i] : null;

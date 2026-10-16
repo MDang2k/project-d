@@ -1,0 +1,210 @@
+[gd_resource type="Resource" script_class="TraderData" load_steps=99 format=3]
+
+[ext_resource type="Script" path="res://scripts/trade/TraderData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/trade/SellListingData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
+[ext_resource type="Script" path="res://scripts/trade/TraderLevelData.cs" id="4"]
+
+[sub_resource type="Resource" id="s0_0"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_1"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b0_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ak_type")
+GiveCounts = PackedInt32Array(1, 1)
+GetId = "em2"
+GetCount = 1
+
+[sub_resource type="Resource" id="b0_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(2, 120)
+GetId = "mg_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b0_2"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("flak_vest_t2", "steel_helmet_t2")
+GiveCounts = PackedInt32Array(2, 1)
+GetId = "prototype_vest_t4"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv0"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3")])
+BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
+BuyMultiplier = 1.25
+SellFraction = 0.3
+Barters = Array[ExtResource("3")]([SubResource("b0_0"), SubResource("b0_1"), SubResource("b0_2")])
+
+[sub_resource type="Resource" id="s1_0"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_1"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b1_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ak_type")
+GiveCounts = PackedInt32Array(1, 1)
+GetId = "em2"
+GetCount = 1
+
+[sub_resource type="Resource" id="b1_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(2, 120)
+GetId = "mg_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b1_2"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("flak_vest_t2", "steel_helmet_t2")
+GiveCounts = PackedInt32Array(2, 1)
+GetId = "prototype_vest_t4"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv1"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3")])
+BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
+BuyMultiplier = 1.2
+SellFraction = 0.35
+Barters = Array[ExtResource("3")]([SubResource("b1_0"), SubResource("b1_1"), SubResource("b1_2")])
+
+[sub_resource type="Resource" id="s2_0"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_1"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b2_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ak_type")
+GiveCounts = PackedInt32Array(1, 1)
+GetId = "em2"
+GetCount = 1
+
+[sub_resource type="Resource" id="b2_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(2, 120)
+GetId = "mg_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b2_2"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("flak_vest_t2", "steel_helmet_t2")
+GiveCounts = PackedInt32Array(2, 1)
+GetId = "prototype_vest_t4"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv2"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3")])
+BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
+BuyMultiplier = 1.15
+SellFraction = 0.4
+Barters = Array[ExtResource("3")]([SubResource("b2_0"), SubResource("b2_1"), SubResource("b2_2")])
+
+[sub_resource type="Resource" id="s3_0"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_1"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b3_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ak_type")
+GiveCounts = PackedInt32Array(1, 1)
+GetId = "em2"
+GetCount = 1
+
+[sub_resource type="Resource" id="b3_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(2, 120)
+GetId = "mg_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b3_2"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("flak_vest_t2", "steel_helmet_t2")
+GiveCounts = PackedInt32Array(2, 1)
+GetId = "prototype_vest_t4"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv3"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3")])
+BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
+BuyMultiplier = 1.1
+SellFraction = 0.45
+Barters = Array[ExtResource("3")]([SubResource("b3_0"), SubResource("b3_1"), SubResource("b3_2")])
+
+[resource]
+script = ExtResource("1")
+Id = "smuggler"
+NameKey = "trader.smuggler"
+Unlock = 0
+UnlockSide = 0
+Levels = Array[ExtResource("4")]([SubResource("lv0"), SubResource("lv1"), SubResource("lv2"), SubResource("lv3")])

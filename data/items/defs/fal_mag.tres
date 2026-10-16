@@ -17,3 +17,4 @@ IconLabel = "FALm"
 MagazineCapacity = 20
 RoundWeightKg = 0.025
 Caliber = "7.62x51"
+BaseValue = 50

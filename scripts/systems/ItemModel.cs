@@ -33,7 +33,11 @@ public sealed record ItemSpec(
 	/// <summary>Ammo and magazines: caliber string used to match them.</summary>
 	string? Caliber = null,
 	/// <summary>Ammo: the AmmoData id this stack represents.</summary>
-	string? AmmoId = null);
+	string? AmmoId = null,
+	/// <summary>Trade value in currency units; 0 means not sellable (GDD s13).</summary>
+	int BaseValue = 0,
+	/// <summary>Armor and helmets: full durability, so wear can price them down; 0 for everything else.</summary>
+	float MaxDurability = 0f);
 
 /// <summary>One concrete item in the world, a grid or a slot: spec plus mutable state.</summary>
 public sealed class ItemInstance

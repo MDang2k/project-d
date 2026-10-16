@@ -17,3 +17,4 @@ IconLabel = "Pm"
 MagazineCapacity = 8
 RoundWeightKg = 0.012
 Caliber = "9x19"
+BaseValue = 20

@@ -19,3 +19,4 @@ IconLabel = "39"
 RoundWeightKg = 0.0
 Caliber = "7.62x39"
 AmmoId = "7_62x39"
+BaseValue = 2

@@ -14,12 +14,14 @@ public partial class ExtractionZone : Node3D
 	[Export] public float Seconds { get; set; } = 5f;
 	/// <summary>Item id that must be carried (conditional zones).</summary>
 	[Export] public string RequiredItemId { get; set; } = "";
+	/// <summary>Banknotes charged on extraction (RequiresPayment zones).</summary>
+	[Export] public int Cost { get; set; }
 	[Export] public Vector3 Size { get; set; } = new(6f, 3f, 6f);
 	/// <summary>Draws a faint box for the blockout; art replaces it with a real landmark later.</summary>
 	[Export] public bool ShowMarker { get; set; } = true;
 
 	public ExtractionSpec ToSpec()
-		=> new(ZoneId, Kind, Seconds, string.IsNullOrEmpty(RequiredItemId) ? null : RequiredItemId);
+		=> new(ZoneId, Kind, Seconds, string.IsNullOrEmpty(RequiredItemId) ? null : RequiredItemId, Cost);
 
 	/// <summary>True if the world point is inside the zone box.</summary>
 	public bool Contains(Vector3 worldPoint)

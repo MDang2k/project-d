@@ -16,3 +16,4 @@ WeaponClass = 0
 Payload = ExtResource("2")
 IconColor = Color(0.8, 0.2, 0.2, 1)
 IconLabel = "Medkit"
+BaseValue = 300

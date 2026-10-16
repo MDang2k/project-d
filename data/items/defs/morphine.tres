@@ -16,3 +16,4 @@ WeaponClass = 0
 Payload = ExtResource("2")
 IconColor = Color(0.6, 0.3, 0.6, 1)
 IconLabel = "Morph"
+BaseValue = 120

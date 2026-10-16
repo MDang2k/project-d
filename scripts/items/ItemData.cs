@@ -29,6 +29,10 @@ public partial class ItemData : Resource
 	[ExportGroup("Provided grids (rigs, backpacks, secure container)")]
 	[Export] public Godot.Collections.Array<Vector2I> Grids { get; set; } = new();
 
+	[ExportGroup("Trade")]
+	/// <summary>Value in currency units (marks); 0 means traders will not buy it.</summary>
+	[Export] public int BaseValue { get; set; }
+
 	[ExportGroup("Magazines and ammo")]
 	[Export] public int MagazineCapacity { get; set; }
 	[Export] public float RoundWeightKg { get; set; }
@@ -40,7 +44,9 @@ public partial class ItemData : Resource
 		Grids.Count > 0 ? Grids.Select(g => new GridSize(g.X, g.Y)).ToList() : null,
 		MagazineCapacity, RoundWeightKg,
 		string.IsNullOrEmpty(Caliber) ? null : Caliber,
-		string.IsNullOrEmpty(AmmoId) ? null : AmmoId);
+		string.IsNullOrEmpty(AmmoId) ? null : AmmoId,
+		BaseValue,
+		Payload is ArmorData armor ? armor.MaxDurability : 0f);
 }
 
 /// <summary>Registry of every ItemData by id (plain class so it can be unit tested).</summary>

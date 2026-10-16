@@ -122,6 +122,13 @@ Count = 2
 AmmoId = ""
 Rounds = -1
 
+[sub_resource type="Resource" id="e_17"]
+script = ExtResource("2")
+ItemId = "banknotes"
+Count = 5000
+AmmoId = ""
+Rounds = -1
+
 [sub_resource type="Resource" id="s_0"]
 script = ExtResource("2")
 ItemId = "fal_type"
@@ -152,5 +159,5 @@ Rounds = -1
 
 [resource]
 script = ExtResource("1")
-Entries = Array[ExtResource("2")]([SubResource("e_0"), SubResource("e_1"), SubResource("e_2"), SubResource("e_3"), SubResource("e_4"), SubResource("e_5"), SubResource("e_6"), SubResource("e_7"), SubResource("e_8"), SubResource("e_9"), SubResource("e_10"), SubResource("e_11"), SubResource("e_12"), SubResource("e_13"), SubResource("e_14"), SubResource("e_15"), SubResource("e_16")])
+Entries = Array[ExtResource("2")]([SubResource("e_0"), SubResource("e_1"), SubResource("e_2"), SubResource("e_3"), SubResource("e_4"), SubResource("e_5"), SubResource("e_6"), SubResource("e_7"), SubResource("e_8"), SubResource("e_9"), SubResource("e_10"), SubResource("e_11"), SubResource("e_12"), SubResource("e_13"), SubResource("e_14"), SubResource("e_15"), SubResource("e_16"), SubResource("e_17")])
 SafetyNet = Array[ExtResource("2")]([SubResource("s_0"), SubResource("s_1"), SubResource("s_2"), SubResource("s_3")])

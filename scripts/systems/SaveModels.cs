@@ -20,6 +20,9 @@ public sealed record GridSave(int Width, int Height, List<PlacedItemSave> Items)
 /// <summary>Equipment by <see cref="EquipSlot"/> name, plus the pocket grids.</summary>
 public sealed record CharacterSave(Dictionary<string, ItemSave> Slots, List<GridSave> Pockets);
 
+/// <summary>Per-trader progress (v3).</summary>
+public sealed record TraderSave(int Level = 1, long Spent = 0);
+
 public sealed record CountersSave(int Raids, int Extractions, int Deaths, int Mia);
 
 /// <summary>The single autosave (GDD s15). Bump <see cref="CurrentVersion"/> with a migration when the shape changes.</summary>
@@ -31,7 +34,8 @@ public sealed record SaveFile(
 	CharacterSave? Character,
 	/// <summary>"Allied", "Soviet" or null until chosen (v2).</summary>
 	string? Side = null,
-	GridSave? Stash = null)
+	GridSave? Stash = null,
+	Dictionary<string, TraderSave>? Traders = null)
 {
-	public const int CurrentVersion = 2;
+	public const int CurrentVersion = 3;
 }

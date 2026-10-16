@@ -17,3 +17,4 @@ IconLabel = "EM2m"
 MagazineCapacity = 20
 RoundWeightKg = 0.022
 Caliber = "280 British"
+BaseValue = 120

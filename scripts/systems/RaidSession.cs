@@ -7,13 +7,13 @@ namespace ProjectD;
 public enum RaidOutcome { None, Extracted, Killed, Mia }
 
 /// <summary>Extraction point type (GDD s15). Payment arrives with the economy in M7.</summary>
-public enum ExtractKind { AlwaysOpen, RequiresItem }
+public enum ExtractKind { AlwaysOpen, RequiresItem, RequiresPayment }
 
 /// <summary>One extraction point: how long you must stand in it and what it needs.</summary>
-public sealed record ExtractionSpec(string Id, ExtractKind Kind, float Seconds, string? RequiredItemId = null);
+public sealed record ExtractionSpec(string Id, ExtractKind Kind, float Seconds, string? RequiredItemId = null, int Cost = 0);
 
 /// <summary>Why standing in a zone is not progressing.</summary>
-public enum ExtractBlock { None, MissingItem }
+public enum ExtractBlock { None, MissingItem, CannotPay }
 
 /// <summary>
 /// One raid from deploy to outcome (GDD s15): the countdown, extraction progress and the result
@@ -43,13 +43,17 @@ public sealed class RaidSession
 	public float ExtractProgress { get; private set; }
 	public ExtractBlock Blocked { get; private set; }
 
+	/// <summary>Banknotes the player must pay for the extraction that just completed (0 for free extracts).</summary>
+	public int PaidCost { get; private set; }
+
 	public event Action<RaidOutcome>? Ended;
 	public event Action<string>? ExtractionStarted;
 	public event Action<string>? ExtractionAborted;
 
 	/// <param name="zoneId">Zone the player stands in right now (null if none).</param>
 	/// <param name="hasItem">Whether the player carries an item id (for conditional zones).</param>
-	public void Update(float delta, string? zoneId, Func<string, bool> hasItem)
+	/// <param name="carriedMoney">Banknotes in carried storage grids (not the secure container); paid zones need the cost.</param>
+	public void Update(float delta, string? zoneId, Func<string, bool> hasItem, Func<int>? carriedMoney = null)
 	{
 		if (!IsActive)
 			return;
@@ -69,6 +73,11 @@ public sealed class RaidSession
 			block = ExtractBlock.MissingItem;
 			spec = null;
 		}
+		else if (spec is { Kind: ExtractKind.RequiresPayment } && (carriedMoney?.Invoke() ?? 0) < spec.Cost)
+		{
+			block = ExtractBlock.CannotPay;
+			spec = null;
+		}
 		Blocked = block;
 
 		if (spec is null)
@@ -85,7 +94,10 @@ public sealed class RaidSession
 		}
 		ExtractProgress = Math.Min(1f, ExtractProgress + delta / Math.Max(0.1f, spec.Seconds));
 		if (ExtractProgress >= 1f)
+		{
+			PaidCost = spec.Kind == ExtractKind.RequiresPayment ? spec.Cost : 0;
 			End(RaidOutcome.Extracted);
+		}
 	}
 
 	/// <summary>The player died (GDD s15: lose everything except the secure container).</summary>

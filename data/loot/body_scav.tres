@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1")
 Id = "body_scav"
-ItemIds = PackedStringArray("bandage", "canned_food", "ammo_7_62x39", "ak_mag", "pistol", "water_canteen")
-Weights = PackedFloat32Array(2.0, 2.0, 2.0, 1.0, 1.0, 1.0)
-MinCounts = PackedInt32Array(1, 1, 5, 1, 1, 1)
-MaxCounts = PackedInt32Array(1, 1, 15, 1, 1, 1)
+ItemIds = PackedStringArray("bandage", "canned_food", "ammo_7_62x39", "ak_mag", "pistol", "water_canteen", "banknotes")
+Weights = PackedFloat32Array(2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 2.0)
+MinCounts = PackedInt32Array(1, 1, 5, 1, 1, 1, 10)
+MaxCounts = PackedInt32Array(1, 1, 15, 1, 1, 1, 50)
 MinRolls = 1
 MaxRolls = 3

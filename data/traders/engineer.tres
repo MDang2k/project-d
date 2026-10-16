@@ -1,0 +1,342 @@
+[gd_resource type="Resource" script_class="TraderData" load_steps=99 format=3]
+
+[ext_resource type="Script" path="res://scripts/trade/TraderData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/trade/SellListingData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
+[ext_resource type="Script" path="res://scripts/trade/TraderLevelData.cs" id="4"]
+
+[sub_resource type="Resource" id="s0_0"]
+script = ExtResource("2")
+ItemId = "ak_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_1"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_4"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_6"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x39"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_7"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_8"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_9"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_10"]
+script = ExtResource("2")
+ItemId = "combat_knife"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_11"]
+script = ExtResource("2")
+ItemId = "entrenching_tool"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b0_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("ak_type", "ak_mag", "ammo_7_62x39")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "fal_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b0_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "fal_mag", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "ak_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv0"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11")])
+BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
+BuyMultiplier = 1.25
+SellFraction = 0.5
+Barters = Array[ExtResource("3")]([SubResource("b0_0"), SubResource("b0_1")])
+
+[sub_resource type="Resource" id="s1_0"]
+script = ExtResource("2")
+ItemId = "ak_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_1"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_4"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_6"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x39"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_7"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_8"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_9"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_10"]
+script = ExtResource("2")
+ItemId = "combat_knife"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_11"]
+script = ExtResource("2")
+ItemId = "entrenching_tool"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b1_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("ak_type", "ak_mag", "ammo_7_62x39")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "fal_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b1_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "fal_mag", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "ak_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv1"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3"), SubResource("s1_4"), SubResource("s1_5"), SubResource("s1_6"), SubResource("s1_7"), SubResource("s1_8"), SubResource("s1_9"), SubResource("s1_10"), SubResource("s1_11")])
+BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
+BuyMultiplier = 1.2
+SellFraction = 0.55
+Barters = Array[ExtResource("3")]([SubResource("b1_0"), SubResource("b1_1")])
+
+[sub_resource type="Resource" id="s2_0"]
+script = ExtResource("2")
+ItemId = "ak_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_1"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_4"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_6"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x39"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_7"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_8"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_9"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_10"]
+script = ExtResource("2")
+ItemId = "combat_knife"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_11"]
+script = ExtResource("2")
+ItemId = "entrenching_tool"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b2_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("ak_type", "ak_mag", "ammo_7_62x39")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "fal_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b2_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "fal_mag", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "ak_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv2"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3"), SubResource("s2_4"), SubResource("s2_5"), SubResource("s2_6"), SubResource("s2_7"), SubResource("s2_8"), SubResource("s2_9"), SubResource("s2_10"), SubResource("s2_11")])
+BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
+BuyMultiplier = 1.15
+SellFraction = 0.6
+Barters = Array[ExtResource("3")]([SubResource("b2_0"), SubResource("b2_1")])
+
+[sub_resource type="Resource" id="s3_0"]
+script = ExtResource("2")
+ItemId = "ak_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_1"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_2"]
+script = ExtResource("2")
+ItemId = "em2_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_3"]
+script = ExtResource("2")
+ItemId = "mg_belt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_4"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_6"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x39"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_7"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_8"]
+script = ExtResource("2")
+ItemId = "ammo_280"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_9"]
+script = ExtResource("2")
+ItemId = "ammo_7_92x57"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_10"]
+script = ExtResource("2")
+ItemId = "combat_knife"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_11"]
+script = ExtResource("2")
+ItemId = "entrenching_tool"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="b3_0"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("ak_type", "ak_mag", "ammo_7_62x39")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "fal_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="b3_1"]
+script = ExtResource("3")
+GiveIds = PackedStringArray("fal_type", "fal_mag", "ammo_7_62x51")
+GiveCounts = PackedInt32Array(1, 2, 60)
+GetId = "ak_type"
+GetCount = 1
+
+[sub_resource type="Resource" id="lv3"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3"), SubResource("s3_4"), SubResource("s3_5"), SubResource("s3_6"), SubResource("s3_7"), SubResource("s3_8"), SubResource("s3_9"), SubResource("s3_10"), SubResource("s3_11")])
+BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
+BuyMultiplier = 1.1
+SellFraction = 0.65
+Barters = Array[ExtResource("3")]([SubResource("b3_0"), SubResource("b3_1")])
+
+[resource]
+script = ExtResource("1")
+Id = "engineer"
+NameKey = "trader.engineer"
+Unlock = 0
+UnlockSide = 0
+Levels = Array[ExtResource("4")]([SubResource("lv0"), SubResource("lv1"), SubResource("lv2"), SubResource("lv3")])

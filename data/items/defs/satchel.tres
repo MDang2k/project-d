@@ -15,3 +15,4 @@ WeaponClass = 0
 IconColor = Color(0.35, 0.3, 0.25, 1)
 IconLabel = "Satchel"
 Grids = Array[Vector2i]([Vector2i(4, 3)])
+BaseValue = 80

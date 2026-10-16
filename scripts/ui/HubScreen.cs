@@ -20,6 +20,7 @@ public partial class HubScreen : CanvasLayer
 	private PanelContainer _tooltip = null!;
 	private Label _tooltipText = null!;
 	private DragOverlay _drag = null!;
+	private TraderScreen _traders = null!;
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
@@ -57,6 +58,8 @@ public partial class HubScreen : CanvasLayer
 		_root.AddChild(_tooltip);
 		_drag = new DragOverlay { Source = () => _held is null ? null : (_held, GetViewport().GetMousePosition() - _grabOffset) };
 		_root.AddChild(_drag);
+		_traders = new TraderScreen(Profile, Rebuild);
+		_root.AddChild(_traders);
 
 		SaveManager.Instance?.SaveInHub();
 		Rebuild();
@@ -105,8 +108,13 @@ public partial class HubScreen : CanvasLayer
 		{
 			var carried = Run.Inventory?.AllItems().Count() ?? 0;
 			GD.Print($"HUB side={Profile.Side} stash={Profile.Stash.ItemCount} carried={carried} " +
-				$"weapon={Run.Inventory?.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"} raids={Run.Raids}");
+				$"weapon={Run.Inventory?.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"} raids={Run.Raids} " +
+				$"money={_traders.MakeEngine().Money} traders={TraderCatalog.All.Count}");
 		}
+		if (args.Contains("--tradetest"))
+			TradeSelfTest();
+		if (args.Contains("--traders"))
+			_traders.Open();
 		if (shot is not null)
 		{
 			await ToSignal(GetTree().CreateTimer(0.6), SceneTreeTimer.SignalName.Timeout);
@@ -117,6 +125,30 @@ public partial class HubScreen : CanvasLayer
 		if (args.Contains("--deploy"))
 			Deploy();
 	}
+
+	/// <summary>Dev (--tradetest): runs a buy, a sell and a failing barter against the real catalog and prints the results.</summary>
+	private void TradeSelfTest()
+	{
+		var engine = _traders.MakeEngine();
+		var trader = TraderCatalog.All.First(t => _profile().IsTraderAvailable(t) && t.LevelSpec(1).Sells.Count > 0);
+		var state = Profile.Trader(trader.Id);
+		var level = trader.LevelSpec(1);
+		var listing = level.Sells.First(l => engine.BuyPrice(level, l) > 0);
+		var before = engine.Money;
+		var buy = engine.Buy(level, state, listing);
+		GD.Print($"TRADE buy {listing.ItemId} from {trader.Id}: {buy.Failure} price={buy.Money} money {before}->{engine.Money}");
+		var item = engine.SellableItems(level).FirstOrDefault(i => i.Spec.Id == listing.ItemId);
+		if (item is not null)
+		{
+			var sell = engine.Sell(level, state, item);
+			GD.Print($"TRADE sell {item.Spec.Id}: {sell.Failure} payout={sell.Money} money->{engine.Money} spent={state.Spent}");
+		}
+		var smuggler = TraderCatalog.Find("smuggler")!;
+		var barter = engine.Barter(smuggler.LevelSpec(1), Profile.Trader("smuggler"), smuggler.LevelSpec(1).Barters[0]);
+		GD.Print($"TRADE barter: {barter.Failure}");
+	}
+
+	private GameProfile _profile() => Profile;
 
 	// --- layout ---------------------------------------------------------------------------------
 
@@ -138,6 +170,7 @@ public partial class HubScreen : CanvasLayer
 		}
 		_drag.MoveToFront();
 		_tooltip.MoveToFront();
+		_traders.MoveToFront();
 	}
 
 	private void BuildSidePicker()
@@ -176,6 +209,9 @@ public partial class HubScreen : CanvasLayer
 		top.AddThemeConstantOverride("separation", 20);
 		_header = new Label { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
 		top.AddChild(_header);
+		var traders = new Button { Text = "Traders", CustomMinimumSize = new Vector2(140f, 44f) };
+		traders.Pressed += () => _traders.Open();
+		top.AddChild(traders);
 		var deploy = new Button { Text = "DEPLOY to map 1", CustomMinimumSize = new Vector2(220f, 44f) };
 		deploy.Pressed += Deploy;
 		top.AddChild(deploy);
@@ -321,6 +357,8 @@ public partial class HubScreen : CanvasLayer
 
 	public override void _Input(InputEvent @event)
 	{
+		if (_traders.Visible)
+			return;
 		switch (@event)
 		{
 			case InputEventKey { Pressed: true, PhysicalKeycode: Key.R, Echo: false } when _held is not null:

@@ -17,3 +17,4 @@ IconLabel = "AKm"
 MagazineCapacity = 30
 RoundWeightKg = 0.016
 Caliber = "7.62x39"
+BaseValue = 40

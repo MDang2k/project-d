@@ -16,3 +16,4 @@ WeaponClass = 0
 Payload = ExtResource("2")
 IconColor = Color(0.4, 0.45, 0.5, 1)
 IconLabel = "Helm T2"
+BaseValue = 400

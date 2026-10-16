@@ -20,7 +20,9 @@ public class SaveMigratorTests
 	public void FrozenV1FixtureStillParses()
 	{
 		var file = SaveSerializer.Parse(V1Fixture);
-		Assert.Equal(2, file.Version);
+		Assert.Equal(SaveFile.CurrentVersion, file.Version);
+		Assert.NotNull(file.Traders);
+		Assert.Empty(file.Traders!);
 		Assert.Null(file.Side);
 		Assert.NotNull(file.Stash);
 		Assert.Empty(file.Stash!.Items);

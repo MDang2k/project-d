@@ -16,3 +16,4 @@ WeaponClass = 0
 Payload = ExtResource("2")
 IconColor = Color(0.5, 0.5, 0.3, 1)
 IconLabel = "Ration"
+BaseValue = 40

@@ -40,6 +40,9 @@ public partial class RaidManager : Node
 		if (_player is null)
 			return;
 		_player.Health.Died -= OnPlayerDied;
+		// A paid extract takes its cost from carried banknotes (not the secure container) before the outcome rules run.
+		if (outcome == RaidOutcome.Extracted && _session?.PaidCost > 0)
+			MoneyLedger.Remove(_player.Inventory.Inventory.StorageGrids.ToList(), _session.PaidCost);
 		var lost = RaidOutcomeRules.Apply(outcome, _player.Inventory.Inventory);
 		_player.Inventory.NotifyChanged();
 		Ended?.Invoke(outcome, lost);
@@ -60,6 +63,7 @@ public partial class RaidManager : Node
 			}
 		}
 		var inv = _player.Inventory.Inventory;
-		session.Update((float)delta, zoneId, id => inv.AllItems().Any(i => i.Spec.Id == id));
+		session.Update((float)delta, zoneId, id => inv.AllItems().Any(i => i.Spec.Id == id),
+			() => MoneyLedger.Count(inv.StorageGrids));
 	}
 }

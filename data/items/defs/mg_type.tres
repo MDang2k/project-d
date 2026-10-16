@@ -16,3 +16,4 @@ WeaponClass = 1
 Payload = ExtResource("2")
 IconColor = Color(0.2, 0.2, 0.22, 1)
 IconLabel = "MG"
+BaseValue = 2500

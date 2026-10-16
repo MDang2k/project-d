@@ -91,6 +91,30 @@ public class RaidSessionTests
 	}
 
 	[Fact]
+	public void PaidZoneNeedsTheMoneyAndReportsTheCost()
+	{
+		var paid = new ExtractionSpec("boat", ExtractKind.RequiresPayment, 3f, Cost: 500);
+		var s = new RaidSession(100f, new[] { paid });
+		for (var t = 0f; t < 5f && s.IsActive; t += 0.1f)
+			s.Update(0.1f, "boat", _ => false, () => 400);
+		Assert.True(s.IsActive);
+		Assert.Equal(ExtractBlock.CannotPay, s.Blocked);
+		Assert.Equal(0f, s.ExtractProgress);
+		for (var t = 0f; t < 5f && s.IsActive; t += 0.1f)
+			s.Update(0.1f, "boat", _ => false, () => 500);
+		Assert.Equal(RaidOutcome.Extracted, s.Outcome);
+		Assert.Equal(500, s.PaidCost);
+	}
+
+	[Fact]
+	public void FreeZonesChargeNothing()
+	{
+		var s = Make();
+		Run(s, 6f, "gate");
+		Assert.Equal(0, s.PaidCost);
+	}
+
+	[Fact]
 	public void UnknownZoneDoesNothing()
 	{
 		var s = Make();

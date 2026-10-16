@@ -17,3 +17,4 @@ IconLabel = "Belt"
 MagazineCapacity = 50
 RoundWeightKg = 0.028
 Caliber = "7.92x57"
+BaseValue = 150

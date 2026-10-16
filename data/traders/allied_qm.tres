@@ -1,0 +1,382 @@
+[gd_resource type="Resource" script_class="TraderData" load_steps=99 format=3]
+
+[ext_resource type="Script" path="res://scripts/trade/TraderData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/trade/SellListingData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
+[ext_resource type="Script" path="res://scripts/trade/TraderLevelData.cs" id="4"]
+
+[sub_resource type="Resource" id="s0_0"]
+script = ExtResource("2")
+ItemId = "fal_type"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_1"]
+script = ExtResource("2")
+ItemId = "pistol"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_2"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_3"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_4"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_6"]
+script = ExtResource("2")
+ItemId = "flak_vest_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_7"]
+script = ExtResource("2")
+ItemId = "flak_vest_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_8"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_9"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_10"]
+script = ExtResource("2")
+ItemId = "light_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_11"]
+script = ExtResource("2")
+ItemId = "field_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_12"]
+script = ExtResource("2")
+ItemId = "field_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_13"]
+script = ExtResource("2")
+ItemId = "satchel"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_14"]
+script = ExtResource("2")
+ItemId = "canned_food"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_15"]
+script = ExtResource("2")
+ItemId = "ration_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_16"]
+script = ExtResource("2")
+ItemId = "water_canteen"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="lv0"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11"), SubResource("s0_12"), SubResource("s0_13"), SubResource("s0_14"), SubResource("s0_15"), SubResource("s0_16")])
+BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
+BuyMultiplier = 1.25
+SellFraction = 0.45
+
+[sub_resource type="Resource" id="s1_0"]
+script = ExtResource("2")
+ItemId = "fal_type"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_1"]
+script = ExtResource("2")
+ItemId = "pistol"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_2"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_3"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_4"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_6"]
+script = ExtResource("2")
+ItemId = "flak_vest_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_7"]
+script = ExtResource("2")
+ItemId = "flak_vest_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_8"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_9"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_10"]
+script = ExtResource("2")
+ItemId = "light_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_11"]
+script = ExtResource("2")
+ItemId = "field_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_12"]
+script = ExtResource("2")
+ItemId = "field_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_13"]
+script = ExtResource("2")
+ItemId = "satchel"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_14"]
+script = ExtResource("2")
+ItemId = "canned_food"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_15"]
+script = ExtResource("2")
+ItemId = "ration_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s1_16"]
+script = ExtResource("2")
+ItemId = "water_canteen"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="lv1"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3"), SubResource("s1_4"), SubResource("s1_5"), SubResource("s1_6"), SubResource("s1_7"), SubResource("s1_8"), SubResource("s1_9"), SubResource("s1_10"), SubResource("s1_11"), SubResource("s1_12"), SubResource("s1_13"), SubResource("s1_14"), SubResource("s1_15"), SubResource("s1_16")])
+BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
+BuyMultiplier = 1.2
+SellFraction = 0.5
+
+[sub_resource type="Resource" id="s2_0"]
+script = ExtResource("2")
+ItemId = "fal_type"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_1"]
+script = ExtResource("2")
+ItemId = "pistol"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_2"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_3"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_4"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_6"]
+script = ExtResource("2")
+ItemId = "flak_vest_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_7"]
+script = ExtResource("2")
+ItemId = "flak_vest_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_8"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_9"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_10"]
+script = ExtResource("2")
+ItemId = "light_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_11"]
+script = ExtResource("2")
+ItemId = "field_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_12"]
+script = ExtResource("2")
+ItemId = "field_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_13"]
+script = ExtResource("2")
+ItemId = "satchel"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_14"]
+script = ExtResource("2")
+ItemId = "canned_food"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_15"]
+script = ExtResource("2")
+ItemId = "ration_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s2_16"]
+script = ExtResource("2")
+ItemId = "water_canteen"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="lv2"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3"), SubResource("s2_4"), SubResource("s2_5"), SubResource("s2_6"), SubResource("s2_7"), SubResource("s2_8"), SubResource("s2_9"), SubResource("s2_10"), SubResource("s2_11"), SubResource("s2_12"), SubResource("s2_13"), SubResource("s2_14"), SubResource("s2_15"), SubResource("s2_16")])
+BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
+BuyMultiplier = 1.15
+SellFraction = 0.55
+
+[sub_resource type="Resource" id="s3_0"]
+script = ExtResource("2")
+ItemId = "fal_type"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_1"]
+script = ExtResource("2")
+ItemId = "pistol"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_2"]
+script = ExtResource("2")
+ItemId = "fal_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_3"]
+script = ExtResource("2")
+ItemId = "pistol_mag"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_4"]
+script = ExtResource("2")
+ItemId = "ammo_7_62x51"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_5"]
+script = ExtResource("2")
+ItemId = "ammo_9x19"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_6"]
+script = ExtResource("2")
+ItemId = "flak_vest_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_7"]
+script = ExtResource("2")
+ItemId = "flak_vest_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_8"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t1"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_9"]
+script = ExtResource("2")
+ItemId = "steel_helmet_t2"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_10"]
+script = ExtResource("2")
+ItemId = "light_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_11"]
+script = ExtResource("2")
+ItemId = "field_rig"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_12"]
+script = ExtResource("2")
+ItemId = "field_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_13"]
+script = ExtResource("2")
+ItemId = "satchel"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_14"]
+script = ExtResource("2")
+ItemId = "canned_food"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_15"]
+script = ExtResource("2")
+ItemId = "ration_pack"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s3_16"]
+script = ExtResource("2")
+ItemId = "water_canteen"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="lv3"]
+script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3"), SubResource("s3_4"), SubResource("s3_5"), SubResource("s3_6"), SubResource("s3_7"), SubResource("s3_8"), SubResource("s3_9"), SubResource("s3_10"), SubResource("s3_11"), SubResource("s3_12"), SubResource("s3_13"), SubResource("s3_14"), SubResource("s3_15"), SubResource("s3_16")])
+BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
+BuyMultiplier = 1.1
+SellFraction = 0.6
+
+[resource]
+script = ExtResource("1")
+Id = "allied_qm"
+NameKey = "trader.allied_qm"
+Unlock = 1
+UnlockSide = 0
+Levels = Array[ExtResource("4")]([SubResource("lv0"), SubResource("lv1"), SubResource("lv2"), SubResource("lv3")])

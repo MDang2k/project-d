@@ -183,3 +183,39 @@ public class SaveV2Tests
 		Assert.Contains(warnings, w => w.Contains("ghost"));
 	}
 }
+
+public class SaveV3Tests
+{
+	[Fact]
+	public void TraderProgressRoundTripsAndIsClamped()
+	{
+		var profile = new GameProfile();
+		profile.Trader("medic").Level = 2;
+		profile.Trader("medic").Spent = 1234;
+		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
+		var loaded = new GameProfile();
+		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, _ => null, new List<string>());
+		Assert.Equal(2, loaded.Trader("medic").Level);
+		Assert.Equal(1234, loaded.Trader("medic").Spent);
+		Assert.Equal(1, loaded.Trader("smuggler").Level);
+	}
+
+	[Fact]
+	public void V2SaveMigratesWithAnEmptyTraderMap()
+	{
+		const string v2 = """{"version":2,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"side":"Allied","stash":{"width":10,"height":30,"items":[]}}""";
+		var file = SaveSerializer.Parse(v2);
+		Assert.Equal(SaveFile.CurrentVersion, file.Version);
+		Assert.Empty(file.Traders!);
+	}
+
+	[Fact]
+	public void OutOfRangeTraderLevelIsClamped()
+	{
+		const string json = """{"version":3,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"traders":{"medic":{"level":99,"spent":-5}}}""";
+		var profile = new GameProfile();
+		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), profile, _ => null, new List<string>());
+		Assert.Equal(TraderSpec.MaxLevel, profile.Trader("medic").Level);
+		Assert.Equal(0, profile.Trader("medic").Spent);
+	}
+}

@@ -16,3 +16,4 @@ WeaponClass = 0
 Payload = ExtResource("2")
 IconColor = Color(0.3, 0.45, 0.6, 1)
 IconLabel = "Water"
+BaseValue = 30
