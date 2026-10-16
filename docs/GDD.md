@@ -258,6 +258,9 @@ Skills improve through use; there is no player level. Each skill has levels 1–
 | Recoil Control | Firing | Less recoil |
 | First Aid | Using meds | Faster med use |
 | Searching | Searching containers | Faster searching |
+| Vitality | Taking hits from enemies | Higher HP on every body part, less hit damage |
+
+Skills never decay. XP earned in a raid is kept on death or MIA.
 
 ## 13. Traders
 
@@ -417,7 +420,7 @@ Godot primitives and free CC0 packs (Kenney, Quaternius) until custom art. Every
 - **M5 — Human AI:** perception, state machine, combat behaviors, faction presets, hostility matrix.
 - **M6 — Raid loop:** map 1 blockout, spawns, timer, extraction, death/MIA outcome.
 - **M7 — Hub:** stash, six traders (basic level), barter, insurance, 5–6 quests, single autosave.
-- **M8 — Skills, reputation and signature systems:** six skills, trader and faction reputation, friendly-fire rules, nemesis system, persistent knowledge and journal, first Ewigstein delivery quest with containment canister and in-raid exposure.
+- **M8 — Skills, reputation and signature systems:** seven skills, trader and faction reputation, friendly-fire rules, nemesis system, persistent knowledge and journal, first Ewigstein delivery quest with containment canister and in-raid exposure.
 - **M9 — Night raids:** night lighting for map 1, flashlights, night optics, AI vision in darkness.
 - **M10 — Slice polish:** tuning, audio pass, bug fixing.
 
