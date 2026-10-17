@@ -336,8 +336,8 @@ Each ending needs its own final mission(s). A fourth, hidden ending tied to the 
 
 Knowledge survives death; gear does not.
 
-- **Knowledge items** (documents, lab notes, door codes, radio frequencies, stash locations) are picked up in raids. Once the player extracts with one, or reads it in raid (TBD which), its knowledge is permanently unlocked in the save, even if the physical item is later lost.
-- Some knowledge needs processing in the hub, e.g. German lab notes translated by the Scientist over one or more raids.
+- **Knowledge items** (documents, lab notes, door codes, radio frequencies, stash locations) are picked up in raids. Reading one in raid (a few seconds, interrupted by damage) or extracting with it unread unlocks its knowledge is permanently unlocked in the save, even if the physical item is later lost.
+- Some knowledge needs processing in the hub, e.g. German lab notes translated by the Scientist over one or more raids. Translation needs only the unlocked knowledge, not the physical item, and is free.
 - Unlocked knowledge opens things: codes for locked doors, marked stash locations, new quests, story missions, lore entries in a **journal** in the hub.
 - Knowledge is never sold and never lost.
 
