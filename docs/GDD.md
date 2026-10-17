@@ -368,6 +368,10 @@ AI uses the same health, armor and weapon systems as the player.
 
 The player inherits the attitudes of the chosen side, adjusted by reputation (§5).
 
+### Bosses
+
+Named leaders with 2-3 escorts that follow them as a squad. Per map, a boss either holds a compound (a fixed area with high-tier loot) or roams a route. At most one boss per raid, spawned by chance **(tune)**; bosses respawn in later raids. A boss wears a signature loadout of rare gear and always carries a unique single-use key or keycard that opens a locked high-level loot spot on its map. A boss that kills the player carries the player's gear until killed (nemesis rules, §15).
+
 ### Zombies (post-slice)
 
 Separate AI: melee, sound-driven, swarming. Attracted by gunfire. Spec TBD.
@@ -420,7 +424,7 @@ Godot primitives and free CC0 packs (Kenney, Quaternius) until custom art. Every
 - **M5 — Human AI:** perception, state machine, combat behaviors, faction presets, hostility matrix.
 - **M6 — Raid loop:** map 1 blockout, spawns, timer, extraction, death/MIA outcome.
 - **M7 — Hub:** stash, six traders (basic level), barter, insurance, 5–6 quests, single autosave.
-- **M8 — Skills, reputation and signature systems:** seven skills, trader and faction reputation, friendly-fire rules, nemesis system, persistent knowledge and journal, first Ewigstein delivery quest with containment canister and in-raid exposure.
+- **M8 — Skills, reputation and signature systems:** seven skills, trader and faction reputation, friendly-fire rules, nemesis system, bosses with escorts and keys, persistent knowledge and journal, first Ewigstein delivery quest with containment canister and in-raid exposure.
 - **M9 — Night raids:** night lighting for map 1, flashlights, night optics, AI vision in darkness.
 - **M10 — Slice polish:** tuning, audio pass, bug fixing.
 
