@@ -1,0 +1,17 @@
+#!/bin/sh
+# Keeps docs/design/catalog/*.csv in sync with docs/design/item_catalog.xlsx.
+# When the xlsx is part of a commit, re-export the CSVs and add them to the same commit.
+# Install (once per clone): cp tools/githooks/pre-commit .git/hooks/pre-commit
+# (Not via core.hooksPath: that would bypass the Git LFS hooks in .git/hooks.)
+
+if git diff --cached --name-only | grep -qx "docs/design/item_catalog.xlsx"; then
+	PY=python
+	command -v "$PY" >/dev/null 2>&1 || PY=py
+	if ! "$PY" tools/export_catalog.py; then
+		echo "pre-commit: catalog export failed (is openpyxl installed? python -m pip install --user openpyxl)" >&2
+		echo "pre-commit: commit stopped so the CSVs do not go stale. Use --no-verify to skip." >&2
+		exit 1
+	fi
+	git add docs/design/catalog
+fi
+exit 0

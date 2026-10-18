@@ -6,6 +6,7 @@ agents read and git diffs. Re-run after every edit:
     python tools/export_catalog.py
 
 Needs openpyxl (python -m pip install --user openpyxl).
+The pre-commit hook in tools/githooks runs this automatically when the xlsx is committed.
 """
 import csv
 import re
