@@ -1,0 +1,26 @@
+Id,Name,Side / Origin,Use time s,Effect,Uses,Grid (WxH),Weight kg,Base value,Sold by,Needs new MedicalKind,Phase,Notes
+bandage,Bandage,Any,3,Stops a light bleed,1,1x1,0.1,600,Medic,No,Slice,Exists
+tourniquet,Tourniquet,Any,per data,Stops a heavy bleed,1,1x1,0.15,1500,Medic,No,Slice,Exists
+splint,Splint,Any,6,Fixes a fracture,1,1x2,0.4,1800,Medic,No,Slice,Exists
+morphine,Morphine,Any,2,Pain suppressed 180 s,1,1x1,0.1,3500,Medic,No,Slice,Exists
+field_medkit,Field medkit,Any,8,"Heals 120 HP pool at 4 HP/s, light bleeds",pool,2x1,0.9,9000,Medic,No,Slice,Exists
+surgery_kit,Surgery kit,Any,30,Restores a destroyed limb at 50% max HP,1,3x2,1.6,25000,Medic,No,Slice,Exists
+individual_dressing_packet,Individual dressing packet,East,4,"Light bleed, +10 HP",1,1x1,0.1,700,Medic,Yes,Post-slice,
+sulfa_powder,Sulfa powder,West,2,"Light bleed, fast",2,1x1,0.05,900,Medic,Yes,Post-slice,
+belt_tourniquet,Belt tourniquet,Any,6,"Heavy bleed, -5 limb HP",1,1x1,0.2,500,Medic,Yes,Post-slice,Improvised
+inflatable_splint,Inflatable splint,West,3,Fracture,2,1x2,0.3,3000,Medic,Yes,Post-slice,
+stick_splint,Stick splint,Any,10,Fracture,1,1x2,0.5,400,Medic,Yes,Post-slice,Improvised
+field_surgical_set,Field surgical set,Any,20,Restores a limb at 70% max HP,2,3x2,2,45000,Medic,Yes,Post-slice,
+promedol_syrette,Promedol syrette,East,2,"Pain 240 s, slight sway",1,1x1,0.05,3200,Medic,Yes,Post-slice,
+analgin_tablets,Analgin tablets,East,2,Pain 90 s,3,1x1,0.05,1200,Medic,Yes,Post-slice,
+aspirin_tin,Aspirin tin,West,2,Pain 60 s,4,1x1,0.05,900,Medic,Yes,Post-slice,
+codeine_pills,Codeine pills,West,2,"Pain 150 s, slight blur",2,1x1,0.05,2000,Medic,Yes,Post-slice,
+individual_first_aid_kit,Individual first aid kit,East,5,"60 HP pool, pain 120 s, one anti-exposure dose",3,1x2,0.3,7000,Medic,Yes,Post-slice,AI-2 style
+first_aid_pouch,First aid pouch,West,5,"Light bleed, 40 HP pool",2,1x2,0.3,5000,Medic,Yes,Post-slice,
+blood_plasma_bottle,Blood plasma bottle,Any,15,"80 HP pool, slow",1,1x2,0.6,8000,Medic,Yes,Post-slice,
+saline_iv_bag,Saline IV bag,Any,20,"50 HP pool, +30 hydration",1,1x2,0.6,6000,Medic,Yes,Post-slice,
+pervitin_tablets,Pervitin tablets,Relic,2,Stamina regen +25% and pain 60 s; then energy/hydration drain and tremor,2,1x1,0.05,6000,Medic,Yes,Post-slice,Relic stimulant
+caffeine_tablets,Caffeine tablets,West,2,"Stamina recovery +15% for 120 s, -10 hydration",3,1x1,0.05,1500,Medic,Yes,Post-slice,
+adrenaline_syrette,Adrenaline syrette,Any,2,Burst of stamina and pain 30 s,1,1x1,0.05,5000,Medic,Yes,Post-slice,
+potassium_iodide_tablets,Potassium iodide tablets,Any,2,Exposure gain -50% for 300 s,3,1x1,0.05,4000,Medic,Yes,Slice,Counter to 8e exposure
+anti_radiation_injector,Anti-radiation injector,East,3,Exposure -25 at once,1,1x1,0.05,6000,Medic,Yes,Post-slice,8e

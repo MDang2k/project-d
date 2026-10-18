@@ -1,0 +1,32 @@
+Id,Name,Subtype,Side / Origin,Grid (WxH),Weight kg,Base value,Rarity,Where found,Sold by,Bought by,Energy,Hydration,Use time s,Side effect,Phase,Notes
+canned_food,Canned food,Food,Any,1x1,0.45,500,Common,"Kitchens, bodies, barracks",Medic,Medic,30,0,6,,Slice,Exists
+ration_pack,Ration pack,Food,Any,1x2,0.3,700,Common,"Kitchens, bodies, barracks",Medic,Medic,20,0,4,,Slice,Exists
+canned_stewed_meat,Canned stewed meat,Food,East,1x1,0.5,550,Common,"Kitchens, bodies, barracks",Medic,Medic,35,-5,6,,Slice,
+nato_combat_ration,NATO combat ration,Food,West,2x1,0.8,900,Common,"Kitchens, bodies, barracks",Medic,Medic,45,5,8,,Slice,C-ration style
+army_bread_loaf,Army bread loaf,Food,East,1x2,0.6,300,Common,"Kitchens, bodies, barracks",Medic,Medic,25,-5,5,,Slice,
+crispbread_pack,Crispbread pack,Food,West,1x1,0.25,250,Common,"Kitchens, bodies, barracks",Medic,Medic,15,-5,3,,Slice,
+canned_sardines,Canned sardines,Food,Any,1x1,0.2,350,Common,"Kitchens, bodies, barracks",Medic,Medic,20,-5,4,,Slice,
+canned_sausages,Canned sausages,Food,West,1x1,0.4,450,Common,"Kitchens, bodies, barracks",Medic,Medic,28,-3,5,,Post-slice,
+condensed_milk_tube,Condensed milk tube,Food,East,1x1,0.2,300,Common,"Kitchens, bodies, barracks",Medic,Medic,18,5,3,,Post-slice,
+hardtack_crackers,Hardtack crackers,Food,Any,1x1,0.2,200,Common,"Kitchens, bodies, barracks",Medic,Medic,15,-8,3,,Slice,
+sugar_cubes,Sugar cubes,Food,Any,1x1,0.1,250,Common,"Kitchens, bodies, barracks",Medic,Medic,8,0,2,Small stamina boost,Post-slice,
+dried_fruit_bag,Dried fruit bag,Food,Any,1x1,0.15,300,Common,"Kitchens, bodies, barracks",Medic,Medic,15,0,3,,Post-slice,
+apple,Apple,Food,Zone,1x1,0.15,100,Common,"Kitchens, bodies, barracks",Medic,Medic,6,8,2,,Post-slice,
+chocolate_bar,Chocolate bar,Food,West,1x1,0.1,400,Common,"Kitchens, bodies, barracks",Medic,Medic,12,-2,2,,Slice,Dual-use: also barter goods
+water_canteen,Water canteen,Drink,Any,1x2,1,500,Common,"Kitchens, bodies, barracks",Medic,Medic,0,40,5,,Slice,Exists
+bottled_mineral_water,Bottled mineral water,Drink,West,1x2,0.6,300,Common,"Kitchens, bodies, barracks",Medic,Medic,0,30,4,,Slice,
+eastern_cola,Eastern cola,Drink,East,1x2,0.5,350,Common,"Kitchens, bodies, barracks",Medic,Medic,8,20,4,,Slice,
+orange_soda,Orange soda,Drink,West,1x2,0.5,350,Common,"Kitchens, bodies, barracks",Medic,Medic,8,20,4,,Post-slice,
+fruit_juice_can,Fruit juice can,Drink,Any,1x1,0.35,300,Common,"Kitchens, bodies, barracks",Medic,Medic,6,18,3,,Post-slice,
+tea_thermos,Tea thermos,Drink,Any,1x2,0.9,600,Common,"Kitchens, bodies, barracks",Medic,Medic,2,25,5,Small stamina recovery boost,Post-slice,
+coffee_thermos,Coffee thermos,Drink,West,1x2,0.9,900,Common,"Kitchens, bodies, barracks",Medic,Medic,2,15,5,Arm stamina boost; slight hydration loss,Post-slice,
+beer_bottle,Beer bottle,Drink,Any,1x2,0.6,300,Common,"Kitchens, bodies, barracks",Medic,Medic,6,15,4,Mild sway,Post-slice,
+schnapps_flask,Schnapps flask,Drink,Any,1x1,0.3,700,Common,"Kitchens, bodies, barracks",Medic,Medic,4,-10,2,Mild painkiller; sway,Post-slice,
+canned_buckwheat_porridge_with_meat,Canned buckwheat porridge with meat,Food,East,1x1,0.5,450,Common,"Kitchens, bodies, barracks",Medic,Medic,32,-5,6,,Slice,
+soviet_dry_ration,Soviet dry ration,Food,East,2x1,0.9,850,Common,"Kitchens, bodies, barracks",Medic,Medic,45,0,8,,Post-slice,Sukhpaek style
+pickled_gherkins_jar,Pickled gherkins jar,Food,East,1x2,0.8,350,Common,"Kitchens, bodies, barracks",Medic,Medic,10,10,4,,Post-slice,
+kvass_bottle,Kvass bottle,Drink,East,1x2,0.6,300,Common,"Kitchens, bodies, barracks",Medic,Medic,6,22,4,,Post-slice,
+canned_peaches,Canned peaches,Food,West,1x1,0.45,450,Common,"Kitchens, bodies, barracks",Medic,Medic,15,10,4,,Slice,US style
+peanut_butter_tin,Peanut butter tin,Food,West,1x1,0.35,500,Common,"Kitchens, bodies, barracks",Medic,Medic,30,-10,4,,Post-slice,
+powdered_milk_can,Powdered milk can,Food,West,1x1,0.4,400,Common,"Kitchens, bodies, barracks",Medic,Medic,20,-5,4,,Post-slice,
+instant_coffee_packet,Instant coffee packet,Drink,West,1x1,0.05,350,Common,"Kitchens, bodies, barracks",Medic,Medic,0,5,2,Small arm stamina boost,Post-slice,

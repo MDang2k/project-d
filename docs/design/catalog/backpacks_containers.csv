@@ -1,0 +1,24 @@
+Id,Name,Real basis,Type,Provides grids,Accepts,Side / Origin,Grid (WxH),Weight kg,Base value,Sold by,Phase,Notes
+satchel,Satchel,,Backpack,3x3,Anything,Any,3x3,0.6,5000,Allied QM; Soviet QM,Slice,Exists
+field_pack,Field pack,,Backpack,4x4,Anything,Any,4x4,1.2,10000,Allied QM; Soviet QM,Slice,Exists
+soviet_duffel_sack,Soviet duffel sack,Veshmeshok,Backpack,3x4,Anything,East,3x3,0.5,4000,Soviet QM,Post-slice,Cheap
+paratrooper_pack,Paratrooper pack,RD-54,Backpack,4x4,Anything,East,4x3,1,11000,Soviet QM,Post-slice,Low profile
+bundeswehr_rucksack,Bundeswehr rucksack,,Backpack,4x4,Anything,West,4x4,1.3,11000,Allied QM,Post-slice,
+us_field_pack,US field pack,M1956/M1967 style,Backpack,4x5,Anything,West,4x4,1.4,13000,Allied QM,Post-slice,
+british_bergen,British bergen,,Backpack,5x6,Anything,West,5x5,2.2,22000,Allied QM,Post-slice,
+mountain_rucksack,Mountain rucksack,Alpine,Backpack,5x6,Anything,Any,5x5,2.5,20000,Smuggler,Post-slice,Frame
+radio_frame_pack,Radio frame pack,Field radio carrier,Backpack,4x6,Anything,Any,4x5,3.5,15000,Engineer,Post-slice,Heavy
+bandit_duffel_bag,Bandit duffel bag,,Backpack,6x6,Anything,Bandit,5x5,1.8,12000,Smuggler,Post-slice,Slows you
+medic_bag,Medic bag,,Backpack,4x3,Medical only,Any,3x3,0.8,9000,Medic,Post-slice,Compact
+secure_pouch_2x2,Secure pouch 2x2,,Secure container,2x2,Anything except Ewigstein and canisters,Any,2x2,0.3,0,,Slice,Exists; secure slot
+secure_case_3x3,Secure case 3x3,,Secure container,3x3,Anything except Ewigstein and canisters,Any,3x3,0.8,0,,Slice,8e delivery reward
+secure_case_3x4,Secure case 3x4,,Secure container,3x4,Anything except Ewigstein and canisters,Any,3x4,1,0,,Post-slice,Story reward
+small_ewigstein_canister,Small Ewigstein canister,,Canister,1x1,Ewigstein shards only,Any,2x2,6,15000,Scientist (level 1),Slice,Shields contents (8e)
+large_ewigstein_canister,Large Ewigstein canister,,Canister,1x3,Ewigstein shards only,Any,2x3,12,40000,Scientist (level 2),Slice,Shields contents (8e)
+ammo_can,Ammo can,,Container,3x3,Ammo and magazines,Any,2x2,2,8000,Engineer,Post-slice,
+medical_box,Medical box,,Container,3x3,Medical,Any,2x2,1,8000,Medic,Post-slice,
+document_case,Document case,,Container,2x3,Documents and quest papers,Any,2x1,0.6,10000,Smuggler,Post-slice,
+key_ring,Key ring,,Container,3x2,Keys,Any,1x1,0.1,12000,Smuggler,Post-slice,
+money_case,Money case,,Container,3x3,Banknotes,Any,2x2,1,9000,Smuggler,Post-slice,
+weapon_crate,Weapon crate,,Container,6x5,Weapons,Any,6x3,8,25000,Engineer,Post-slice,Stash organizer
+food_tin_box,Food tin box,,Container,3x3,Food and drink,Any,2x2,0.8,5000,Medic,Post-slice,

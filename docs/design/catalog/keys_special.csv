@@ -1,0 +1,18 @@
+Id,Name,Type,Opens / role,Source,Single use,Insurable,Grid (WxH),Base value,Phase,Notes
+officer_s_strongbox_key,Officer's strongbox key,Key,"Strongbox, barracks top floor (map 1)",Bandit chief (boss),Yes,No,1x1,20000,Slice,8f
+armory_locker_key,Armory locker key,Key,"Weapon locker, checkpoint","Rare loot, bandit bodies",Yes,No,1x1,12000,Post-slice,
+depot_office_key,Depot office key,Key,Depot office desk,Depot loot,Yes,No,1x1,8000,Post-slice,
+radio_room_key,Radio room key,Key,Tower radio cabinet,Tower loot,Yes,No,1x1,8000,Post-slice,
+lab_keycard,Lab keycard (red),Keycard,Lab level door (later map),Lab boss,Yes,No,1x1,40000,Post-slice,
+lab_keycard,Lab keycard (black),Keycard,Deep vault (later map),Story,Yes,No,1x1,0,Late,
+banknotes,Banknotes,Money,Currency stack,Everywhere,,No,1x1,1,Slice,7c; BaseValue 1 each; large MaxStack
+ewigstein_shard,Ewigstein shard,Story resource,Delivered for story progress; never sold,Deposits (8e),,No,1x1,0,Slice,Secure container rejects it
+bolt_cutters,Bolt cutters,Tool,Opens map 1 drain extract,"Depot, workshops; Engineer",,Yes (item),2x1,3500,Slice,Also on Generic Loot
+field_compass,Field compass,Handheld,Compass; spins near Ewigstein,Loot,,Yes (item),1x1,3000,Post-slice,Needs handheld mechanic
+paper_map,Paper map (sketch),Handheld,"Crude unlabelled sketch, no you-are-here",Loot,,Yes (item),2x1,1500,Post-slice,GDD open question resolved: keep as sketch
+binoculars,Binoculars,Handheld,Zoom scouting,"Loot, officers",,Yes (item),2x1,9000,Post-slice,Needs handheld mechanic
+working_geiger_counter,Working Geiger counter,Handheld,Clicks near deposits and unshielded shards,Labs,,Yes (item),1x2,15000,Post-slice,
+pocket_radio_receiver,Pocket radio receiver,Handheld,Picks up 8d frequencies in raid,Radio rooms,,Yes (item),1x1,6000,Post-slice,
+flashlight,Flashlight (handheld),Handheld,Light source,Anywhere,,Yes (item),1x2,1500,Post-slice,M9
+night_vision_goggles,Night vision goggles (Gen 0 IR),Head,"Night optics, heavy",PMC bodies,,Yes (item),2x2,50000,Post-slice,M9
+signal_flare,Signal flare,Throwable,"Lights an area, attracts AI",Anywhere,Yes,Yes (item),1x1,800,Post-slice,Also on Grenades

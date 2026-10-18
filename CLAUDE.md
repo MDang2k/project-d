@@ -4,6 +4,8 @@ Single-player tactical extraction shooter with RPG progression, set in an altern
 
 **The full game design lives in `docs/GDD.md`. Read the relevant section before implementing any gameplay system.** If the GDD is silent or ambiguous on something that affects gameplay, ask the user instead of inventing a design. Small technical choices are yours to make; note them in the commit message.
 
+**Item data lives in `docs/design/catalog/*.csv`** (one file per item type, exported from `docs/design/item_catalog.xlsx`). Read the matching CSV before adding or changing any item, weapon, ammo, armor, part, med or grenade; never guess stats. Percent columns (recoil mod, dispersion) are fractions: `0.05` = +5%. The xlsx is the designer's source of truth: never edit the CSVs by hand; if the catalog must change, ask the user, or edit the xlsx and re-run `python tools/export_catalog.py`. Phase column: build only `Slice` rows unless asked.
+
 Hobby project. The user is the designer, playtester and (later) 3D artist. You write most of the code.
 
 ## Tech stack
@@ -50,11 +52,13 @@ res://
     CREDITS.md       # source + license of every third-party asset
   data/              # .tres resources: weapons/, ammo/, armor/, items/, traders/, quests/, skills/, ai/
   docs/GDD.md
+  docs/design/        # item_catalog.xlsx (source) + catalog/*.csv (agent-readable export)
   scenes/            # player/, weapons/, ai/, maps/, ui/, hub/
   scripts/
     core/            # autoloads, save system, shared utils
     systems/         # pure-logic plain C# classes (inventory, damage, skills, quests...)
     player/  weapons/  health/  ai/  ui/  world/
+  tools/             # dev scripts (export_catalog.py)
   tests/             # ProjectD.Tests (xUnit, mirrors scripts/ layout); test_smoke.gd (GUT)
 ```
 

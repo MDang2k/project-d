@@ -1,0 +1,38 @@
+Id,Name,Subtype,Side / Origin,Grid (WxH),Weight kg,Base value,Rarity,Where found,Sold by,Bought by,Phase,Notes
+gold_wedding_ring,Gold wedding ring,Valuable,Any,1x1,0.01,4500,Uncommon,"Bodies, lockers",,Smuggler,Slice,
+silver_cigarette_case,Silver cigarette case,Valuable,Any,1x1,0.12,2600,Uncommon,Officer rooms,,Smuggler,Slice,
+pocket_watch,Pocket watch,Valuable,Any,1x1,0.1,1800,Common,"Bodies, desks",,Smuggler,Slice,
+wristwatch,Wristwatch (military),Valuable,Any,1x1,0.06,2200,Common,"Bodies, barracks",,Smuggler,Slice,
+old_war_medal,Old war medal,Valuable,Any,1x1,0.05,1500,Uncommon,"Desks, footlockers",,Smuggler,Post-slice,Generic; no Nazi insignia
+rangefinder_camera,Rangefinder camera,Valuable,West,1x2,0.6,6000,Rare,"Offices, PMC bodies",,Smuggler,Post-slice,
+transistor_radio,Transistor radio,Electronics,Any,2x1,0.7,1400,Common,"Barracks, booths",,Engineer,Slice,
+vacuum_tubes,Vacuum tubes (box),Electronics,Any,1x1,0.3,1100,Common,"Tower, radio rooms",,Engineer,Slice,
+field_telephone,Field telephone,Electronics,Any,2x2,2.5,3200,Uncommon,"Checkpoint, bunker",,Engineer,Post-slice,
+copper_wire_spool,Copper wire spool,Electronics,Any,1x1,0.8,900,Common,"Depot, workshops",,Engineer,Slice,
+car_battery,Car battery,Electronics,Any,2x2,12,2400,Common,Depot vehicles,,Engineer,Post-slice,Heavy
+geiger_counter,Geiger counter (broken),Electronics,Any,1x2,1.2,2800,Uncommon,"Labs, bunker",,Engineer; Scientist,Post-slice,
+wrench_set,Wrench set,Tools,Any,2x1,1.5,1200,Common,"Depot, workshops",,Engineer,Slice,
+hand_drill,Hand drill,Tools,Any,2x1,1.8,1600,Uncommon,Workshops,,Engineer,Post-slice,
+duct_tape,Duct tape,Tools,West,1x1,0.2,700,Common,Anywhere,,Engineer,Slice,
+box_of_screws,Box of screws,Tools,Any,1x1,0.4,500,Common,Workshops,,Engineer,Slice,
+bolt_cutters,Bolt cutters,Tools,Any,2x1,2.2,3500,Uncommon,"Depot, workshops",Engineer,Engineer,Slice,Required for map 1 drain extract; also on Keys & Special
+western_cigarettes,Western cigarettes (pack),Barter goods,West,1x1,0.03,600,Common,"Bodies, barracks",,Smuggler,Slice,
+eastern_cigarettes,Eastern cigarettes (pack),Barter goods,East,1x1,0.03,450,Common,"Bodies, barracks",,Smuggler,Slice,
+real_coffee_beans,Real coffee beans,Barter goods,West,1x1,0.5,1300,Uncommon,Officer rooms,,Smuggler,Slice,Prized in the East
+chocolate_bar,Chocolate bar,Barter goods,West,1x1,0.1,400,Common,"Bodies, kitchens",,Smuggler,Slice,Also edible: see Food & Drink
+bar_of_soap,Bar of soap,Barter goods,Any,1x1,0.1,250,Common,Barracks,,Smuggler,Post-slice,
+penicillin_vials,Penicillin vials,Medical barter,Any,1x1,0.1,2000,Uncommon,Medical stations,,Medic,Slice,
+disposable_syringes,Disposable syringes,Medical barter,West,1x1,0.1,800,Common,Medical stations,,Medic,Post-slice,
+fuel_jerrycan,Fuel jerrycan,Fuel/chemicals,Any,2x3,20,3000,Uncommon,Depot,,Engineer,Post-slice,Very heavy
+lighter_fluid,Lighter fluid,Fuel/chemicals,Any,1x1,0.2,400,Common,Barracks,,Engineer,Post-slice,
+frost_touched_wristwatch,Frost-touched wristwatch,Zone oddity,Zone,1x1,0.06,0,Rare,Near Ewigstein deposits,,Scientist,Late,Hands frozen; Scientist curiosity
+fogged_compass,Fogged compass,Zone oddity,Zone,1x1,0.1,0,Rare,Near Ewigstein deposits,,Scientist,Late,Needle spins near Ewigstein
+gold_tooth_crown,Gold tooth crown,Valuable,Any,1x1,0.01,1700,Uncommon,Bodies,,Smuggler,Slice,
+jewelry_box,Jewelry box (silver),Valuable,Any,2x1,0.8,5200,Rare,"Officer rooms, stashes",,Smuggler,Post-slice,
+reel_to_reel_tape,Reel-to-reel tape,Electronics,Any,1x1,0.3,900,Uncommon,Radio rooms,,Engineer; Scientist,Post-slice,
+flashlight_bulbs,Flashlight bulbs (pack),Electronics,Any,1x1,0.05,300,Common,"Booths, barracks",,Engineer,Slice,
+gas_mask_filter,Gas mask filter,Military surplus,Any,1x1,0.3,700,Common,"Barracks, bunker",,Allied QM; Soviet QM,Slice,
+spent_brass,Spent brass (bag),Military surplus,Any,1x1,1,350,Common,Firing positions,,Engineer,Slice,
+western_porn_magazine,Western porn magazine,Barter goods,West,1x2,0.2,900,Uncommon,"Barracks, booths",,Smuggler,Post-slice,Barter only
+vodka_bottle,Vodka bottle,Barter goods,East,1x2,0.9,800,Common,"Barracks, bandit camps",,Smuggler,Slice,Barter only (not drinkable)
+pre_war_banknote_bundle,Pre-war banknote bundle,Valuable,Any,1x1,0.1,600,Uncommon,"Stashes, desks",,Smuggler,Post-slice,"Worthless currency, collector value"

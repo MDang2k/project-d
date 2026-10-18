@@ -1,0 +1,16 @@
+Id,Name,Likely giver,Where found,Grid (WxH),Weight kg,Insurable,Base value,Phase,Notes
+pmc_dog_tags,PMC dog tags (Allied),Soviet QM,Allied PMC bodies,1x1,0.2,No,0,Slice,
+pmc_dog_tags,PMC dog tags (Soviet),Allied QM,Soviet PMC bodies,1x1,0.2,No,0,Slice,
+sealed_military_dispatch,Sealed military dispatch,Your side's QM,"Checkpoint, officer bodies",1x1,0.2,No,0,Post-slice,
+reconnaissance_film_canister,Reconnaissance film canister,Smuggler,"Towers, crashed vehicle",1x1,0.2,No,0,Post-slice,
+officer_s_map_case,Officer's map case,Your side's QM,Barracks officer room,1x1,0.2,No,0,Post-slice,
+cipher_machine_rotor,Cipher machine rotor,Engineer,Bunker side room,1x1,0.2,No,0,Post-slice,
+defector_s_identity_papers,Defector's identity papers,Smuggler,Hidden stash,1x1,0.2,No,0,Post-slice,
+missing_contractor_s_wedding_ring,Missing contractor's wedding ring,Medic,Specific body (story),1x1,0.2,No,0,Post-slice,Engraved
+blood_sample_kit,Blood sample kit (filled),Medic,Fill from bodies,1x1,0.2,No,0,Post-slice,Needs a fill interaction
+soil_sample_jar,Soil sample jar,Scientist,Near Ewigstein deposits,1x1,0.2,No,0,Post-slice,
+frost_coated_metal_sample,Frost-coated metal sample,Scientist,Next to a deposit,1x1,0.2,No,0,Late,
+bandit_boss_signet_ring,Bandit boss signet ring,Smuggler,Boss body,1x1,0.2,No,0,Post-slice,
+damaged_flight_recorder,Damaged flight recorder,Engineer,Crashed helicopter (later map),1x1,0.2,No,0,Post-slice,
+water_sample,Water sample (filled canteen),Medic,Drain culvert,1x1,0.2,No,0,Post-slice,Needs a fill interaction
+radio_valve_set,Radio valve set (specific model),Engineer,Tower radio,1x1,0.2,No,0,Post-slice,

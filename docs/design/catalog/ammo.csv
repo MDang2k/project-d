@@ -1,0 +1,36 @@
+Id,Caliber,Variant,Damage,Penetration tier,Velocity m/s,Recoil mod,Dispersion,Pellets,Damage per pellet,Total damage,Rarity,Side / Origin,Sold by,Phase,Notes
+ammo_9x19_ball,9x19,Ball,28,1,360,0,0,1,,28,Common,West,Allied QM; Engineer,Slice,Exists
+ammo_9x19_ap,9x19,AP,24,2,400,0.05,0.05,1,,24,Rare,West,Allied QM; Engineer,Post-slice,
+ammo_9x19_subsonic,9x19,Subsonic,26,1,300,-0.1,0.1,1,,26,Uncommon,West,Allied QM; Engineer,Post-slice,Quiet with suppressor
+ammo_9x18_ball,9x18,Ball,25,1,315,0,0,1,,25,Common,East,Soviet QM; Engineer,Post-slice,
+ammo_9x18_ap,9x18,AP,22,2,330,0.05,0.05,1,,22,Rare,East,Soviet QM; Engineer,Post-slice,
+ammo_45_acp_ball,.45 ACP,Ball,36,1,260,0,0,1,,36,Common,West,Allied QM; Engineer,Post-slice,
+ammo_45_acp_hollow_point,.45 ACP,Hollow point,44,1,270,0,0.05,1,,44,Uncommon,West,Allied QM; Engineer,Post-slice,"High flesh damage, poor vs armor"
+ammo_7_65x17_ball,7.65x17,Ball,20,1,290,0,0,1,,20,Common,Any,Smuggler; Engineer,Post-slice,
+ammo_7_62x25_ball,7.62x25,Ball,26,2,450,0,0,1,,26,Common,East,Soviet QM; Engineer,Post-slice,
+ammo_13_mm_gyrojet_rocket,13 mm Gyrojet,Rocket,40,2,380,0,0.4,1,,40,Very rare,Proto,Smuggler; Engineer,Late,Accelerates after launch
+ammo_7_62x39_ball,7.62x39,Ball,55,3,715,0,0,1,,55,Common,East,Soviet QM; Engineer,Slice,Exists
+ammo_7_62x39_subsonic,7.62x39,Subsonic,50,2,300,-0.2,0.1,1,,50,Uncommon,East,Soviet QM; Engineer,Post-slice,
+ammo_7_62x39_tracer,7.62x39,Tracer,52,3,700,0,0.05,1,,52,Uncommon,East,Soviet QM; Engineer,Post-slice,
+ammo_7_62x39_ap_incendiary,7.62x39,AP-incendiary,50,4,740,0.05,0.06,1,,50,Rare,East,Soviet QM; Engineer,Post-slice,
+ammo_5_56x45_ball,5.56x45,Ball,48,3,990,0,0,1,,48,Common,West,Allied QM; Engineer,Post-slice,
+ammo_5_56x45_tracer,5.56x45,Tracer,46,3,960,0,0.05,1,,46,Uncommon,West,Allied QM; Engineer,Post-slice,
+ammo_5_45x39_ball,5.45x39,Ball (early),46,3,880,0,0,1,,46,Uncommon,Proto,Smuggler; Engineer,Post-slice,
+ammo_7_92x33_kurz_ball,7.92x33 Kurz,Ball,54,3,685,0,0,1,,54,Uncommon,Relic,Smuggler; Engineer,Post-slice,
+ammo_280_british_ball,.280 British,Ball,62,3,770,0,0,1,,62,Uncommon,Proto,Smuggler; Engineer,Slice,Exists
+ammo_4_73_caseless_ball,4.73 caseless,Ball,42,3,930,0,-0.05,1,,42,Very rare,Proto,Smuggler; Engineer,Late,
+ammo_5_56_flechette_flechette,5.56 flechette,Flechette,38,4,1400,0,0.1,1,,38,Very rare,Proto,Smuggler; Engineer,Late,AAI ACR
+ammo_7_62x51_sport,7.62x51,Sport (soft point),82,2,820,0.05,0,1,,82,Common,West,Allied QM; Engineer,Slice,Most common full-power round
+ammo_7_62x51_ball,7.62x51,Ball,70,3,840,0.05,0,1,,70,Uncommon,West,Allied QM; Engineer,Slice,Exists; data file says tier 4 -> change to 3
+ammo_7_62x51_ap,7.62x51,AP,64,5,860,0.05,0.07,1,,64,Rare,West,Allied QM; Engineer,Post-slice,
+ammo_7_62x51_tracer,7.62x51,Tracer,68,3,830,0.05,0.05,1,,68,Uncommon,West,Allied QM; Engineer,Post-slice,
+ammo_7_62x54r_sport,7.62x54R,Sport (soft point),84,2,810,0.05,0,1,,84,Common,East,Soviet QM; Engineer,Post-slice,
+ammo_7_62x54r_ball,7.62x54R,Ball,72,3,830,0.05,0,1,,72,Uncommon,East,Soviet QM; Engineer,Post-slice,
+ammo_7_62x54r_sniper_match,7.62x54R,Sniper match,74,3,830,0.05,-0.3,1,,74,Rare,East,Soviet QM; Engineer,Post-slice,+accuracy
+ammo_7_62x54r_ap_incendiary,7.62x54R,AP-incendiary,66,5,850,0.05,0.07,1,,66,Rare,East,Soviet QM; Engineer,Post-slice,
+ammo_7_92x57_sport,7.92x57,Sport (soft point),88,2,750,0.05,0,1,,88,Common,Relic,Smuggler; Engineer,Post-slice,
+ammo_7_92x57_ball,7.92x57,Ball,78,3,760,0.05,0,1,,78,Uncommon,Relic,Smuggler; Engineer,Slice,Exists; data file says tier 4 -> change to 3
+ammo_7_92x57_ap,7.92x57,AP (SmK),70,5,785,0.05,0.07,1,,70,Rare,Relic,Smuggler; Engineer,Post-slice,
+ammo_12ga_00_buckshot,12 ga,00 Buckshot,126,1,400,0,3.0 deg cone,9,14,126,Common,Any,Allied QM; Soviet QM; Engineer,Post-slice,Dispersion is pellet spread
+ammo_12ga_slug,12 ga,Slug,85,2,430,0.1,0.8 deg,1,85,85,Uncommon,Any,Allied QM; Soviet QM; Engineer,Post-slice,Dispersion is pellet spread
+ammo_12ga_flechette,12 ga,Flechette,140,2,450,-0.05,2.0 deg cone,20,7,140,Rare,Any,Allied QM; Soviet QM; Engineer,Post-slice,Dispersion is pellet spread
