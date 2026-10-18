@@ -263,6 +263,36 @@ public partial class AiRange : Node3D
 			await ToSignal(GetTree().CreateTimer(fire), SceneTreeTimer.SignalName.Timeout);
 			_player.DebugForceTrigger = false;
 		}
+		var userArgs = OS.GetCmdlineUserArgs();
+		if (userArgs.Contains("--killall"))
+		{
+			await ToSignal(GetTree().CreateTimer(0.8), SceneTreeTimer.SignalName.Timeout);
+			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().ToList())
+				ai.Health.Body.TakeDamage(BodyPart.Head, 9999f);
+		}
+		if (userArgs.Contains("--openbody"))
+		{
+			await ToSignal(GetTree().CreateTimer(0.6), SceneTreeTimer.SignalName.Timeout);
+			var body = GetTree().GetNodesInGroup("loot_containers").OfType<LootContainer>().FirstOrDefault(c => c.Body is not null);
+			if (body is not null)
+			{
+				GD.Print($"BODY items={body.Body!.AllItems().Count()} hidden={body.Model.HiddenCount} primary={body.Body.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"} " +
+					$"vest={body.Body.InSlot(EquipSlot.Vest)?.Spec.Id ?? "none"} rig={body.Body.InSlot(EquipSlot.Rig)?.Spec.Id ?? "none"}");
+				_player.Screen.OpenWithContainer(body);
+				await ToSignal(GetTree().CreateTimer(6.0), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"BODY after search hidden={body.Model.HiddenCount}");
+				if (userArgs.Contains("--takebody"))
+				{
+					var before = _player.Inventory.Inventory.AllItems().Count();
+					var tookVest = _player.Screen.DebugTakeFromBody(EquipSlot.Primary);
+					await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+					var inv = _player.Inventory.Inventory;
+					var found = inv.AllItems().FirstOrDefault(i => i.Spec.Id == "fal_type");
+					GD.Print($"BODY take primary: clicked={tookVest} carried {before}->{inv.AllItems().Count()} fal found={found is not null} " +
+						$"foundInRaid={found?.FoundInRaid} bodyPrimary={body.Body!.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"}");
+				}
+			}
+		}
 		if (wait > 0.0)
 			await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
 		if (report)

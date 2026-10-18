@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://ce46atbna53di"
+
+[deps]
+
+files=["res://docs/design/catalog/backpacks_containers.Name.translation", "res://docs/design/catalog/backpacks_containers.Real basis.translation", "res://docs/design/catalog/backpacks_containers.Type.translation", "res://docs/design/catalog/backpacks_containers.Provides grids.translation", "res://docs/design/catalog/backpacks_containers.Accepts.translation", "res://docs/design/catalog/backpacks_containers.Side / Origin.translation", "res://docs/design/catalog/backpacks_containers.Grid (WxH).translation", "res://docs/design/catalog/backpacks_containers.Weight kg.translation", "res://docs/design/catalog/backpacks_containers.Base value.translation", "res://docs/design/catalog/backpacks_containers.Sold by.translation", "res://docs/design/catalog/backpacks_containers.Phase.translation", "res://docs/design/catalog/backpacks_containers.Notes.translation"]
+
+source_file="res://docs/design/catalog/backpacks_containers.csv"
+dest_files=["res://docs/design/catalog/backpacks_containers.Name.translation", "res://docs/design/catalog/backpacks_containers.Real basis.translation", "res://docs/design/catalog/backpacks_containers.Type.translation", "res://docs/design/catalog/backpacks_containers.Provides grids.translation", "res://docs/design/catalog/backpacks_containers.Accepts.translation", "res://docs/design/catalog/backpacks_containers.Side / Origin.translation", "res://docs/design/catalog/backpacks_containers.Grid (WxH).translation", "res://docs/design/catalog/backpacks_containers.Weight kg.translation", "res://docs/design/catalog/backpacks_containers.Base value.translation", "res://docs/design/catalog/backpacks_containers.Sold by.translation", "res://docs/design/catalog/backpacks_containers.Phase.translation", "res://docs/design/catalog/backpacks_containers.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -73,6 +73,13 @@ public sealed class LootContainerModel
 		return true;
 	}
 
+	/// <summary>Marks an item that already sits somewhere (a body's pocket or rig) as hidden until searched.</summary>
+	public void MarkHidden(ItemInstance item)
+	{
+		if (_hidden.Add(item))
+			_revealOrder.Add(item);
+	}
+
 	/// <summary>Adds an item that is visible immediately (a looted body's worn gear, dropped items).</summary>
 	public bool AddRevealed(ItemInstance item) => Grid.TryPlaceAnywhere(item);
 

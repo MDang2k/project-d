@@ -47,6 +47,11 @@ public partial class InventoryScreen : CanvasLayer
 	private LootContainer? _container;
 	private ProgressBar? _searchBar;
 	private Label? _searchLabel;
+	/// <summary>Equipment slots of a searched body: their inventory is not the player's.</summary>
+	private readonly Dictionary<SlotView, CharacterInventory> _slotOwner = new();
+	/// <summary>Grids that belong to the open container or body (taking from them counts as finding).</summary>
+	private readonly HashSet<InventoryGrid> _containerGrids = new();
+	private CharacterInventory? _heldSlotOwner;
 	private ItemInstance? _held;
 	private ItemLocation _heldFrom;
 	private bool _heldWasRotated;
@@ -222,6 +227,8 @@ public partial class InventoryScreen : CanvasLayer
 			child.QueueFree();
 		_grids.Clear();
 		_slots.Clear();
+		_slotOwner.Clear();
+		_containerGrids.Clear();
 		var inv = _player.Inventory.Inventory;
 
 		_header = new Label();
@@ -242,13 +249,16 @@ public partial class InventoryScreen : CanvasLayer
 		equip.AddChild(Slot(EquipSlot.SecureContainer, inv, 90, 90));
 		columns.AddChild(equip);
 
-		// Middle: health screen.
-		var mid = new VBoxContainer();
-		mid.AddChild(new Label { Text = "Health" });
+		// Middle: health screen (the body column takes its place while searching a body).
 		_health = new HealthPanel();
 		_health.Bind(_player.Health);
-		mid.AddChild(_health);
-		columns.AddChild(mid);
+		if (_container?.Body is null)
+		{
+			var mid = new VBoxContainer();
+			mid.AddChild(new Label { Text = "Health" });
+			mid.AddChild(_health);
+			columns.AddChild(mid);
+		}
 
 		// Right: carrying grids.
 		var right = new VBoxContainer();
@@ -263,7 +273,9 @@ public partial class InventoryScreen : CanvasLayer
 		AddItemGrids(right, inv, EquipSlot.SecureContainer, "Secure container");
 		columns.AddChild(right);
 
-		if (_container is not null)
+		if (_container is { Body: { } body })
+			columns.AddChild(BuildBodyColumn(_container, body));
+		else if (_container is not null)
 		{
 			var box = new VBoxContainer();
 			box.AddThemeConstantOverride("separation", 6);
@@ -283,12 +295,68 @@ public partial class InventoryScreen : CanvasLayer
 				IsHidden = item => !model.IsRevealed(item),
 			};
 			_grids.Add(view);
+			_containerGrids.Add(model.Grid);
 			box.AddChild(view);
 			columns.AddChild(box);
 		}
 
 		_drag.MoveToFront();
 		_tooltip.MoveToFront();
+	}
+
+	/// <summary>
+	/// A searched body (GDD s10): its equipment slots are visible at once, its pockets, rig and backpack
+	/// fill in while the search runs. Drag from here into your own inventory.
+	/// </summary>
+	private VBoxContainer BuildBodyColumn(LootContainer container, CharacterInventory body)
+	{
+		var box = new VBoxContainer();
+		box.AddThemeConstantOverride("separation", 4);
+		box.AddChild(new Label { Text = container.Title });
+		_searchLabel = new Label();
+		box.AddChild(_searchLabel);
+		_searchBar = new ProgressBar
+		{
+			MinValue = 0, MaxValue = 100, ShowPercentage = false,
+			CustomMinimumSize = new Vector2(220f, 12f),
+		};
+		box.AddChild(_searchBar);
+		var model = container.Model;
+
+		SlotView BodySlot(EquipSlot slot, float w, float h)
+		{
+			var view = new SlotView(slot, body, new Vector2(w, h)) { Dragged = () => _held };
+			_slots.Add(view);
+			_slotOwner[view] = body;
+			return view;
+		}
+
+		GridView BodyGrid(InventoryGrid grid, string title)
+		{
+			var view = new GridView(grid, title) { Dragged = () => _held, IsHidden = item => !model.IsRevealed(item) };
+			_grids.Add(view);
+			_containerGrids.Add(grid);
+			return view;
+		}
+
+		box.AddChild(Row(BodySlot(EquipSlot.Head, 64, 64), BodySlot(EquipSlot.Vest, 64, 64),
+			BodySlot(EquipSlot.Rig, 64, 64), BodySlot(EquipSlot.Backpack, 64, 64)));
+		box.AddChild(BodySlot(EquipSlot.Primary, 264, 64));
+		box.AddChild(Row(BodySlot(EquipSlot.Pistol, 64, 64), BodySlot(EquipSlot.Melee, 64, 64)));
+		var pockets = new HBoxContainer();
+		foreach (var p in body.Pockets)
+			pockets.AddChild(BodyGrid(p, "Body pocket"));
+		box.AddChild(new Label { Text = "Pockets" });
+		box.AddChild(pockets);
+		foreach (var (slot, title) in new[] { (EquipSlot.Rig, "Rig"), (EquipSlot.Backpack, "Backpack") })
+		{
+			if (body.InSlot(slot) is not { } worn)
+				continue;
+			box.AddChild(new Label { Text = $"{title}: {GameText.ItemName(worn.Spec.Id)}" });
+			foreach (var g in worn.Grids)
+				box.AddChild(BodyGrid(g, title));
+		}
+		return box;
 	}
 
 	private void AddItemGrids(VBoxContainer parent, CharacterInventory inv, EquipSlot slot, string title)
@@ -327,7 +395,7 @@ public partial class InventoryScreen : CanvasLayer
 	private (ItemInstance, Vector2)? HeldForDraw()
 		=> _held is null ? null : (_held, GetViewport().GetMousePosition() - _grabOffset);
 
-	private (ItemInstance Item, ItemLocation From, Vector2 Offset)? ItemAt(Vector2 pos)
+	private (ItemInstance Item, ItemLocation From, Vector2 Offset, CharacterInventory? SlotOwner)? ItemAt(Vector2 pos)
 	{
 		foreach (var g in _grids)
 		{
@@ -337,14 +405,14 @@ public partial class InventoryScreen : CanvasLayer
 				return null;
 			var cell = g.Grid.PositionOf(item)!.Value;
 			var topLeft = g.GlobalPosition + new Vector2(cell.X, cell.Y) * GridView.Cell;
-			return (item, new ItemLocation(null, g.Grid), pos - topLeft);
+			return (item, new ItemLocation(null, g.Grid), pos - topLeft, null);
 		}
 		foreach (var s in _slots)
 		{
 			if (s.GetGlobalRect().HasPoint(pos) && s.Item is { } item)
 			{
 				var half = new Vector2(item.Width, item.Height) * GridView.Cell * 0.5f;
-				return (item, new ItemLocation(s.Slot, null), half);
+				return (item, new ItemLocation(s.Slot, null), half, _slotOwner.GetValueOrDefault(s));
 			}
 		}
 		return null;
@@ -357,10 +425,11 @@ public partial class InventoryScreen : CanvasLayer
 		if (doubleClick)
 		{
 			CancelDrag();
-			DoQuickAction(hit.Item, hit.From);
+			DoQuickAction(hit.Item, hit.From, hit.SlotOwner);
 			return;
 		}
 		_held = hit.Item;
+		_heldSlotOwner = hit.SlotOwner;
 		_heldFrom = hit.From;
 		_heldWasRotated = hit.Item.Rotated;
 		_grabOffset = hit.Offset;
@@ -391,9 +460,22 @@ public partial class InventoryScreen : CanvasLayer
 				_drag.QueueRedraw();
 				return;
 			}
+			if (_heldSlotOwner is { } deadInv && _heldFrom.Slot is { } deadSlot)
+			{
+				// From a worn slot of a searched body into a grid of yours.
+				if (g.Grid.CanPlace(item, x, y) && deadInv.Remove(item))
+				{
+					done = g.Grid.TryPlace(item, x, y);
+					if (!done)
+						deadInv.TryEquip(item, deadSlot);
+					else if (!_containerGrids.Contains(g.Grid))
+						MarkFound(item);
+				}
+				break;
+			}
 			done = inv.TryMoveToGrid(item, _heldFrom, g.Grid, x, y);
 			// Taking something out of a container or body counts as finding it (quests).
-			if (done && _container is { } box && _heldFrom.Grid == box.Model.Grid && g.Grid != box.Model.Grid)
+			if (done && _heldFrom.Grid is { } srcGrid && _containerGrids.Contains(srcGrid) && !_containerGrids.Contains(g.Grid))
 				MarkFound(item);
 			break;
 		}
@@ -403,15 +485,30 @@ public partial class InventoryScreen : CanvasLayer
 			{
 				if (!s.GetGlobalRect().HasPoint(pos))
 					continue;
+				if (_slotOwner.ContainsKey(s))
+					break; // slots of a body only give, they do not take
+				if (_heldSlotOwner is { } fromBody && _heldFrom.Slot is { } bodySlot)
+				{
+					if (CharacterInventory.SlotAccepts(s.Slot, item.Spec) && inv.InSlot(s.Slot) is null && fromBody.Remove(item))
+					{
+						done = inv.TryEquip(item, s.Slot);
+						if (!done)
+							fromBody.TryEquip(item, bodySlot);
+						else
+							MarkFound(item);
+					}
+					break;
+				}
 				done = inv.TryEquipFrom(item, _heldFrom, s.Slot);
 				break;
 			}
 		}
-		if (!done && !OverAnyPanel(pos))
+		if (!done && !OverAnyPanel(pos) && _heldSlotOwner is null)
 			done = DropHeld(item);
 		if (!done)
 			item.Rotated = _heldWasRotated;
 		_held = null;
+		_heldSlotOwner = null;
 		_drag.QueueRedraw();
 		if (done)
 			_player.Inventory.NotifyChanged();
@@ -419,7 +516,7 @@ public partial class InventoryScreen : CanvasLayer
 
 	private bool OverAnyPanel(Vector2 pos)
 		=> _grids.Any(g => g.GetGlobalRect().HasPoint(pos)) || _slots.Any(s => s.GetGlobalRect().HasPoint(pos))
-			|| _health.GetGlobalRect().HasPoint(pos);
+			|| (_health.IsInsideTree() && _health.GetGlobalRect().HasPoint(pos));
 
 	/// <summary>Releasing an item over empty space drops it on the ground (a pickup you can search).</summary>
 	private bool DropHeld(ItemInstance item)
@@ -458,13 +555,30 @@ public partial class InventoryScreen : CanvasLayer
 		_drag.QueueRedraw();
 	}
 
-	private void DoQuickAction(ItemInstance item, ItemLocation from)
+	private void DoQuickAction(ItemInstance item, ItemLocation from, CharacterInventory? slotOwner = null)
 	{
 		var inv = _player.Inventory.Inventory;
+		// Double-click on a worn item of a searched body: take it into your own storage or equip it.
+		if (slotOwner is { } dead && from.Slot is { } deadSlot)
+		{
+			dead.Remove(item);
+			var taken = inv.TryAutoStore(item)
+				|| CharacterInventory.SlotAccepts(deadSlot, item.Spec) && inv.InSlot(deadSlot) is null && inv.TryEquip(item, deadSlot);
+			if (taken)
+			{
+				MarkFound(item);
+				_player.Inventory.NotifyChanged();
+			}
+			else
+			{
+				dead.TryEquip(item, deadSlot);
+			}
+			return;
+		}
 		var action = InventoryActions.Quick(inv, item, from);
 		var changed = false;
 		// Double-click on something in a world container: equip it if it is gear, otherwise take it.
-		if (from.Grid is { } sourceGrid && _container is { } box && sourceGrid == box.Model.Grid
+		if (from.Grid is { } sourceGrid && _containerGrids.Contains(sourceGrid)
 			&& action.Kind != QuickActionKind.Equip)
 		{
 			if (inv.TryTake(item, from))
@@ -530,6 +644,34 @@ public partial class InventoryScreen : CanvasLayer
 			var from = g.GlobalPosition + new Vector2(p.X + 0.5f, p.Y + 0.5f) * GridView.Cell;
 			OnPress(from, false);
 			OnRelease(new Vector2(1500f, 900f));
+			return true;
+		}
+		return false;
+	}
+
+	/// <summary>Dev: double-clicks a worn slot of the open body (takes the item into your storage).</summary>
+	public bool DebugTakeFromBody(EquipSlot slot)
+	{
+		foreach (var (view, _) in _slotOwner)
+		{
+			if (view.Slot != slot || view.Item is null)
+				continue;
+			OnPress(view.GlobalPosition + view.Size * 0.5f, true);
+			return true;
+		}
+		return false;
+	}
+
+	/// <summary>Dev: drags a worn body item to a grid of yours by index (see DebugDescribeGrids).</summary>
+	public bool DebugDragBodySlotToGrid(EquipSlot slot, int gridIndex, int cellX, int cellY)
+	{
+		foreach (var (view, _) in _slotOwner)
+		{
+			if (view.Slot != slot || view.Item is null || gridIndex < 0 || gridIndex >= _grids.Count)
+				continue;
+			var target = _grids[gridIndex];
+			OnPress(view.GlobalPosition + view.Size * 0.5f, false);
+			OnRelease(target.GlobalPosition + new Vector2(cellX + 0.5f, cellY + 0.5f) * GridView.Cell);
 			return true;
 		}
 		return false;

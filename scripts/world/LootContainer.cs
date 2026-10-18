@@ -31,6 +31,9 @@ public partial class LootContainer : Node3D
 
 	public bool IsCorpse => TitleKey == "container.body";
 
+	/// <summary>A dead character's gear (equipment slots, pockets, rig, backpack); null for ordinary containers.</summary>
+	public CharacterInventory? Body { get; set; }
+
 	/// <summary>An AI already emptied this one.</summary>
 	public bool Taken { get; private set; }
 
@@ -39,6 +42,12 @@ public partial class LootContainer : Node3D
 	{
 		Taken = true;
 		Model.StopSearch();
+		if (Body is { } body)
+		{
+			var count = System.Linq.Enumerable.Count(body.AllItems());
+			Body = new CharacterInventory();
+			return count;
+		}
 		var items = System.Linq.Enumerable.ToList(Model.Grid.Items);
 		foreach (var item in items)
 			Model.Grid.Remove(item);
@@ -50,7 +59,9 @@ public partial class LootContainer : Node3D
 	public override void _Ready()
 	{
 		_rng = Seed == 0 ? new Random() : new Random(Seed);
-		Model = new LootContainerModel(GridSize.X, GridSize.Y, SecondsPerItem, NoiseRadius);
+		Model = Body is { } dead
+			? CorpseLoot.Build(dead, SecondsPerItem, NoiseRadius)
+			: new LootContainerModel(GridSize.X, GridSize.Y, SecondsPerItem, NoiseRadius);
 		AddToGroup("loot_containers");
 
 		var body = new StaticBody3D { Position = new Vector3(0f, BoxSize.Y * 0.5f, 0f) };

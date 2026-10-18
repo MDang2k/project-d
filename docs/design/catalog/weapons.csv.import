@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://boux1gmvbyk3r"
+
+[deps]
+
+files=["res://docs/design/catalog/weapons.Real basis.translation", "res://docs/design/catalog/weapons.Game name (alt.translation", "res://docs/design/catalog/weapons.Class.translation", "res://docs/design/catalog/weapons.Family.translation", "res://docs/design/catalog/weapons.Caliber.translation", "res://docs/design/catalog/weapons.Side / Origin.translation", "res://docs/design/catalog/weapons.Fire modes.translation", "res://docs/design/catalog/weapons.Rate of fire rpm.translation", "res://docs/design/catalog/weapons.Standard mag.translation", "res://docs/design/catalog/weapons.Grid (WxH).translation", "res://docs/design/catalog/weapons.Weight kg.translation", "res://docs/design/catalog/weapons.Base value.translation", "res://docs/design/catalog/weapons.Rarity.translation", "res://docs/design/catalog/weapons.Where found.translation", "res://docs/design/catalog/weapons.Sold by.translation", "res://docs/design/catalog/weapons.Slot tree.translation", "res://docs/design/catalog/weapons.Phase.translation", "res://docs/design/catalog/weapons.Notes.translation"]
+
+source_file="res://docs/design/catalog/weapons.csv"
+dest_files=["res://docs/design/catalog/weapons.Real basis.translation", "res://docs/design/catalog/weapons.Game name (alt.translation", "res://docs/design/catalog/weapons.Class.translation", "res://docs/design/catalog/weapons.Family.translation", "res://docs/design/catalog/weapons.Caliber.translation", "res://docs/design/catalog/weapons.Side / Origin.translation", "res://docs/design/catalog/weapons.Fire modes.translation", "res://docs/design/catalog/weapons.Rate of fire rpm.translation", "res://docs/design/catalog/weapons.Standard mag.translation", "res://docs/design/catalog/weapons.Grid (WxH).translation", "res://docs/design/catalog/weapons.Weight kg.translation", "res://docs/design/catalog/weapons.Base value.translation", "res://docs/design/catalog/weapons.Rarity.translation", "res://docs/design/catalog/weapons.Where found.translation", "res://docs/design/catalog/weapons.Sold by.translation", "res://docs/design/catalog/weapons.Slot tree.translation", "res://docs/design/catalog/weapons.Phase.translation", "res://docs/design/catalog/weapons.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

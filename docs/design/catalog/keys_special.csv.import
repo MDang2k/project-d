@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://ci6f6k76hcwrd"
+
+[deps]
+
+files=["res://docs/design/catalog/keys_special.Name.translation", "res://docs/design/catalog/keys_special.Type.translation", "res://docs/design/catalog/keys_special.Opens / role.translation", "res://docs/design/catalog/keys_special.Source.translation", "res://docs/design/catalog/keys_special.Single use.translation", "res://docs/design/catalog/keys_special.Insurable.translation", "res://docs/design/catalog/keys_special.Grid (WxH).translation", "res://docs/design/catalog/keys_special.Base value.translation", "res://docs/design/catalog/keys_special.Phase.translation", "res://docs/design/catalog/keys_special.Notes.translation"]
+
+source_file="res://docs/design/catalog/keys_special.csv"
+dest_files=["res://docs/design/catalog/keys_special.Name.translation", "res://docs/design/catalog/keys_special.Type.translation", "res://docs/design/catalog/keys_special.Opens / role.translation", "res://docs/design/catalog/keys_special.Source.translation", "res://docs/design/catalog/keys_special.Single use.translation", "res://docs/design/catalog/keys_special.Insurable.translation", "res://docs/design/catalog/keys_special.Grid (WxH).translation", "res://docs/design/catalog/keys_special.Base value.translation", "res://docs/design/catalog/keys_special.Phase.translation", "res://docs/design/catalog/keys_special.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

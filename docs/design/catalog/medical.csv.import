@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c6u8q7n6nyat6"
+
+[deps]
+
+files=["res://docs/design/catalog/medical.Name.translation", "res://docs/design/catalog/medical.Side / Origin.translation", "res://docs/design/catalog/medical.Use time s.translation", "res://docs/design/catalog/medical.Effect.translation", "res://docs/design/catalog/medical.Uses.translation", "res://docs/design/catalog/medical.Grid (WxH).translation", "res://docs/design/catalog/medical.Weight kg.translation", "res://docs/design/catalog/medical.Base value.translation", "res://docs/design/catalog/medical.Sold by.translation", "res://docs/design/catalog/medical.Needs new MedicalKind.translation", "res://docs/design/catalog/medical.Phase.translation", "res://docs/design/catalog/medical.Notes.translation"]
+
+source_file="res://docs/design/catalog/medical.csv"
+dest_files=["res://docs/design/catalog/medical.Name.translation", "res://docs/design/catalog/medical.Side / Origin.translation", "res://docs/design/catalog/medical.Use time s.translation", "res://docs/design/catalog/medical.Effect.translation", "res://docs/design/catalog/medical.Uses.translation", "res://docs/design/catalog/medical.Grid (WxH).translation", "res://docs/design/catalog/medical.Weight kg.translation", "res://docs/design/catalog/medical.Base value.translation", "res://docs/design/catalog/medical.Sold by.translation", "res://docs/design/catalog/medical.Needs new MedicalKind.translation", "res://docs/design/catalog/medical.Phase.translation", "res://docs/design/catalog/medical.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -106,6 +106,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Health = new HealthComponent { Name = "Health", Config = Preset.Health };
 		AddChild(Health);
 		RollLoadout();
+		BuildGear();
 		Health.Died += _ => OnDied();
 		_hitboxRoot = new Node3D { Name = "Hitboxes" };
 		AddChild(_hitboxRoot);
@@ -355,10 +356,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		_deadTimer = RespawnS;
 		_lootTarget?.Model.StopSearch();
 		_lootTarget = null;
-		var worn = new List<string>(_wornIds);
-		if (_weaponData is { } w)
-			worn.Add(w.Id);
-		CorpseSpawner.Spawn(GetParent(), GlobalPosition, worn);
+		SyncGearWithWeapon();
+		CorpseSpawner.SpawnBody(GetParent(), GlobalPosition, Gear);
+		Gear = new CharacterInventory(); // the body owns the gear now
 	}
 
 	/// <summary>Nearest untouched body within reach, when this AI scavenges.</summary>
@@ -415,6 +415,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	private void Respawn()
 	{
+		BuildGear();
 		Health.Reset();
 		Perception.Reset();
 		LastCue = "-";

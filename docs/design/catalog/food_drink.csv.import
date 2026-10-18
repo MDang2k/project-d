@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://chrephoyrci6c"
+
+[deps]
+
+files=["res://docs/design/catalog/food_drink.Name.translation", "res://docs/design/catalog/food_drink.Subtype.translation", "res://docs/design/catalog/food_drink.Side / Origin.translation", "res://docs/design/catalog/food_drink.Grid (WxH).translation", "res://docs/design/catalog/food_drink.Weight kg.translation", "res://docs/design/catalog/food_drink.Base value.translation", "res://docs/design/catalog/food_drink.Rarity.translation", "res://docs/design/catalog/food_drink.Where found.translation", "res://docs/design/catalog/food_drink.Sold by.translation", "res://docs/design/catalog/food_drink.Bought by.translation", "res://docs/design/catalog/food_drink.Energy.translation", "res://docs/design/catalog/food_drink.Hydration.translation", "res://docs/design/catalog/food_drink.Use time s.translation", "res://docs/design/catalog/food_drink.Side effect.translation", "res://docs/design/catalog/food_drink.Phase.translation", "res://docs/design/catalog/food_drink.Notes.translation"]
+
+source_file="res://docs/design/catalog/food_drink.csv"
+dest_files=["res://docs/design/catalog/food_drink.Name.translation", "res://docs/design/catalog/food_drink.Subtype.translation", "res://docs/design/catalog/food_drink.Side / Origin.translation", "res://docs/design/catalog/food_drink.Grid (WxH).translation", "res://docs/design/catalog/food_drink.Weight kg.translation", "res://docs/design/catalog/food_drink.Base value.translation", "res://docs/design/catalog/food_drink.Rarity.translation", "res://docs/design/catalog/food_drink.Where found.translation", "res://docs/design/catalog/food_drink.Sold by.translation", "res://docs/design/catalog/food_drink.Bought by.translation", "res://docs/design/catalog/food_drink.Energy.translation", "res://docs/design/catalog/food_drink.Hydration.translation", "res://docs/design/catalog/food_drink.Use time s.translation", "res://docs/design/catalog/food_drink.Side effect.translation", "res://docs/design/catalog/food_drink.Phase.translation", "res://docs/design/catalog/food_drink.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

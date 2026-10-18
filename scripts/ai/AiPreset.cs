@@ -64,6 +64,17 @@ public partial class AiPreset : Resource
 	[Export] public bool LootsCorpses { get; set; }
 	[Export] public float LootRadius { get; set; } = 35f;
 
+	[ExportGroup("Carrying kit (what a body holds when searched)")]
+	/// <summary>Chest rig item id, or empty for none.</summary>
+	[Export] public string RigId { get; set; } = "";
+	/// <summary>Backpack item id, or empty for none.</summary>
+	[Export] public string BackpackId { get; set; } = "";
+	[Export] public float BackpackChance { get; set; } = 0.5f;
+	/// <summary>Full spare magazines for the weapon, kept in the rig, backpack or pockets.</summary>
+	[Export] public int SpareMagazines { get; set; } = 2;
+	/// <summary>Rolled into the pockets (rig and backpack too when room is left).</summary>
+	[Export] public LootTable? PocketTable { get; set; }
+
 	[ExportGroup("Loadout")]
 	/// <summary>Weapon when WeaponChoices is empty.</summary>
 	[Export] public WeaponData? Weapon { get; set; }

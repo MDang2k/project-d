@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d0trdhncjqffp"
+
+[deps]
+
+files=["res://docs/design/catalog/documents.Title.translation", "res://docs/design/catalog/documents.Kind.translation", "res://docs/design/catalog/documents.Translation raids.translation", "res://docs/design/catalog/documents.Unlocks.translation", "res://docs/design/catalog/documents.Where found.translation", "res://docs/design/catalog/documents.Insurable.translation", "res://docs/design/catalog/documents.Scientist buys.translation", "res://docs/design/catalog/documents.Phase.translation", "res://docs/design/catalog/documents.Notes.translation"]
+
+source_file="res://docs/design/catalog/documents.csv"
+dest_files=["res://docs/design/catalog/documents.Title.translation", "res://docs/design/catalog/documents.Kind.translation", "res://docs/design/catalog/documents.Translation raids.translation", "res://docs/design/catalog/documents.Unlocks.translation", "res://docs/design/catalog/documents.Where found.translation", "res://docs/design/catalog/documents.Insurable.translation", "res://docs/design/catalog/documents.Scientist buys.translation", "res://docs/design/catalog/documents.Phase.translation", "res://docs/design/catalog/documents.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

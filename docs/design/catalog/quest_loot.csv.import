@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bsu1lylchanld"
+
+[deps]
+
+files=["res://docs/design/catalog/quest_loot.Name.translation", "res://docs/design/catalog/quest_loot.Likely giver.translation", "res://docs/design/catalog/quest_loot.Where found.translation", "res://docs/design/catalog/quest_loot.Grid (WxH).translation", "res://docs/design/catalog/quest_loot.Weight kg.translation", "res://docs/design/catalog/quest_loot.Insurable.translation", "res://docs/design/catalog/quest_loot.Base value.translation", "res://docs/design/catalog/quest_loot.Phase.translation", "res://docs/design/catalog/quest_loot.Notes.translation"]
+
+source_file="res://docs/design/catalog/quest_loot.csv"
+dest_files=["res://docs/design/catalog/quest_loot.Name.translation", "res://docs/design/catalog/quest_loot.Likely giver.translation", "res://docs/design/catalog/quest_loot.Where found.translation", "res://docs/design/catalog/quest_loot.Grid (WxH).translation", "res://docs/design/catalog/quest_loot.Weight kg.translation", "res://docs/design/catalog/quest_loot.Insurable.translation", "res://docs/design/catalog/quest_loot.Base value.translation", "res://docs/design/catalog/quest_loot.Phase.translation", "res://docs/design/catalog/quest_loot.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

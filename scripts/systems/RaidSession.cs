@@ -43,6 +43,15 @@ public sealed class RaidSession
 	public float ExtractProgress { get; private set; }
 	public ExtractBlock Blocked { get; private set; }
 
+	/// <summary>Total standing time of the zone being extracted through (for the countdown).</summary>
+	public float ExtractSeconds { get; private set; }
+
+	/// <summary>Seconds left on the current extraction; 0 when none is running.</summary>
+	public float ExtractRemainingS => ExtractingZoneId is null ? 0f : ExtractSeconds * (1f - ExtractProgress);
+
+	/// <summary>The zone that is refusing the player right now (missing item or money), or null.</summary>
+	public ExtractionSpec? BlockedSpec { get; private set; }
+
 	/// <summary>The zone the player extracted through; null until the raid ends extracted.</summary>
 	public string? ExtractedZoneId { get; private set; }
 
@@ -69,19 +78,23 @@ public sealed class RaidSession
 
 		ExtractBlock block = ExtractBlock.None;
 		ExtractionSpec? spec = null;
+		ExtractionSpec? blockedBy = null;
 		if (zoneId is not null && _zones.TryGetValue(zoneId, out spec)
 			&& spec.Kind == ExtractKind.RequiresItem
 			&& (spec.RequiredItemId is null || !hasItem(spec.RequiredItemId)))
 		{
 			block = ExtractBlock.MissingItem;
+			blockedBy = spec;
 			spec = null;
 		}
 		else if (spec is { Kind: ExtractKind.RequiresPayment } && (carriedMoney?.Invoke() ?? 0) < spec.Cost)
 		{
 			block = ExtractBlock.CannotPay;
+			blockedBy = spec;
 			spec = null;
 		}
 		Blocked = block;
+		BlockedSpec = block == ExtractBlock.None ? null : blockedBy;
 
 		if (spec is null)
 		{
@@ -92,6 +105,7 @@ public sealed class RaidSession
 		{
 			Abort();
 			ExtractingZoneId = spec.Id;
+			ExtractSeconds = Math.Max(0.1f, spec.Seconds);
 			ExtractProgress = 0f;
 			ExtractionStarted?.Invoke(spec.Id);
 		}

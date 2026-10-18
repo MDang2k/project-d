@@ -11,6 +11,8 @@
 [ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="21"]
 [ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="30"]
 
+[ext_resource type="Resource" path="res://data/loot/body_scav.tres" id="40"]
+
 [resource]
 script = ExtResource("1")
 Id = "bandit"
@@ -29,3 +31,8 @@ HealItem = ExtResource("4")
 WeaponChoices = Array[ExtResource("30")]([ExtResource("20"), ExtResource("21")])
 LootsCorpses = true
 ArmorChance = 0.8
+RigId = "light_rig"
+BackpackId = "field_pack"
+BackpackChance = 0.4
+SpareMagazines = 2
+PocketTable = ExtResource("40")

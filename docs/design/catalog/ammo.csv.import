@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://b2284gvn6ej3f"
+
+[deps]
+
+files=["res://docs/design/catalog/ammo.Caliber.translation", "res://docs/design/catalog/ammo.Variant.translation", "res://docs/design/catalog/ammo.Damage.translation", "res://docs/design/catalog/ammo.Penetration tier.translation", "res://docs/design/catalog/ammo.Velocity m/s.translation", "res://docs/design/catalog/ammo.Recoil mod.translation", "res://docs/design/catalog/ammo.Dispersion.translation", "res://docs/design/catalog/ammo.Pellets.translation", "res://docs/design/catalog/ammo.Damage per pellet.translation", "res://docs/design/catalog/ammo.Total damage.translation", "res://docs/design/catalog/ammo.Rarity.translation", "res://docs/design/catalog/ammo.Side / Origin.translation", "res://docs/design/catalog/ammo.Sold by.translation", "res://docs/design/catalog/ammo.Phase.translation", "res://docs/design/catalog/ammo.Notes.translation"]
+
+source_file="res://docs/design/catalog/ammo.csv"
+dest_files=["res://docs/design/catalog/ammo.Caliber.translation", "res://docs/design/catalog/ammo.Variant.translation", "res://docs/design/catalog/ammo.Damage.translation", "res://docs/design/catalog/ammo.Penetration tier.translation", "res://docs/design/catalog/ammo.Velocity m/s.translation", "res://docs/design/catalog/ammo.Recoil mod.translation", "res://docs/design/catalog/ammo.Dispersion.translation", "res://docs/design/catalog/ammo.Pellets.translation", "res://docs/design/catalog/ammo.Damage per pellet.translation", "res://docs/design/catalog/ammo.Total damage.translation", "res://docs/design/catalog/ammo.Rarity.translation", "res://docs/design/catalog/ammo.Side / Origin.translation", "res://docs/design/catalog/ammo.Sold by.translation", "res://docs/design/catalog/ammo.Phase.translation", "res://docs/design/catalog/ammo.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

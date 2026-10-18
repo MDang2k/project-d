@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dlpkkp6cjoq0i"
+
+[deps]
+
+files=["res://docs/design/catalog/armor_rigs.Name.translation", "res://docs/design/catalog/armor_rigs.Real basis.translation", "res://docs/design/catalog/armor_rigs.Type.translation", "res://docs/design/catalog/armor_rigs.Armor tier.translation", "res://docs/design/catalog/armor_rigs.Durability.translation", "res://docs/design/catalog/armor_rigs.Protected zones.translation", "res://docs/design/catalog/armor_rigs.Provides grids.translation", "res://docs/design/catalog/armor_rigs.Side / Origin.translation", "res://docs/design/catalog/armor_rigs.Grid (WxH).translation", "res://docs/design/catalog/armor_rigs.Weight kg.translation", "res://docs/design/catalog/armor_rigs.Base value.translation", "res://docs/design/catalog/armor_rigs.Rarity.translation", "res://docs/design/catalog/armor_rigs.Sold by.translation", "res://docs/design/catalog/armor_rigs.Phase.translation", "res://docs/design/catalog/armor_rigs.Notes.translation"]
+
+source_file="res://docs/design/catalog/armor_rigs.csv"
+dest_files=["res://docs/design/catalog/armor_rigs.Name.translation", "res://docs/design/catalog/armor_rigs.Real basis.translation", "res://docs/design/catalog/armor_rigs.Type.translation", "res://docs/design/catalog/armor_rigs.Armor tier.translation", "res://docs/design/catalog/armor_rigs.Durability.translation", "res://docs/design/catalog/armor_rigs.Protected zones.translation", "res://docs/design/catalog/armor_rigs.Provides grids.translation", "res://docs/design/catalog/armor_rigs.Side / Origin.translation", "res://docs/design/catalog/armor_rigs.Grid (WxH).translation", "res://docs/design/catalog/armor_rigs.Weight kg.translation", "res://docs/design/catalog/armor_rigs.Base value.translation", "res://docs/design/catalog/armor_rigs.Rarity.translation", "res://docs/design/catalog/armor_rigs.Sold by.translation", "res://docs/design/catalog/armor_rigs.Phase.translation", "res://docs/design/catalog/armor_rigs.Notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -219,3 +219,89 @@ public class SaveV3Tests
 		Assert.Equal(0, profile.Trader("medic").Spent);
 	}
 }
+
+public class CorpseLootTests
+{
+	private static readonly ItemSpec Rifle = new("ak", "ak", ItemCategory.Weapon, 5, 2, 3.6f, WeaponClass: WeaponClass.Primary);
+	private static readonly ItemSpec Mag = new("mag", "mag", ItemCategory.Magazine, 1, 2, 0.2f, MagazineCapacity: 30);
+	private static readonly ItemSpec Vest = new("vest", "vest", ItemCategory.Armor, 3, 3, 4f);
+	private static readonly ItemSpec Rig = new("rig", "rig", ItemCategory.Rig, 3, 2, 1f, Grids: new[] { new GridSize(4, 2) });
+	private static readonly ItemSpec Bandage = new("bandage", "bandage", ItemCategory.Medical, 1, 1, 0.1f, 5);
+
+	private static CharacterInventory Body(out ItemInstance rigItem)
+	{
+		var inv = new CharacterInventory();
+		var rifle = ItemInstance.Create(Rifle);
+		rifle.InsertedMagazine = ItemInstance.Create(Mag);
+		inv.TryEquip(rifle, EquipSlot.Primary);
+		inv.TryEquip(ItemInstance.Create(Vest), EquipSlot.Vest);
+		rigItem = ItemInstance.Create(Rig);
+		inv.TryEquip(rigItem, EquipSlot.Rig);
+		rigItem.Grids[0].TryPlaceAnywhere(ItemInstance.Create(Mag));
+		inv.TryAutoStore(ItemInstance.Create(Bandage, 2)); // pocket
+		return inv;
+	}
+
+	[Fact]
+	public void WornGearIsVisibleAtOnceButGridContentsAreHidden()
+	{
+		var body = Body(out var rig);
+		var model = CorpseLoot.Build(body, 1f, 6f);
+		Assert.Equal(2, model.HiddenCount); // the spare magazine in the rig and the bandages in a pocket
+		Assert.True(model.IsRevealed(body.InSlot(EquipSlot.Primary)!));
+		Assert.True(model.IsRevealed(body.InSlot(EquipSlot.Vest)!));
+		Assert.True(model.IsRevealed(rig));
+		Assert.False(model.IsRevealed(rig.Grids[0].Items.First()));
+	}
+
+	[Fact]
+	public void TheInsertedMagazineStaysWithTheWeapon()
+	{
+		var body = Body(out _);
+		var inserted = body.InSlot(EquipSlot.Primary)!.InsertedMagazine!;
+		var model = CorpseLoot.Build(body, 1f, 6f);
+		Assert.True(model.IsRevealed(inserted));
+	}
+
+	[Fact]
+	public void SearchingRevealsOneItemPerInterval()
+	{
+		var body = Body(out _);
+		var model = CorpseLoot.Build(body, 1f, 6f);
+		model.StartSearch();
+		model.Update(1.01f);
+		Assert.Equal(1, model.HiddenCount);
+		model.Update(1.01f);
+		Assert.True(model.FullyRevealed);
+	}
+
+	[Fact]
+	public void EmptyBodyIsFullyRevealed()
+		=> Assert.True(CorpseLoot.Build(new CharacterInventory(), 1f, 6f).FullyRevealed);
+}
+
+public class ExtractionCountdownTests
+{
+	[Fact]
+	public void RemainingTimeCountsDownAndResetsOnLeaving()
+	{
+		var s = new RaidSession(100f, new[] { new ExtractionSpec("gate", ExtractKind.AlwaysOpen, 6f) });
+		for (var i = 0; i < 20; i++)
+			s.Update(0.1f, "gate", _ => false);
+		Assert.InRange(s.ExtractRemainingS, 3.8f, 4.2f);
+		s.Update(0.1f, null, _ => false);
+		Assert.Equal(0f, s.ExtractRemainingS);
+	}
+
+	[Fact]
+	public void BlockedZoneReportsWhatItNeeds()
+	{
+		var spec = new ExtractionSpec("drain", ExtractKind.RequiresItem, 5f, "bandage");
+		var s = new RaidSession(100f, new[] { spec });
+		s.Update(0.1f, "drain", _ => false);
+		Assert.Equal(ExtractBlock.MissingItem, s.Blocked);
+		Assert.Same(spec, s.BlockedSpec);
+		s.Update(0.1f, null, _ => false);
+		Assert.Null(s.BlockedSpec);
+	}
+}

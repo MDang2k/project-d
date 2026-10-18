@@ -52,6 +52,7 @@ public partial class RaidLevel : Node3D
 		AddChild(_quests);
 		_quests.Start(Player, Projectiles);
 		AddChild(new ObjectiveHud { Name = "ObjectiveHud" });
+		AddChild(new ExtractionHud(Raid) { Name = "ExtractionHud" });
 		ApplyDevArgs();
 	}
 
