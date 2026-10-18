@@ -236,7 +236,7 @@ One melee weapon slot (knife, bayonet, entrenching tool, etc.). Melee is a quick
 | EM-2 | Bullpup | .280 British | British prototype, rare |
 | MG42/MG3-type | Machine gun | 7.92×57 / 7.62×51 | Bipod, heavy |
 
-Real-world weapon names may be used during development. Before any public release, review whether names should be fictionalized.
+Real-world weapon names may be used during development. Before any public release, review whether names should be fictionalized. Weapons designed after WW2 get alt-history names and slightly altered models; HK designs use WW2-style names (Gewehr 59, Sturmgewehr 68, MP 66, Gerät 69). Real dates are a guideline: post-1970 prototypes are allowed as zone research ahead of its time. The full item list lives in `docs/design/item_catalog.xlsx`.
 
 ### Later weapon pool (dates to verify before use)
 
