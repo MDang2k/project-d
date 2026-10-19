@@ -118,35 +118,46 @@ public partial class HudCanvas : Control
 		var left = 28f;
 		var bottom = size.Y - 28f;
 
-		// Stamina: a thin bar low in the corner.
+		// Stamina: a clear bar for the legs (sprinting, jumping) and a thin one for the arms (weapon hold,
+		// melee), with a label so it reads at a glance. Turns red while exhausted.
 		if (_stamina.Alpha > 0.01f)
 		{
-			var w = 150f;
-			var rect = new Rect2(left, bottom - 6f, w, 5f);
-			DrawRect(rect, Back * new Color(1, 1, 1, _stamina.Alpha));
-			var fraction = Player.Legs.Fraction;
-			var color = Player.Legs.IsExhausted ? new Color(0.9f, 0.35f, 0.25f) : new Color(0.85f, 0.85f, 0.6f);
-			color.A = _stamina.Alpha;
-			DrawRect(new Rect2(rect.Position, new Vector2(w * fraction, rect.Size.Y)), color);
+			var a = _stamina.Alpha;
+			const float w = 180f;
+			var legs = new Rect2(left, bottom - 12f, w, 10f);
+			DrawRect(legs.Grow(1f), new Color(0f, 0f, 0f, 0.55f * a));
+			DrawRect(legs, new Color(0.12f, 0.12f, 0.12f, 0.7f * a));
+			var legColor = Player.Legs.IsExhausted ? new Color(0.9f, 0.3f, 0.22f) : new Color(0.9f, 0.88f, 0.55f);
+			legColor.A = a;
+			DrawRect(new Rect2(legs.Position, new Vector2(w * Player.Legs.Fraction, legs.Size.Y)), legColor);
+			var label = Ink;
+			label.A = a;
+			DrawString(font, new Vector2(left, bottom - 15f), "STAMINA", HorizontalAlignment.Left, -1, 11, label);
+
+			var arms = new Rect2(left, bottom + 2f, w, 4f);
+			DrawRect(arms, new Color(0.12f, 0.12f, 0.12f, 0.7f * a));
+			var armColor = Player.Arms.IsExhausted ? new Color(0.9f, 0.3f, 0.22f) : new Color(0.6f, 0.75f, 0.9f);
+			armColor.A = a;
+			DrawRect(new Rect2(arms.Position, new Vector2(w * Player.Arms.Fraction, arms.Size.Y)), armColor);
 		}
 
 		// Energy and hydration: two small bars above it.
 		if (_vitals.Alpha > 0.01f)
 		{
 			var v = Player.Health.Vitals;
-			Pip(left, bottom - 20f, 70f, v.Energy / 100f, "E", new Color(0.9f, 0.7f, 0.25f), _vitals.Alpha, font);
-			Pip(left + 80f, bottom - 20f, 70f, v.Hydration / 100f, "H", new Color(0.35f, 0.65f, 0.95f), _vitals.Alpha, font);
+			Pip(left, bottom - 32f, 85f, v.Energy / 100f, "E", new Color(0.9f, 0.7f, 0.25f), _vitals.Alpha, font);
+			Pip(left + 95f, bottom - 32f, 85f, v.Hydration / 100f, "H", new Color(0.35f, 0.65f, 0.95f), _vitals.Alpha, font);
 		}
 
 		// Body silhouette, only while injured.
 		if (_health.Alpha > 0.01f)
-			DrawBody(new Vector2(left, bottom - 128f), _health.Alpha, font);
+			DrawBody(new Vector2(left, bottom - 146f), _health.Alpha, font);
 
-		DrawTags(new Vector2(left + 60f, bottom - 118f), font);
+		DrawTags(new Vector2(left + 60f, bottom - 136f), font);
 
 		// Stance pictogram next to the bars when it just changed.
 		if (_stance.Alpha > 0.01f)
-			DrawStance(new Vector2(left + 170f, bottom - 28f), _stance.Alpha);
+			DrawStance(new Vector2(left + 196f, bottom - 28f), _stance.Alpha);
 
 		// Quick-use slots bottom centre.
 		if (_quick.Alpha > 0.01f)
