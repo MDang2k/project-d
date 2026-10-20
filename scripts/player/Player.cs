@@ -159,6 +159,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		AddChild(_screen);
 		_screen.Bind(this);
 		PlayerHud.Attach(this);
+		_scope = new ScopeOverlay { Name = "ScopeOverlay" };
+		AddChild(_scope);
 		var promptLayer = new CanvasLayer { Layer = 2 };
 		_prompt = new Label
 		{
@@ -520,7 +522,10 @@ public partial class Player : CharacterBody3D, IPerceivable
 			return;
 		}
 		if (_heldWeaponUid == item.Uid)
+		{
+			Weapon?.RefreshBuild(); // parts may have been swapped
 			return;
+		}
 		if (ItemDb.Data(item.Spec.Id)?.Payload is WeaponData data)
 		{
 			EquipWeapon(data, item);
@@ -597,10 +602,14 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private void OnShotFired(AmmoType ammo, Vector3 position, Vector3 direction)
 	{
 		_projectiles ??= GetTree().GetFirstNodeInGroup("projectiles") as ProjectileManager;
-		_projectiles?.Spawn(ammo, position, direction, GetRid(), _ownRids);
-		NoiseBus.Emit(position, Weapon?.Data.NoiseRadius ?? 150f, "gunshot", this);
+		// Barrel and muzzle parts change muzzle velocity.
+		var fired = Weapon is { } held && held.Stats.VelocityMult != 1f
+			? ammo with { MuzzleVelocity = ammo.MuzzleVelocity * held.Stats.VelocityMult }
+			: ammo;
+		_projectiles?.Spawn(fired, position, direction, GetRid(), _ownRids);
+		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)
-			_recoil.Kick(w.Data.ToRecoilTuning(),
+			_recoil.Kick(w.RecoilTuning,
 				HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount, _support.RestAmount,
 					_support.BipodDeployed),
 				GD.Randf() * 2f - 1f);
@@ -666,7 +675,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.folded"));
 			return;
 		}
-		if (!weapon.Data.HasBipod)
+		if (!weapon.HasBipod)
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.none"));
 		else if (_support.TryDeployBipod(true, Stance, _muzzleSurface, Rotation.Y))
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.deployed"));
@@ -811,9 +820,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 	{
 		var weapon = Weapon;
 		var aimHeld = AimHeld();
-		_aim.Update(aimHeld && !IsSprinting, delta, weapon?.Data.AdsTimeS ?? 0.2f);
+		var ergo = _cfg.ToErgonomicsTuning();
+		var ergonomics = weapon?.Stats.Ergonomics ?? 50f;
+		_aim.Update(aimHeld && !IsSprinting, delta, (weapon?.Data.AdsTimeS ?? 0.2f) * ergo.AdsTimeMult(ergonomics));
 		IsHoldingBreath = BreathHold.Update(aimHeld && Input.IsActionPressed("sprint"), Arms,
-			_cfg.BreathHoldDrainPerS, delta);
+			_cfg.BreathHoldDrainPerS * ergo.StaminaDrainMult(ergonomics), delta);
 
 		if (weapon is null)
 			return;
@@ -825,7 +836,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var restSurface = FindRestSurface(weapon, out var surfaceY) && _restPitchOk;
 		RestSurfaceHeight = restSurface ? surfaceY - GlobalPosition.Y : float.NaN;
 		var muzzleSurface = SurfaceUnder(weapon.Muzzle.GlobalPosition);
-		if (_support.Update(delta, restSurface, muzzleSurface, weapon.Data.HasBipod, Stance, speed, IsSprinting))
+		if (_support.Update(delta, restSurface, muzzleSurface, weapon.HasBipod, Stance, speed, IsSprinting))
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.folded"));
 		weapon.BipodDeployed = _support.BipodDeployed;
 		_muzzleSurface = muzzleSurface;
@@ -837,20 +848,21 @@ public partial class Player : CharacterBody3D, IPerceivable
 				WeaponMessage?.Invoke(GameText.Get("msg.weapon.rested"));
 		}
 
-		var ctx = new HandlingContext(Stance, weapon.Data.WeightKg, Arms.Fraction, speedFraction,
+		var ctx = new HandlingContext(Stance, weapon.Stats.WeightKg, Arms.Fraction, speedFraction,
 			_aim.Amount, IsHoldingBreath, _support.RestAmount, _support.BipodDeployed);
-		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling, weapon.Data.SwayBaseDeg, ctx)
+		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling,
+				weapon.Data.SwayBaseDeg * weapon.Stats.SwayMult * ergo.SwayMult(ergonomics), ctx)
 			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier;
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
 		var (posOffset, rotDeg) = WeaponPoseModel.Pose(weapon.Controller.Action, weapon.Controller.Progress);
 		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y + rotDeg.X), Mathf.DegToRad(sway.X + rotDeg.Y),
 			Mathf.DegToRad(rotDeg.Z));
 
-		_recoil.Update(delta, weapon.Data.ToRecoilTuning());
+		_recoil.Update(delta, weapon.RecoilTuning);
 		_recoilNode.Rotation = new Vector3(Mathf.DegToRad(_recoil.Offset.Y), Mathf.DegToRad(_recoil.Offset.X), 0f);
 
 		var t = Mathf.SmoothStep(0f, 1f, _aim.Amount);
-		var adsPos = new Vector3(0f, -weapon.Data.SightHeight, -_cfg.AdsEyeRelief);
+		var adsPos = new Vector3(0f, -weapon.SightHeight, -_cfg.AdsEyeRelief);
 		UpdateClearance(delta, weapon, _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset);
 
 		// Weapon visibly settles onto the surface it rests on; ADS keeps the sight line instead.
@@ -874,7 +886,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_swayNode.Position += mp;
 			_swayNode.Rotation += new Vector3(Mathf.DegToRad(mr.X), Mathf.DegToRad(mr.Y), Mathf.DegToRad(mr.Z));
 		}
-		_camera.Fov = Mathf.Lerp(_cfg.HipFovDeg, _cfg.AdsFovDeg, t);
+		// A magnifying optic narrows the field of view while aiming and darkens the screen edge.
+		var zoom = Mathf.Max(1f, weapon.Stats.Zoom);
+		_camera.Fov = Mathf.Lerp(_cfg.HipFovDeg, _cfg.AdsFovDeg / zoom, t);
+		_scope.SetAmount(zoom > 1f ? t : 0f);
+		weapon.SetAds(t);
 	}
 
 	private void UpdateWeaponInput()
@@ -1156,6 +1172,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		UpdateRig(delta);
 	}
 
+	private ScopeOverlay _scope = null!;
 	private Node3D _hitboxRoot = null!;
 	private readonly Array<Rid> _ownRids = new();
 

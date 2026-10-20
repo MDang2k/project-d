@@ -86,7 +86,6 @@ public partial class WeaponNode : Node3D
 			Position = new Vector3(0f, -size.Y * 0.5f, -size.Z * 0.7f + 0.1f),
 		};
 		w.AddChild(w.BipodMount);
-		if (data.HasBipod)
 		{
 			// Two splayed legs reaching about 0.25 m down; hidden until deployed.
 			var legs = new Node3D { Name = "BipodLegs", Visible = false, Position = w.BipodMount.Position };
@@ -107,6 +106,8 @@ public partial class WeaponNode : Node3D
 		w.AddChild(w.GripRight);
 		w.AddChild(w.GripLeft);
 		w.AddChild(w.Muzzle);
+		w._baseMuzzle = w.Muzzle.Position;
+		w.RefreshBuild();
 		return w;
 	}
 

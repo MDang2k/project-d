@@ -345,7 +345,7 @@ public partial class AiHuman
 		var spread = AiAim.SpreadDeg(_aim, Preset!.Accuracy, to.Length(), PerceivedSpeedFraction, _suppression);
 		var dir = AiAim.Jitter(to, spread, () => (float)_rng.NextDouble());
 		_projectiles.Spawn(ammo, position, dir, GetRid(), _ownRids);
-		NoiseBus.Emit(position, Weapon?.Data.NoiseRadius ?? 150f, "gunshot", this);
+		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 	}
 
 	private void ApplyCrouch(float delta, bool crouch)

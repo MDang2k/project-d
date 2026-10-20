@@ -26,6 +26,14 @@ public partial class PlayerConfig : Resource
 	[Export] public float JumpVelocity { get; set; } = 4.2f;
 	[Export] public float JumpStaminaCost { get; set; } = 12f;
 
+	[ExportGroup("Weapon ergonomics")]
+	/// <summary>How much low or high ergonomics (around 50) changes handling; 0.3 means +-30% at the extremes.</summary>
+	[Export] public float ErgoAdsTimeSwing { get; set; } = 0.3f;
+	[Export] public float ErgoSwaySwing { get; set; } = 0.2f;
+	[Export] public float ErgoStaminaSwing { get; set; } = 0.3f;
+
+	public ErgonomicsTuning ToErgonomicsTuning() => new(ErgoAdsTimeSwing, ErgoSwaySwing, ErgoStaminaSwing);
+
 	[ExportGroup("Noise and faction")]
 	/// <summary>Which side the player is on (decides who is hostile); the story picks it later.</summary>
 	[Export] public Faction PlayerFaction { get; set; } = Faction.AlliedPmc;

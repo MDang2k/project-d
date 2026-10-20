@@ -231,6 +231,14 @@ public partial class RaidLevel : Node3D
 				Player.RotationDegrees = new Vector3(0f, yaw, 0f);
 			else if (arg.StartsWith("--pitch=") && float.TryParse(arg["--pitch=".Length..], out var pitch))
 				Player.DebugSetPitchDeg(pitch);
+			else if (arg.StartsWith("--attach=") && arg["--attach=".Length..].Split(':') is { Length: 2 } ap
+				&& Player.Inventory.Inventory.InSlot(EquipSlot.Primary) is { } primary && ItemDb.Create(ap[1]) is { } newPart)
+			{
+				GD.Print($"ATTACH {ap[1]} -> {ap[0]}: {WeaponBuild.Attach(primary, ap[0], newPart)} zoom={WeaponBuild.Stats(primary).Zoom}");
+				Player.Inventory.NotifyChanged();
+			}
+			else if (arg == "--ads")
+				Player.DebugForceAds = true;
 			else if (arg == "--report")
 				report = true;
 			else if (arg.StartsWith("--questkill=") && arg["--questkill=".Length..].Split(':') is { Length: 2 } kv
