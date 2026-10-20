@@ -50,7 +50,9 @@ public partial class ItemData : Resource
 		string.IsNullOrEmpty(AmmoId) ? null : AmmoId,
 		BaseValue,
 		Payload is ArmorData armor ? armor.MaxDurability : 0f,
-		Insurable);
+		Insurable,
+		Payload is WeaponData weapon ? weapon.ToBuildSpec() : null,
+		Payload is PartData part ? part.ToSpec() : null);
 }
 
 /// <summary>Registry of every ItemData by id (plain class so it can be unit tested).</summary>
@@ -72,7 +74,15 @@ public sealed class ItemRegistry
 	public ItemSpec? Spec(string id) => _specs.GetValueOrDefault(id);
 
 	public ItemInstance? Create(string id, int count = 1)
-		=> _specs.TryGetValue(id, out var spec) ? ItemInstance.Create(spec, count) : null;
+	{
+		if (!_specs.TryGetValue(id, out var spec))
+			return null;
+		var item = ItemInstance.Create(spec, count);
+		// A new weapon comes with its default parts (the build the traders and loot tables sell).
+		if (spec.Build is not null)
+			WeaponBuild.ApplyDefaults(item, partId => _specs.TryGetValue(partId, out var ps) ? ItemInstance.Create(ps) : null);
+		return item;
+	}
 
 	public IEnumerable<string> Ids => _byId.Keys;
 }

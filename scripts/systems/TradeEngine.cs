@@ -59,7 +59,7 @@ public sealed class TradeEngine
 	/// </summary>
 	public int WorthOf(ItemInstance item)
 	{
-		var total = item.Spec.BaseValue + item.Rounds.Sum(_roundValue);
+		var total = WeaponBuild.TotalValue(item) + item.Rounds.Sum(_roundValue);
 		if (item.InsertedMagazine is { } mag)
 			total += WorthOf(mag);
 		if (item.Chambered is { } round)

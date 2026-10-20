@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="3"]
+
+[sub_resource type="Resource" id="slot0"]
+script = ExtResource("3")
+Id = "light"
+Type = "light"
+Accepts = PackedStringArray("handguard.clamp")
+Required = false
+Accessory = true
+Marker = "Light"
+
+[sub_resource type="Resource" id="part"]
+script = ExtResource("2")
+Interfaces = PackedStringArray("mg3.barrel")
+AddsSlots = Array[ExtResource("3")]([SubResource("slot0")])
+
+[resource]
+script = ExtResource("1")
+Id = "mg3_barrel_std"
+NameKey = "item.mg3_barrel_std"
+Category = 13
+Width = 3
+Height = 1
+WeightKg = 0.0
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("part")
+IconColor = Color(0.22, 0.22, 0.24, 1)
+IconLabel = "Bar"
+BaseValue = 0

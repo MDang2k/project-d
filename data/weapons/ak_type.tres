@@ -3,6 +3,44 @@
 [ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="1"]
 [ext_resource type="Resource" path="res://data/ammo/7_62x39.tres" id="2"]
 
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="90"]
+
+[sub_resource type="Resource" id="slot0"]
+script = ExtResource("90")
+Id = "stock"
+Type = "stock"
+Accepts = PackedStringArray("ak.stock")
+Required = true
+Accessory = false
+Marker = "Stock"
+
+[sub_resource type="Resource" id="slot1"]
+script = ExtResource("90")
+Id = "handguard"
+Type = "handguard"
+Accepts = PackedStringArray("ak.handguard")
+Required = true
+Accessory = false
+Marker = "Handguard"
+
+[sub_resource type="Resource" id="slot2"]
+script = ExtResource("90")
+Id = "muzzle"
+Type = "muzzle"
+Accepts = PackedStringArray("ak.muzzle.24x1.5")
+Required = false
+Accessory = true
+Marker = "Muzzle"
+
+[sub_resource type="Resource" id="slot3"]
+script = ExtResource("90")
+Id = "dovetail"
+Type = "mount"
+Accepts = PackedStringArray("ak.dovetail")
+Required = false
+Accessory = true
+Marker = "OpticMount"
+
 [resource]
 script = ExtResource("1")
 Id = "ak_type"
@@ -27,3 +65,7 @@ WeightKg = 3.6
 BodySize = Vector3(0.05, 0.1, 0.88)
 GripRightOffset = Vector3(0, -0.06, 0.05)
 GripLeftOffset = Vector3(0, -0.04, -0.25)
+Ergonomics = 45.0
+Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2"), SubResource("slot3")])
+DefaultPartSlots = PackedStringArray("stock", "handguard")
+DefaultPartItems = PackedStringArray("ak_stock_std", "ak_handguard_std")

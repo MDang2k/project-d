@@ -103,6 +103,13 @@ public static class SaveSerializer
 		if (file.Stash is { } stashSave)
 			PlaceAll(stash, stashSave, lookup, warnings);
 		profile.ReplaceStash(stash);
+		// Parts orphaned by spec drift go to the stash, or are dropped with a warning when it is full.
+		foreach (var orphan in _detached ?? new List<ItemInstance>())
+		{
+			if (!stash.TryPlaceAnywhere(orphan))
+				warnings.Add($"stash full: detached part '{orphan.Spec.Id}' was dropped");
+		}
+		_detached = null;
 		foreach (var id in file.UnlockedTraders ?? new List<string>())
 			profile.UnlockTrader(id);
 		profile.Quests.Clear();
@@ -152,7 +159,12 @@ public static class SaveSerializer
 		item.InsertedMagazine is { } m ? ToSave(m) : null,
 		item.Chambered,
 		item.Grids.Count > 0 ? item.Grids.Select(ToSave).ToList() : null,
-		item.Insured, item.InsuredWith, item.FoundInRaid);
+		item.Insured, item.InsuredWith, item.FoundInRaid,
+		item.Parts.Count > 0 ? item.Parts.ToDictionary(kv => kv.Key, kv => ToSave(kv.Value)) : null);
+
+	/// <summary>Parts that no longer fit their slot after a spec change; moved to the stash by Apply.</summary>
+	[ThreadStatic]
+	private static List<ItemInstance>? _detached;
 
 	public static CharacterInventory LoadCharacter(CharacterSave save, Func<string, ItemSpec?> lookup, List<string> warnings)
 	{
@@ -209,6 +221,21 @@ public static class SaveSerializer
 		item.Insured = save.Insured;
 		item.InsuredWith = save.InsuredWith;
 		item.FoundInRaid = save.FoundInRaid;
+		if (save.Parts is not null)
+		{
+			foreach (var (slotId, partSave) in save.Parts)
+			{
+				if (FromSave(partSave, lookup, warnings) is not { } part)
+					continue;
+				if (!WeaponBuild.Attach(item, slotId, part))
+				{
+					warnings.Add($"part '{part.Spec.Id}' no longer fits slot '{slotId}' of '{item.Spec.Id}', detached");
+					(_detached ??= new List<ItemInstance>()).Add(part);
+				}
+			}
+		}
+		// A weapon whose spec gained a required slot gets the default part for it.
+		WeaponBuild.ApplyDefaults(item, id => lookup(id) is { } partSpec ? ItemInstance.Create(partSpec) : null);
 		if (save.Grids is not null)
 		{
 			for (var i = 0; i < save.Grids.Count && i < item.Grids.Count; i++)

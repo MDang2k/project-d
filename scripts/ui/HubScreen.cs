@@ -119,7 +119,8 @@ public partial class HubScreen : CanvasLayer
 			GD.Print($"HUB side={Profile.Side} stash={Profile.Stash.ItemCount} carried={carried} " +
 				$"weapon={Run.Inventory?.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"} raids={Run.Raids} " +
 				$"money={_traders.MakeEngine().Money} traders={TraderCatalog.All.Count} returns={Profile.InsuranceReturns.Count} " +
-				$"insuredCarried={Run.Inventory?.AllItems().Count(i => i.Insured) ?? 0}");
+				$"insuredCarried={Run.Inventory?.AllItems().Count(i => i.Insured) ?? 0} " +
+				$"build=[{string.Join(",", WeaponBuild.AllParts(Run.Inventory?.InSlot(EquipSlot.Primary) ?? ItemDb.Create("ak_type")!).Select(p => p.Spec.Id))}]");
 		}
 		foreach (var a in args)
 		{

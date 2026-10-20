@@ -73,6 +73,11 @@ public sealed class CharacterInventory
 		_ => false,
 	};
 
+	/// <summary>Slot rules for a concrete item: the spec fits and a weapon has all its required parts.</summary>
+	public static bool Accepts(EquipSlot slot, ItemInstance item)
+		=> SlotAccepts(slot, item.Spec)
+			&& (item.Spec.Category != ItemCategory.Weapon || WeaponBuild.IsComplete(item));
+
 	public ItemLocation? Locate(ItemInstance item)
 	{
 		foreach (var (slot, i) in _slots)
@@ -126,7 +131,7 @@ public sealed class CharacterInventory
 	/// </summary>
 	public bool TryEquip(ItemInstance item, EquipSlot slot)
 	{
-		if (!SlotAccepts(slot, item.Spec))
+		if (!Accepts(slot, item))
 			return false;
 		if (InSlot(slot) == item)
 			return true;
@@ -192,7 +197,7 @@ public sealed class CharacterInventory
 	/// <summary>Equips an item from a known source; a displaced item goes to storage or the move is undone.</summary>
 	public bool TryEquipFrom(ItemInstance item, ItemLocation from, EquipSlot slot)
 	{
-		if (!SlotAccepts(slot, item.Spec))
+		if (!Accepts(slot, item))
 			return false;
 		Detach(item, from);
 		var previous = InSlot(slot);

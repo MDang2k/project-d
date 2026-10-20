@@ -43,6 +43,8 @@ public sealed class SaveMigrator
 		[2] = root => root["traders"] = new JsonObject(),
 		// 3 -> 4: insurance returns queue (item flags default to not insured).
 		[3] = root => root["insuranceReturns"] = new JsonArray(),
+		// 5 -> 6: attached weapon parts (a missing "parts" map means no parts; defaults fill required slots on load).
+		[5] = _ => { },
 		// 4 -> 5: quests, tracking, unlocked traders, pending rewards (item flag foundInRaid defaults to false).
 		[4] = root =>
 		{

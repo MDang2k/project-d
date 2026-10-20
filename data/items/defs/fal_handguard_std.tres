@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="3"]
+
+[sub_resource type="Resource" id="slot0"]
+script = ExtResource("3")
+Id = "underbarrel"
+Type = "underbarrel"
+Accepts = PackedStringArray("fal.under")
+Required = false
+Accessory = true
+Marker = "BipodMount"
+
+[sub_resource type="Resource" id="slot1"]
+script = ExtResource("3")
+Id = "light"
+Type = "light"
+Accepts = PackedStringArray("handguard.clamp")
+Required = false
+Accessory = true
+Marker = "Light"
+
+[sub_resource type="Resource" id="part"]
+script = ExtResource("2")
+Interfaces = PackedStringArray("fal.handguard")
+AddsSlots = Array[ExtResource("3")]([SubResource("slot0"), SubResource("slot1")])
+
+[resource]
+script = ExtResource("1")
+Id = "fal_handguard_std"
+NameKey = "item.fal_handguard_std"
+Category = 13
+Width = 2
+Height = 1
+WeightKg = 0.0
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("part")
+IconColor = Color(0.3, 0.22, 0.14, 1)
+IconLabel = "HG"
+BaseValue = 0

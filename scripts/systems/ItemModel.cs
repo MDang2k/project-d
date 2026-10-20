@@ -7,6 +7,8 @@ namespace ProjectD;
 public enum ItemCategory
 {
 	Weapon, Magazine, Ammo, Armor, Helmet, Rig, Backpack, Medical, Food, Drink, Melee, SecureContainer, Misc,
+	/// <summary>A weapon part (scope, muzzle device, stock, ...) that attaches to a weapon's slot tree.</summary>
+	WeaponPart,
 }
 
 /// <summary>Primary weapons go in the primary or secondary slot, pistols only in the pistol slot.</summary>
@@ -39,7 +41,11 @@ public sealed record ItemSpec(
 	/// <summary>Armor and helmets: full durability, so wear can price them down; 0 for everything else.</summary>
 	float MaxDurability = 0f,
 	/// <summary>False for money, ammo, medical, food, drink and the secure container (GDD s15).</summary>
-	bool Insurable = true);
+	bool Insurable = true,
+	/// <summary>Weapons: slot tree, default parts and base ergonomics (weapon modding).</summary>
+	WeaponBuildSpec? Build = null,
+	/// <summary>Weapon parts: interface tags, added slots and modifiers.</summary>
+	PartSpec? Part = null);
 
 /// <summary>One concrete item in the world, a grid or a slot: spec plus mutable state.</summary>
 public sealed class ItemInstance
@@ -76,6 +82,8 @@ public sealed class ItemInstance
 	public string? InsuredWith { get; set; }
 	/// <summary>Taken from a container or body during a raid (GDD s14); quests can ask for found items.</summary>
 	public bool FoundInRaid { get; set; }
+	/// <summary>Weapons and parts: attached parts keyed by slot id (each part may hold its own children).</summary>
+	public Dictionary<string, ItemInstance> Parts { get; } = new();
 
 	public int Width => Rotated ? Spec.Height : Spec.Width;
 	public int Height => Rotated ? Spec.Width : Spec.Height;
@@ -87,7 +95,8 @@ public sealed class ItemInstance
 	{
 		get
 		{
-			var w = Spec.WeightKg * Count + Rounds.Count * Spec.RoundWeightKg + (InsertedMagazine?.WeightKg ?? 0f);
+			var w = Spec.WeightKg * Count + Rounds.Count * Spec.RoundWeightKg + (InsertedMagazine?.WeightKg ?? 0f)
+				+ Parts.Values.Sum(part => part.WeightKg);
 			foreach (var grid in Grids)
 				w += grid.Items.Sum(i => i.WeightKg);
 			return w;

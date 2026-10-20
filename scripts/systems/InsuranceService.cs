@@ -99,7 +99,7 @@ public static class InsuranceService
 	}
 
 	public static int Premium(InsuranceTerms terms, ItemInstance item)
-		=> (int)Math.Ceiling(item.Spec.BaseValue * terms.PremiumFraction);
+		=> (int)Math.Ceiling(WeaponBuild.TotalValue(item) * terms.PremiumFraction); // a weapon is insured with its parts
 
 	public static InsureResult Insure(GameProfile profile, CharacterInventory character, TraderSpec trader,
 		ItemInstance item)
@@ -171,6 +171,7 @@ public static class InsuranceService
 		var copy = ItemInstance.Create(item.Spec, 1);
 		copy.Durability = item.Durability;
 		copy.FoundInRaid = item.FoundInRaid;
+		WeaponBuild.CopyParts(item, copy); // the weapon returns with its build, but not its magazine or rounds
 		return copy;
 	}
 

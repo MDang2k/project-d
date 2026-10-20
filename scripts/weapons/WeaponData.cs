@@ -26,7 +26,26 @@ public partial class WeaponData : Resource
 	/// <summary>Peak sway in degrees before stance, stamina and weight modifiers.</summary>
 	[Export] public float SwayBaseDeg { get; set; } = 0.35f;
 
+	/// <summary>Integrated bipod only (MG). Clamp-on bipods are parts and switch the bipod logic on while attached.</summary>
 	[Export] public bool HasBipod { get; set; }
+
+	[ExportGroup("Modding")]
+	/// <summary>0-100 before parts; final ergonomics scales ADS time, sway and arm-stamina drain.</summary>
+	[Export] public float Ergonomics { get; set; } = 50f;
+	/// <summary>The weapon's slot tree.</summary>
+	[Export] public Godot.Collections.Array<WeaponSlotData> Slots { get; set; } = new();
+	/// <summary>Default build: slot ids and the part item ids that fill them (parallel arrays).</summary>
+	[Export] public string[] DefaultPartSlots { get; set; } = System.Array.Empty<string>();
+	[Export] public string[] DefaultPartItems { get; set; } = System.Array.Empty<string>();
+
+	public WeaponBuildSpec ToBuildSpec()
+	{
+		var defaults = new System.Collections.Generic.Dictionary<string, string>();
+		for (var i = 0; i < DefaultPartSlots.Length && i < DefaultPartItems.Length; i++)
+			defaults[DefaultPartSlots[i]] = DefaultPartItems[i];
+		return new WeaponBuildSpec(System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(Slots, s => s.ToSpec())),
+			defaults, Ergonomics, HasBipod);
+	}
 
 	/// <summary>How far a shot carries (metres) for AI hearing. Suppressors will lower this later.</summary>
 	[Export] public float NoiseRadius { get; set; } = 150f;

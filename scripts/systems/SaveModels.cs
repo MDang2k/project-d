@@ -16,7 +16,9 @@ public sealed record ItemSave(
 	bool Insured = false,
 	string? InsuredWith = null,
 	/// <summary>Taken from a container or body during a raid (v5).</summary>
-	bool FoundInRaid = false);
+	bool FoundInRaid = false,
+	/// <summary>Attached weapon parts by slot id, each with its own children (v6).</summary>
+	Dictionary<string, ItemSave>? Parts = null);
 
 public sealed record PlacedItemSave(int X, int Y, ItemSave Item);
 
@@ -57,5 +59,5 @@ public sealed record SaveFile(
 	List<PendingRewardSave>? PendingRewards = null,
 	Dictionary<string, int>? Reputation = null)
 {
-	public const int CurrentVersion = 5;
+	public const int CurrentVersion = 6;
 }

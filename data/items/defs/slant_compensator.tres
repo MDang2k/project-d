@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="3"]
+
+[sub_resource type="Resource" id="part"]
+script = ExtResource("2")
+Interfaces = PackedStringArray("ak.muzzle.24x1.5")
+RecoilPct = -0.08
+
+[resource]
+script = ExtResource("1")
+Id = "slant_compensator"
+NameKey = "item.slant_compensator"
+Category = 13
+Width = 1
+Height = 1
+WeightKg = 0.05
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("part")
+IconColor = Color(0.25, 0.25, 0.27, 1)
+IconLabel = "Comp"
+BaseValue = 1500
