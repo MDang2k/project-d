@@ -81,6 +81,6 @@ Use free CC0 packs (Kenney, Quaternius) or Godot primitives. Before using any pa
 
 Work milestone by milestone (details in GDD §Milestones). Do not start systems from later milestones unless asked.
 
-**Current milestone: M7 — hub.** (M0 code done, weak-machine benchmark still pending; M1 player, M2 weapons, M3 damage, M4 inventory, M5 human AI and M6 raid loop complete. Map 1 is a test blockout; the user will supply map requirements later.)
+**Current milestone: M8 — skills, reputation and signature systems.** (M0 code done, weak-machine benchmark still pending; M1 player, M2 weapons, M3 damage, M4 inventory, M5 human AI, M6 raid loop and M7 hub complete. Map 1 is a test blockout; map standard and map 1 revision specs exist in docs/superpowers/specs.)
 
 Definition of done for any task: `dotnet build` has no warnings, xUnit tests for logic pass, GUT smoke passes, and you have told the user what to playtest.
