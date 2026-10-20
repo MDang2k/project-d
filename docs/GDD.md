@@ -27,8 +27,9 @@ Values marked **(tune)** are starting points to adjust through playtesting. Item
 
 ### Timeline
 
-- **1939–1965:** The Second World War continues for twenty years longer than in our history. (TBD: why the war stalled — a background detail, not needed for the slice.)
-- **1950s (TBD exact year):** Nazi scientists discover ancient alien ruins beneath central Germany and begin experimenting with the artifacts found there.
+- **1939–1965:** The Second World War continues for twenty years longer than in our history.
+- **1943:** German engineers find the outer alien ruins beneath central Germany. Crude salvage (prototype armor, power cells, relic weapons) keeps the Reich fighting and stalls the Allies.
+- **1950s:** The dig reaches the inner ruins and the Ewigstein lattice; Project Ewigstein begins. The full truth (the ruins are a prison and Ewigstein is its lock) lives in `docs/superpowers/specs/2026-10-21-story-core-truth-design.md` and is revealed only through play.
 - **1965 — the disaster** (working name: "the Cascade"). An experiment triggers a chain reaction, similar to Half-Life's resonance cascade. A series of massive explosions devastates central Europe and turns Germany into a wasteland. The war ends.
 - **1965–1970:** The Allies and the Soviet Union jointly declare an exclusion zone. Both send private military contractors in to secure artifacts and research, officially to "contain" the zone. Scavengers, looters and bandits settle in the ruins. The fallout turns some people into zombies (working name TBD).
 - **1970:** The game begins. Late in the story, aliens begin to appear.
