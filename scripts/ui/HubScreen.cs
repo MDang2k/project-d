@@ -21,6 +21,7 @@ public partial class HubScreen : CanvasLayer
 	private Label _tooltipText = null!;
 	private DragOverlay _drag = null!;
 	private TraderScreen _traders = null!;
+	private GunsmithScreen _gunsmith = null!;
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
@@ -61,6 +62,8 @@ public partial class HubScreen : CanvasLayer
 		_root.AddChild(_drag);
 		_traders = new TraderScreen(Profile, Rebuild);
 		_root.AddChild(_traders);
+		_gunsmith = new GunsmithScreen(Profile, Rebuild);
+		_root.AddChild(_gunsmith);
 
 		SaveManager.Instance?.SaveInHub();
 		Rebuild();
@@ -166,6 +169,8 @@ public partial class HubScreen : CanvasLayer
 			_traders.Open();
 		foreach (var a in args)
 		{
+			if (a.StartsWith("--gunsmith="))
+				_gunsmith.DebugOpen(a["--gunsmith=".Length..]);
 			if (a.StartsWith("--trader="))
 			{
 				var parts = a["--trader=".Length..].Split(':');
@@ -240,6 +245,7 @@ public partial class HubScreen : CanvasLayer
 		_drag.MoveToFront();
 		_tooltip.MoveToFront();
 		_traders.MoveToFront();
+		_gunsmith.MoveToFront();
 	}
 
 	private void BuildSidePicker()
@@ -278,6 +284,9 @@ public partial class HubScreen : CanvasLayer
 		top.AddThemeConstantOverride("separation", 20);
 		_header = new Label { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
 		top.AddChild(_header);
+		var gunsmith = new Button { Text = "Gunsmith", CustomMinimumSize = new Vector2(140f, 44f) };
+		gunsmith.Pressed += () => _gunsmith.Open();
+		top.AddChild(gunsmith);
 		var traders = new Button { Text = "Traders", CustomMinimumSize = new Vector2(140f, 44f) };
 		traders.Pressed += () => _traders.Open();
 		top.AddChild(traders);
@@ -430,7 +439,7 @@ public partial class HubScreen : CanvasLayer
 
 	public override void _Input(InputEvent @event)
 	{
-		if (_traders.Visible)
+		if (_traders.Visible || _gunsmith.Visible)
 			return;
 		switch (@event)
 		{

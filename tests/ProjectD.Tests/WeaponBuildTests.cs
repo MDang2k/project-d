@@ -377,3 +377,106 @@ public class WeaponModdingIntegrationTests
 		Assert.NotNull(run.Inventory!.InSlot(EquipSlot.Primary));
 	}
 }
+
+public class GunsmithTests
+{
+	private static (GameProfile Profile, CharacterInventory Character, ItemInstance Rifle) Setup(bool equip = false)
+	{
+		var profile = new GameProfile();
+		var character = new CharacterInventory();
+		var rifle = ModItems.NewRifle();
+		if (equip)
+			character.TryEquip(rifle, EquipSlot.Primary);
+		else
+			profile.Stash.TryPlaceAnywhere(rifle);
+		return (profile, character, rifle);
+	}
+
+	[Fact]
+	public void AttachMovesThePartOutOfTheStashOntoTheWeapon()
+	{
+		var (profile, character, rifle) = Setup();
+		var comp = ModItems.Part("comp")!;
+		profile.Stash.TryPlaceAnywhere(comp);
+		Assert.Equal(GunsmithResult.Ok, Gunsmith.Attach(profile, character, rifle, "muzzle", comp));
+		Assert.Same(comp, rifle.Parts["muzzle"]);
+		Assert.DoesNotContain(profile.Stash.Items, i => i == comp);
+	}
+
+	[Fact]
+	public void PartsFromCarriedGridsCanBeUsedToo()
+	{
+		var (profile, character, rifle) = Setup();
+		var pack = ItemInstance.Create(new ItemSpec("pack", "pack", ItemCategory.Backpack, 4, 4, 1f, Grids: new[] { new GridSize(5, 4) }));
+		character.TryEquip(pack, EquipSlot.Backpack);
+		var brake = ModItems.Part("brake")!;
+		pack.Grids[0].TryPlaceAnywhere(brake);
+		Assert.Single(Gunsmith.PartPool(profile, character));
+		Assert.Equal(GunsmithResult.Ok, Gunsmith.Attach(profile, character, rifle, "muzzle", brake));
+		Assert.Empty(pack.Grids[0].Items);
+	}
+
+	[Fact]
+	public void WrongPartOrUnownedPartIsRefused()
+	{
+		var (profile, character, rifle) = Setup();
+		var mount = ModItems.Part("mount")!;
+		profile.Stash.TryPlaceAnywhere(mount);
+		Assert.Equal(GunsmithResult.CannotFit, Gunsmith.Attach(profile, character, rifle, "muzzle", mount));
+		Assert.Equal(GunsmithResult.PartNotOwned, Gunsmith.Attach(profile, character, rifle, "muzzle", ModItems.Part("comp")!));
+		Assert.Contains(profile.Stash.Items, i => i == mount); // unchanged
+	}
+
+	[Fact]
+	public void DetachPutsThePartAndItsChildrenInTheStash()
+	{
+		var (profile, character, rifle) = Setup();
+		WeaponBuild.Attach(rifle, "underbarrel", ModItems.Part("bipod")!);
+		Assert.Equal(GunsmithResult.Ok, Gunsmith.Detach(profile, character, rifle, "handguard"));
+		var handguard = profile.Stash.Items.Single(i => i.Spec.Id == "hg_wood");
+		Assert.Equal("bipod", handguard.Parts["underbarrel"].Spec.Id);
+	}
+
+	[Fact]
+	public void DetachingAStructuralPartOffAnEquippedWeaponUnequipsIt()
+	{
+		var (profile, character, rifle) = Setup(equip: true);
+		Assert.Equal(GunsmithResult.Ok, Gunsmith.Detach(profile, character, rifle, "stock"));
+		Assert.Null(character.InSlot(EquipSlot.Primary));
+		Assert.Contains(profile.Stash.Items, i => i == rifle);
+		Assert.Equal("stock", Gunsmith.MissingText(rifle));
+	}
+
+	[Fact]
+	public void DetachingAnAccessoryKeepsTheWeaponEquipped()
+	{
+		var (profile, character, rifle) = Setup(equip: true);
+		WeaponBuild.Attach(rifle, "muzzle", ModItems.Part("comp")!);
+		Assert.Equal(GunsmithResult.Ok, Gunsmith.Detach(profile, character, rifle, "muzzle"));
+		Assert.Same(rifle, character.InSlot(EquipSlot.Primary));
+	}
+
+	[Fact]
+	public void FullStashBlocksDetachAndChangesNothing()
+	{
+		var (profile, character, rifle) = Setup(equip: true);
+		var filler = new ItemSpec("filler", "filler", ItemCategory.Misc, GameProfile.StashWidth, 1, 0.1f);
+		for (var i = 0; i < GameProfile.StashHeight; i++)
+			profile.Stash.TryPlaceAnywhere(ItemInstance.Create(filler));
+		WeaponBuild.Attach(rifle, "muzzle", ModItems.Part("comp")!);
+		Assert.Equal(GunsmithResult.StashFull, Gunsmith.Detach(profile, character, rifle, "muzzle"));
+		Assert.Equal("comp", rifle.Parts["muzzle"].Spec.Id);
+		Assert.Same(rifle, character.InSlot(EquipSlot.Primary));
+	}
+
+	[Fact]
+	public void WeaponsListCoversEquippedCarriedAndStashed()
+	{
+		var (profile, character, stashed) = Setup();
+		var equipped = ModItems.NewRifle();
+		character.TryEquip(equipped, EquipSlot.Primary);
+		var weapons = Gunsmith.Weapons(profile, character).ToList();
+		Assert.Contains(stashed, weapons);
+		Assert.Contains(equipped, weapons);
+	}
+}
