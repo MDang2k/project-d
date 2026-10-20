@@ -435,7 +435,6 @@ Zombies; grenades; malfunctions; full gunsmithing; medium maps; story missions; 
 
 ## 21. Open questions
 
-- Why did the war last twenty more years?
 - Names: game, map 1, traders, the disaster, the zombies. Confirm the faction names for Ewigstein.
 - Minimum CPU for the performance target.
 - Do night raids give better rewards?
