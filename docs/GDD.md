@@ -1,6 +1,6 @@
 # Project D — Game Design Document
 
-Version 0.1 · working title "Project D" · single-player · Godot 4 · PC
+Version 0.1 · **Ewigstein** (project codename "Project D") · single-player · Godot 4 · PC
 
 Values marked **(tune)** are starting points to adjust through playtesting. Items marked **(TBD)** are undecided — ask the designer before implementing them.
 
@@ -30,8 +30,8 @@ Values marked **(tune)** are starting points to adjust through playtesting. Item
 - **1939–1965:** The Second World War continues for twenty years longer than in our history.
 - **1943:** German engineers find the outer alien ruins beneath central Germany. Crude salvage (prototype armor, power cells, relic weapons) keeps the Reich fighting and stalls the Allies.
 - **1950s:** The dig reaches the inner ruins and the Ewigstein lattice; Project Ewigstein begins. The full truth (the ruins are a prison and Ewigstein is its lock) lives in `docs/superpowers/specs/2026-10-21-story-core-truth-design.md` and is revealed only through play.
-- **1965 — the disaster** (working name: "the Cascade"). An experiment triggers a chain reaction, similar to Half-Life's resonance cascade. A series of massive explosions devastates central Europe and turns Germany into a wasteland. The war ends.
-- **1965–1970:** The Allies and the Soviet Union jointly declare an exclusion zone. Both send private military contractors in to secure artifacts and research, officially to "contain" the zone. Scavengers, looters and bandits settle in the ruins. The fallout turns some people into zombies (working name TBD).
+- **1965 — Event 65**, the disaster. An experiment triggers a chain reaction, similar to Half-Life's resonance cascade. A series of massive explosions devastates central Europe and turns Germany into a wasteland. The war ends.
+- **1965–1970:** The Allies and the Soviet Union jointly declare an exclusion zone. Both send private military contractors in to secure artifacts and research, officially to "contain" the zone. Scavengers, looters and bandits settle in the ruins. The fallout turns some people into zombies, the **Hollowed**. The zone is officially the Sperrgebiet, "the Sperr" to contractors.
 - **1970:** The game begins. Late in the story, aliens begin to appear.
 
 ### Tone
@@ -43,8 +43,8 @@ Grounded Cold War military realism on the surface; creeping sci-fi horror undern
 The central plot device.
 
 - **What it is:** an alien crystal found in the ancient ruins. The Nazi research program codenamed it *Ewigstein* ("eternal stone"). It appears to be an **unlimited power source**. Nobody, including the original researchers, fully understands it.
-- **Its role in history:** the Nazis' attempts to tap it caused the 1965 Cascade. Exposure to it in the fallout turned people into zombies. Both superpowers now want it — the power that destroyed Germany could decide the Cold War. Historical parallel: the post-1945 race for German scientists and uranium.
-- **Names by faction:** Allied codename "Material HALCYON" (TBD), Soviet "Izdeliye 7" (TBD), scavenger slang "frostglass" (TBD).
+- **Its role in history:** the Nazis' attempts to tap it caused Event 65. Exposure to it in the fallout turned people into zombies. Both superpowers now want it — the power that destroyed Germany could decide the Cold War. Historical parallel: the post-1945 race for German scientists and uranium.
+- **Names by faction:** Allied codename "Material HALCYON", Soviet "Izdeliye 7", scavenger slang "frostglass".
 - **Presentation:** restrained, never a bright neon glow. Near it: a faint hum, metal frosting over, a spinning compass needle (useful, since there is no compass), radio static.
 - **Avoid:** making it look or sound like Call of Duty Zombies' Element 115 or C&C's Tiberium (no green glow, no element number, no stat-buff "artifact" use).
 
@@ -310,7 +310,7 @@ Where the player delivers the decisive Ewigstein at the end of the story determi
 2. **The other side:** betrayal; requires sufficient reputation with them.
 3. **Return it and seal the ruins:** nobody gets it. (Full ending design, including a hidden fourth ending, in `docs/superpowers/specs/2026-10-22-story-endings-design.md`.)
 
-Each ending needs its own final mission(s). A fourth, hidden ending tied to the aliens is possible (TBD).
+Each ending needs its own final mission(s). A fourth, hidden ending exists (see the endings spec).
 
 ## 15. Raids, extraction, death, saving
 
@@ -405,7 +405,7 @@ Godot primitives and free CC0 packs (Kenney, Quaternius) until custom art. Every
 ### Map 1 (slice)
 
 - About 180 × 180 m, 20-minute raids, noon and night variants.
-- **Theme: bunker entrance.** A fortified compound around the entrance to one of the German research bunkers: fences, checkpoint, guard towers, barracks, vehicle depot, and the bunker portal itself. Name TBD.
+- **Theme: bunker entrance.** A fortified compound around the entrance to one of the German research bunkers: fences, checkpoint, guard towers, barracks, vehicle depot, and the bunker portal itself. Name: **Bunker Gate 7**.
 - The main bunker door is sealed in the slice; opening it can become a story-mission hook later.
 - Landmarks visible from anywhere (guard tower, bunker portal, a crashed vehicle, etc.) are important, since there is no compass or minimap.
 - 3–4 extraction points; several spawn points.
@@ -435,11 +435,9 @@ Zombies; grenades; malfunctions; full gunsmithing; medium maps; story missions; 
 
 ## 21. Open questions
 
-- Names: game, map 1, traders, the disaster, the zombies. Confirm the faction names for Ewigstein.
 - Minimum CPU for the performance target.
 - Do night raids give better rewards?
 - Paper maps as an in-raid item?
 - Chance-based extraction points?
 - Economy: prices, sell rates, insurance cost.
-- Story beats for story missions.
 - Alien design.
