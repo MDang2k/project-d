@@ -308,7 +308,7 @@ Where the player delivers the decisive Ewigstein at the end of the story determi
 
 1. **Your own government:** your side wins the energy race.
 2. **The other side:** betrayal; requires sufficient reputation with them.
-3. **Destroy it and seal the ruins:** nobody gets it.
+3. **Return it and seal the ruins:** nobody gets it. (Full ending design, including a hidden fourth ending, in `docs/superpowers/specs/2026-10-22-story-endings-design.md`.)
 
 Each ending needs its own final mission(s). A fourth, hidden ending tied to the aliens is possible (TBD).
 
