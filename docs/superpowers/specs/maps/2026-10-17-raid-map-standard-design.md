@@ -1,6 +1,6 @@
 # Raid map standard
 
-Status: approved design, not implemented. Applies to every raid map. Map 1 applies it in `2026-10-17-map1-revision-design.md`. Builds on `2026-10-12-map1-requirements-design.md` (loop pacing, wave, validator) and the marker needs of 7c, 7e, 8c, 8d, 8e and 8f. Numbers marked **(tune)**.
+Status: approved design, not implemented. Applies to every raid map. Map 1 applies it in `docs/superpowers/specs/maps/2026-10-17-map1-revision-design.md`. Builds on `docs/superpowers/specs/maps/2026-10-12-map1-requirements-design.md` (loop pacing, wave, validator) and the marker needs of 7c, 7e, 8c, 8d, 8e and 8f. Numbers marked **(tune)**.
 
 ## Intent
 

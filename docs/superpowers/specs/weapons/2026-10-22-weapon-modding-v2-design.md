@@ -1,6 +1,6 @@
 # Weapon modding v2
 
-Status: approved design, not implemented. **Supersedes `2026-10-19-weapon-modding-design.md`** (which is implemented in code with save v6). Implements GDD §11 attachment slots and full gunsmithing. Item data comes from `docs/design/catalog/weapons.csv` and `weapon_parts.csv`, which need the changes in section 8. Numbers marked **(tune)**.
+Status: approved design, not implemented. **Supersedes `docs/superpowers/specs/weapons/2026-10-19-weapon-modding-design.md`** (which is implemented in code with save v6). Implements GDD §11 attachment slots and full gunsmithing. Item data comes from `docs/design/catalog/weapons.csv` and `weapon_parts.csv`, which need the changes in section 8. Numbers marked **(tune)**.
 
 ## Intent
 

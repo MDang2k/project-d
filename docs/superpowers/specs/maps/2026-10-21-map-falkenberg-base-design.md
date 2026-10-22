@@ -1,6 +1,6 @@
 # Map: Falkenberg base
 
-Status: approved design, not implemented. Middle-inner ring military map (`2026-10-20-world-map-transits-design.md`). Follows `2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/falkenberg_base.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
+Status: approved design, not implemented. Middle-inner ring military map (`docs/superpowers/specs/maps/2026-10-20-world-map-transits-design.md`). Follows `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/falkenberg_base.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
 
 ## Intent
 

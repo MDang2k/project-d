@@ -1,6 +1,6 @@
 # Map: Hochwald
 
-Status: approved design, not implemented. Middle-ring forest map and the transit crossroads of the zone (`2026-10-20-world-map-transits-design.md`). Follows `2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/hochwald.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
+Status: approved design, not implemented. Middle-ring forest map and the transit crossroads of the zone (`docs/superpowers/specs/maps/2026-10-20-world-map-transits-design.md`). Follows `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/hochwald.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
 
 ## Intent
 

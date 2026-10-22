@@ -1,6 +1,6 @@
 # Story part 3: characters
 
-Status: approved design (story bible, part 3 of 5). Builds on parts 1 and 2 (`2026-10-21-story-core-truth-design.md`, `2026-10-21-story-arc-missions-design.md`). Spoiler document. All names are working names until part 5. Traders' gameplay roles come from 7c; this part adds who they are.
+Status: approved design (story bible, part 3 of 5). Builds on parts 1 and 2 (`docs/superpowers/specs/story/2026-10-21-story-core-truth-design.md`, `docs/superpowers/specs/story/2026-10-21-story-arc-missions-design.md`). Spoiler document. All names are working names until part 5. Traders' gameplay roles come from 7c; this part adds who they are.
 
 ## 1. Hub traders
 

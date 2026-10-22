@@ -1,6 +1,6 @@
 # Weapon modding
 
-Status: SUPERSEDED by `2026-10-22-weapon-modding-v2-design.md` (implemented in code as v1; rework per v2). Implements GDD §11 "Attachment slots" (slice: optic, muzzle, magazine, underbarrel/bipod, light) and builds the system the GDD lists as post-slice "full gunsmithing" (barrels, stocks, handguards, receiver covers) so later content is data only. Item data comes from `docs/design/catalog/weapons.csv` and `weapon_parts.csv`. Numbers marked **(tune)**.
+Status: SUPERSEDED by `docs/superpowers/specs/weapons/2026-10-22-weapon-modding-v2-design.md` (implemented in code as v1; rework per v2). Implements GDD §11 "Attachment slots" (slice: optic, muzzle, magazine, underbarrel/bipod, light) and builds the system the GDD lists as post-slice "full gunsmithing" (barrels, stocks, handguards, receiver covers) so later content is data only. Item data comes from `docs/design/catalog/weapons.csv` and `weapon_parts.csv`. Numbers marked **(tune)**.
 
 ## Intent
 

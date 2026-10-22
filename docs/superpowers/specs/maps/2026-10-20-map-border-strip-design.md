@@ -1,6 +1,6 @@
 # Map: Border Strip
 
-Status: approved design, not implemented. Outer-middle ring map on the inner-German border (`2026-10-20-world-map-transits-design.md`). Follows `2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/border_strip.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
+Status: approved design, not implemented. Outer-middle ring map on the inner-German border (`docs/superpowers/specs/maps/2026-10-20-world-map-transits-design.md`). Follows `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/border_strip.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
 
 ## Intent
 

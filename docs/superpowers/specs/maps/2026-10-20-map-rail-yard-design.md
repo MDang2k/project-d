@@ -1,6 +1,6 @@
 # Map: Rail Yard
 
-Status: approved design, not implemented. Middle-ring industrial map and bandit HQ (`2026-10-20-world-map-transits-design.md`). Follows `2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/rail_yard.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
+Status: approved design, not implemented. Middle-ring industrial map and bandit HQ (`docs/superpowers/specs/maps/2026-10-20-world-map-transits-design.md`). Follows `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/rail_yard.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
 
 ## Intent
 

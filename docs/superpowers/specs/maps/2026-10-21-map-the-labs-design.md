@@ -1,6 +1,6 @@
 # Map: The Labs
 
-Status: approved design, not implemented. Inner-ring underground map beneath Bunker Entrance (`2026-10-20-world-map-transits-design.md`). Follows `2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/the_labs.layout.json` -> generated graybox -> hand scene). Story beats are TBD (GDD §14): lore entries here are placeholder hooks, and nothing alien is shown outright (GDD §3). Numbers marked **(tune)**.
+Status: approved design, not implemented. Inner-ring underground map beneath Bunker Entrance (`docs/superpowers/specs/maps/2026-10-20-world-map-transits-design.md`). Follows `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/the_labs.layout.json` -> generated graybox -> hand scene). Story beats are TBD (GDD §14): lore entries here are placeholder hooks, and nothing alien is shown outright (GDD §3). Numbers marked **(tune)**.
 
 ## Intent
 

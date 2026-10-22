@@ -8,7 +8,7 @@
 
 **Tech Stack:** Godot 4.7.2 mono, C# .NET 8, `System.Text.Json` (BCL, no new package), xUnit.
 
-**Spec:** `docs/superpowers/specs/2026-10-12-m7a-persistence-design.md`
+**Spec:** `docs/superpowers/specs/m7-hub/2026-10-12-m7a-persistence-design.md`
 
 ## Global Constraints
 
@@ -963,7 +963,7 @@ git commit -m "feat(save): SaveManager autoload, raid start/end saves, --nosave 
 ### Task 6: Verification and handoff
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-10-12-m7a-persistence-design.md` (status line)
+- Modify: `docs/superpowers/specs/m7-hub/2026-10-12-m7a-persistence-design.md` (status line)
 
 - [ ] **Step 1: Full verification**
 
@@ -975,7 +975,7 @@ Expected: no warnings, all pass.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-10-12-m7a-persistence-design.md
+git add docs/superpowers/specs/m7-hub/2026-10-12-m7a-persistence-design.md
 git commit -m "docs: M7a persistence implemented"
 ```
 

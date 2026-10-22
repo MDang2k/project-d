@@ -1,6 +1,6 @@
 # World map and transits
 
-Status: approved design, not implemented. Defines the roster of raid maps, their place in the zone, and the Tarkov-style transit network between them. Each map gets its own design spec later, following `2026-10-17-raid-map-standard-design.md`; map 1 already has `2026-10-17-map1-revision-design.md`. Numbers marked **(tune)**.
+Status: approved design, not implemented. Defines the roster of raid maps, their place in the zone, and the Tarkov-style transit network between them. Each map gets its own design spec later, following `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md`; map 1 already has `docs/superpowers/specs/maps/2026-10-17-map1-revision-design.md`. Numbers marked **(tune)**.
 
 ## Intent
 

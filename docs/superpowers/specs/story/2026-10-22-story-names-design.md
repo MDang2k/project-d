@@ -19,7 +19,7 @@ Status: approved design (story bible, part 5 of 5). Final names chosen by the de
 | Currency | **marks** | "marks" (working name confirmed) |
 | Other maps | Kreuzdorf, Hochwald, Border Strip, Rail Yard, Falkenberg base, The Labs, Cascade Site | kept as named in the world map spec |
 
-Characters keep the names in part 3 (`2026-10-22-story-characters-design.md`).
+Characters keep the names in part 3 (`docs/superpowers/specs/story/2026-10-22-story-characters-design.md`).
 
 ## Notes
 
@@ -30,8 +30,8 @@ Characters keep the names in part 3 (`2026-10-22-story-characters-design.md`).
 
 ## Story bible index
 
-1. `2026-10-21-story-core-truth-design.md` — the truth
-2. `2026-10-21-story-arc-missions-design.md` — acts, lock meter, story missions, Abteilung Ewig (written as Kommando Resonanz)
-3. `2026-10-22-story-characters-design.md` — characters
-4. `2026-10-22-story-endings-design.md` — endings
+1. `docs/superpowers/specs/story/2026-10-21-story-core-truth-design.md` — the truth
+2. `docs/superpowers/specs/story/2026-10-21-story-arc-missions-design.md` — acts, lock meter, story missions, Abteilung Ewig (written as Kommando Resonanz)
+3. `docs/superpowers/specs/story/2026-10-22-story-characters-design.md` — characters
+4. `docs/superpowers/specs/story/2026-10-22-story-endings-design.md` — endings
 5. this file — names

@@ -1,6 +1,6 @@
 # Map: Kreuzdorf
 
-Status: approved design, not implemented. Outer-ring starter map and the zone's medical loot hub (`2026-10-20-world-map-transits-design.md`). Follows `2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/kreuzdorf.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
+Status: approved design, not implemented. Outer-ring starter map and the zone's medical loot hub (`docs/superpowers/specs/maps/2026-10-20-world-map-transits-design.md`). Follows `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/kreuzdorf.layout.json` -> generated graybox -> hand scene). Numbers marked **(tune)**.
 
 ## Intent
 

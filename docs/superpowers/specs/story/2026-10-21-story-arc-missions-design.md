@@ -1,6 +1,6 @@
 # Story part 2: arc, lock meter, story missions and Kommando Resonanz
 
-Status: approved design (story bible, part 2 of 5). Builds on `2026-10-21-story-core-truth-design.md`. Spoiler document. Later parts: 3 characters, 4 endings, 5 names and background. Numbers marked **(tune)**.
+Status: approved design (story bible, part 2 of 5). Builds on `docs/superpowers/specs/story/2026-10-21-story-core-truth-design.md`. Spoiler document. Later parts: 3 characters, 4 endings, 5 names and background. Numbers marked **(tune)**.
 
 ## Intent
 

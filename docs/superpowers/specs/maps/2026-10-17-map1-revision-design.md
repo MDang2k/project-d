@@ -1,6 +1,6 @@
 # Map 1 revision (bunker entrance)
 
-Status: approved design, not implemented. Applies `2026-10-17-raid-map-standard-design.md` to map 1 and supersedes the layout parts of `2026-10-12-map1-requirements-design.md` (its pacing, wave and validator sections still apply). Numbers marked **(tune)**.
+Status: approved design, not implemented. Applies `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` to map 1 and supersedes the layout parts of `docs/superpowers/specs/maps/2026-10-12-map1-requirements-design.md` (its pacing, wave and validator sections still apply). Numbers marked **(tune)**.
 
 ## Intent
 

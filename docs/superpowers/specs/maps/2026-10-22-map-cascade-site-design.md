@@ -1,6 +1,6 @@
 # Map: Cascade Site
 
-Status: approved design, not implemented. Core-ring Late map at the epicenter of Event 65 (`2026-10-20-world-map-transits-design.md`). Setting for story mission 9 and the ending missions (story parts 2 and 4). Follows `2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/cascade_site.layout.json` -> generated graybox -> hand scene). Spoiler-sensitive: the Wächter appear only from Act 3; no alien element glows (GDD §3). Final names per story part 5. Numbers marked **(tune)**.
+Status: approved design, not implemented. Core-ring Late map at the epicenter of Event 65 (`docs/superpowers/specs/maps/2026-10-20-world-map-transits-design.md`). Setting for story mission 9 and the ending missions (story parts 2 and 4). Follows `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` (pipeline: `data/maps/cascade_site.layout.json` -> generated graybox -> hand scene). Spoiler-sensitive: the Wächter appear only from Act 3; no alien element glows (GDD §3). Final names per story part 5. Numbers marked **(tune)**.
 
 ## Intent
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Godot 4.7.2 mono, C# .NET 8, xUnit.
 
-**Spec:** `docs/superpowers/specs/2026-10-12-map1-requirements-design.md` (sections 3, 4, 5, 6, 7).
+**Spec:** `docs/superpowers/specs/maps/2026-10-12-map1-requirements-design.md` (sections 3, 4, 5, 6, 7).
 
 ## Global Constraints
 
