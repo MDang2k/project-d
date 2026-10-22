@@ -16,3 +16,4 @@ pocket_radio_receiver,Pocket radio receiver,Handheld,Picks up 8d frequencies in 
 flashlight,Flashlight (handheld),Handheld,Light source,Anywhere,,Yes (item),1x2,1500,Post-slice,M9
 night_vision_goggles,Night vision goggles (Gen 0 IR),Head,"Night optics, heavy",PMC bodies,,Yes (item),2x2,50000,Post-slice,M9
 signal_flare,Signal flare,Throwable,"Lights an area, attracts AI",Anywhere,Yes,Yes (item),1x1,800,Post-slice,Also on Grenades
+field_armorers_kit,Field armorer's kit,Tool,"Allows tooled weapon part swaps in raid (barrels, stocks, grips, handguards, threaded muzzle devices)",Engineer; workshops,,Yes (item),2x1,6000,Post-slice,Weapon modding v2; carried in rig or pockets

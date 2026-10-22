@@ -1,38 +1,77 @@
-Id,Name,Real basis,Slot,Interface,Adds slots,Fits family,Side / Origin,Modifiers (tune),Grid (WxH),Weight kg,Base value,Sold by,Phase,Notes
-4x_rifle_scope,4x rifle scope (East),PSO-1,Optic,ak.dovetail,,"AK, Soviet 7.62x54R",East,Zoom 4x; ergo -5,2x1,0.6,14000,Soviet QM; Engineer,Slice,
-3_5x_sniper_scope,3.5x sniper scope,PU,Optic,pu.mount,,Mosin,East,Zoom 3.5x,2x1,0.3,8000,Soviet QM,Post-slice,
-4x_rifle_scope,4x rifle scope (West),Hensoldt ZF 4x24,Optic,hk.claw / fal.clamp,,"HK roller-delayed, FAL",West,Zoom 4x; ergo -5,2x1,0.5,15000,Allied QM; Engineer,Slice,
-ranging_telescope,Ranging telescope,US ART,Optic,m14.base,,M14,West,Zoom 3-9x; ergo -8,3x1,0.9,30000,Allied QM,Post-slice,
-old_pattern_scope,Old-pattern scope,ZF 4 / ZF41,Optic,zf.mount,,"Kar 98k, StG",Relic,Zoom 1.5-4x,2x1,0.4,12000,,Post-slice,
-collimator_sight_prototype,Collimator sight prototype,Alt-history reflex,Optic,ak.dovetail / hk.claw / ar.handle,,"AK, HK, AR",Proto,1x; fast ADS,1x1,0.3,25000,Smuggler,Post-slice,
-starlight_night_scope,Starlight night scope,AN/PVS-2,Optic,ar.handle / m14.base,,"AR, M14",West,4x; night vision,3x2,2.7,60000,Allied QM,Post-slice,M9 night raids
-active_ir_night_sight,Active IR night sight,NSP-2,Optic,ak.dovetail,needs: IR lamp,"AK, Soviet 7.62x54R",East,2.5x; night vision with IR lamp,3x2,3,45000,Soviet QM,Post-slice,M9 night raids
-side_dovetail_mount,Side dovetail mount,Soviet side rail,Mount,ak.dovetail,optic,AK,East,,1x1,0.1,2000,Soviet QM,Slice,Most AKM have the rail; mount adapts to non-PSO optics
-claw_mount,Claw mount,HK claw,Mount,hk.claw,optic,HK roller-delayed,West,,1x1,0.2,3000,Allied QM,Post-slice,
-clamp_scope_base,Clamp scope base,FAL/M14 clamp,Mount,fal.clamp / m14.base,optic,"FAL, M14",West,,1x1,0.2,2500,Allied QM,Slice,
-slant_compensator,Slant compensator,AKM,Muzzle,ak.muzzle.24x1.5,,"AK, vz. 58, TKB-408, TKB-022PM, Konstantinov",East,Recoil climb -8%,1x1,0.05,1500,Soviet QM,Slice,Cross-family via shared thread
-muzzle_brake,Muzzle brake,FAL-style,Muzzle,fal.muzzle,,FAL,West,Recoil -10%; louder,1x1,0.15,3000,Allied QM,Post-slice,
-flash_hider,Flash hider (long),M16A1 birdcage,Muzzle,ar.muzzle.556,,"AR, Stoner 63",West,Flash -60% (night),1x1,0.07,2000,Allied QM,Post-slice,
-suppressor,Suppressor (East),PBS-1,Muzzle,ak.muzzle.24x1.5,,AK family + shared thread,East,Much quieter; needs subsonic for best effect,2x1,0.5,25000,Smuggler,Post-slice,
-suppressor,Suppressor (West),Sionics/MAC-style,Muzzle,ar.muzzle.556 / hk.muzzle,,"AR, HK",West,Much quieter,2x1,0.4,28000,Smuggler,Post-slice,
-improvised_suppressor,Improvised suppressor,Oil-filter type,Muzzle,any threaded,,Most threaded rifles,Bandit,Quieter; wears out,2x1,0.6,8000,Smuggler,Post-slice,Durability
-ak_40_round_mag,AK 40-round mag,RPK mag,Magazine,ak.mag.762x39,,"AK, TKB-408, TKB-022PM, Konstantinov",East,Capacity 40; ergo -3,1x2,0.4,4500,Soviet QM,Post-slice,
-ak_75_round_drum,AK 75-round drum,RPK drum,Magazine,ak.mag.762x39,,"AK, TKB-408, TKB-022PM, Konstantinov",East,Capacity 75; ergo -10,2x2,1.4,15000,Soviet QM,Post-slice,
-fal_30_round_mag,FAL 30-round mag,,Magazine,fal.mag,,FAL,West,Capacity 30; ergo -3,1x2,0.4,4500,Allied QM,Post-slice,
-gew_59_50_round_drum,Gew 59 50-round drum,,Magazine,hk.mag.762x51,,HK roller-delayed (7.62x51),West,Capacity 50; ergo -10,2x2,1.3,16000,Allied QM,Post-slice,
-ppsh_71_round_drum,PPSh 71-round drum,,Magazine,ppsh.mag,,PPSh-41,East,Capacity 71,2x2,1.8,5000,Soviet QM,Post-slice,
-mg_belt_250,MG belt 250,,Magazine,mg.belt,,"MG3, M60",Any,Capacity 250; heavy,2x2,3.5,9000,Engineer,Post-slice,
-clamp_on_bipod,Clamp-on bipod,FAL/G3-style,Underbarrel,fal.handguard / hk.handguard,,"FAL, HK",West,Bipod deploy (GDD §7),2x1,0.5,4000,Allied QM; Engineer,Slice,
-wooden_foregrip,Wooden foregrip,Improvised,Underbarrel,handguard (any wooden),,"AK, FAL, HK",Any,Recoil -3%; ergo +3,1x1,0.15,1500,Engineer,Post-slice,
-weapon_flashlight_clamp,Weapon flashlight clamp,Improvised taped light,Light,handguard / barrel clamp,,Most rifles,Any,Flashlight (M9),1x1,0.3,2000,Engineer,Slice,Arrives with M9 flashlights
-ir_illuminator_lamp,IR illuminator lamp,NSP-2 lamp,Light,ak.dovetail (lamp bracket),,"AK, Soviet 7.62x54R",East,IR light for NSP-2,2x2,1.5,15000,Soviet QM,Post-slice,M9
-folding_stock,Folding stock (AK underfolder),AKMS,Stock,ak.stock,,AK,East,Ergo +5; recoil +5%,2x1,0.4,6000,Soviet QM,Post-slice,
-paratrooper_folding_stock,Paratrooper folding stock (FAL),FAL Para,Stock,fal.stock,,FAL,West,Ergo +5; recoil +5%,2x1,0.5,7000,Allied QM,Post-slice,
-retractable_stock,Retractable stock (Gew 59),G3 collapsible,Stock,hk.stock,,HK roller-delayed,West,Ergo +4; recoil +4%,2x1,0.6,7000,Allied QM,Post-slice,
-short_barrel,Short barrel (carbine),,Barrel,per family,,"AK, HK, FAL",Any,Velocity -8%; ergo +6; dispersion +5%,2x1,0.6,8000,Engineer,Post-slice,
-long_heavy_barrel,Long heavy barrel (DMR),,Barrel,per family,,"AK, HK, FAL, M14",Any,Velocity +5%; dispersion -15%; weight +,3x1,1.2,15000,Engineer,Post-slice,
-polymer_handguard,Polymer handguard,,Handguard,ak.handguard / hk.handguard,underbarrel,"AK, HK",Any,Ergo +3,2x1,0.2,3000,Engineer,Post-slice,
-wooden_handguard,Wooden handguard (accurized),,Handguard,ak.handguard / fal.handguard,underbarrel,"AK, FAL",Any,Dispersion -3%,2x1,0.35,3500,Engineer,Post-slice,
-target_pistol_grip,Target pistol grip,,Grip,ak.grip / hk.grip,,"AK, HK",Any,Ergo +4,1x1,0.1,2500,Engineer,Post-slice,
-receiver_cover_with_optic_mount,Receiver cover with optic mount,,Receiver,ak.receiver,optic,AK,Alt-history,Stable optic mount,2x1,0.4,9000,Engineer,Post-slice,1970 has no rails; alt-history convenience
-ewigstein_tuned_trigger_group,Ewigstein-tuned trigger group,Alt-history,Trigger,per family,,Most rifles,Late,Fire rate +; TBD,1x1,0.2,0,,Late,
+Id,Name,Real basis,Class,Slot,Interface,Adds slots,Fits family,Side / Origin,Occupied steps,Occupied zones,VRC pts,HRC pts,Stability pts,Hip-fire pts,Ergo pts,Velocity mult,Zoom,In-raid swap,Grid (WxH),Weight kg,Base value,Sold by,Phase,Notes
+ak_barrel_std,AKM barrel (standard),AKM 415 mm,Vital,barrel,ak.barrel,muzzle (thread 14x1 LH); gas block,AK,East,0,fore_barrel,0,0,0,0,0,1,,Tooled,3x1,1.1,6000,Soviet QM; Engineer,Slice,
+ak_bolt_carrier,AKM bolt carrier group,AKM,Vital,bolt,ak.bolt,,AK,East,0,,0,0,0,0,0,1,,Tooled,2x1,0.5,4000,Engineer,Slice,
+ak_gas_tube,AKM gas tube,AKM,Vital,gas,ak.gastube,handguard upper,AK,East,0,,0,0,0,0,0,1,,Tooled,2x1,0.25,2500,Engineer,Slice,
+ak_grip_std,AKM pistol grip,AKM,Vital,grip,ak.grip,,AK,East,0,,0,0,0,0,0,1,,Tooled,1x1,0.1,800,Soviet QM; Engineer,Slice,
+ak_handguard_std,AKM handguard (wood),AKM,Structural,handguard,ak.handguard,klemmschiene (6 steps),AK,East,0,,0,0,0,0,0,1,,Tooled,2x1,0.3,1500,Soviet QM; Engineer,Slice,Exists in data
+ak_stock_std,AKM stock (wood),AKM,Structural,stock,ak.stock,,AK,East,0,,0,0,0,0,0,1,,Tooled,2x1,0.5,2000,Soviet QM; Engineer,Slice,Exists in data
+fal_barrel_std,FAL barrel (standard),FN FAL 533 mm,Vital,barrel,fal.barrel,"muzzle (fal.thread, verify)",FAL,West,0,fore_barrel,0,0,0,0,0,1,,Tooled,3x1,1.4,8000,Allied QM; Engineer,Slice,
+fal_bolt_carrier,FAL bolt carrier and bolt,FN FAL,Vital,bolt,fal.bolt,,FAL,West,0,,0,0,0,0,0,1,,Tooled,2x1,0.6,5000,Engineer,Slice,
+fal_gas_block_std,FAL gas block and regulator,FN FAL,Vital,gas,fal.gas,,FAL,West,0,fore_barrel,0,0,0,0,0,1,,Tooled,1x1,0.2,3000,Engineer,Slice,
+fal_grip_std,FAL pistol grip,FN FAL,Vital,grip,fal.grip,,FAL,West,0,,0,0,0,0,0,1,,Tooled,1x1,0.15,900,Allied QM; Engineer,Slice,
+fal_handguard_std,FAL handguard,FN FAL,Structural,handguard,fal.handguard,klemmschiene (6 steps); bipod lug,FAL,West,0,,0,0,0,0,0,1,,Tooled,2x1,0.35,1800,Allied QM; Engineer,Slice,Exists in data
+fal_stock_std,FAL stock (fixed),FN FAL,Structural,stock,fal.stock,,FAL,West,0,,0,0,0,0,0,1,,Tooled,2x1,0.6,2200,Allied QM; Engineer,Slice,Exists in data
+em2_barrel_std,EM-2 barrel,EM-2,Vital,barrel,em2.barrel,muzzle (integral flash hider),EM-2,Proto,0,fore_barrel,0,0,0,0,0,1,,Never,3x1,1.2,15000,,Slice,Integral; not removable
+em2_bolt,EM-2 bolt group,EM-2,Vital,bolt,em2.bolt,,EM-2,Proto,0,,0,0,0,0,0,1,,Never,2x1,0.5,10000,,Slice,Integral; not removable
+em2_gas_std,EM-2 gas system,EM-2,Vital,gas,em2.gas,,EM-2,Proto,0,,0,0,0,0,0,1,,Never,1x1,0.2,6000,,Slice,Integral; grip is part of the stock
+mg3_barrel_std,MG3 barrel (quick-change),MG3,Vital,barrel,mg3.barrel,muzzle (recoil booster),MG3,West,0,fore_barrel,0,0,0,0,0,1,,Tool-free,4x1,1.8,9000,Engineer,Slice,"Exists in data; quick-change, tool-free"
+mg3_bolt,MG3 bolt,MG3,Vital,bolt,mg3.bolt,,MG3,West,0,,0,0,0,0,0,1,,Tooled,2x1,0.6,6000,Engineer,Slice,Recoil-operated: no gas system
+mg3_trigger_grip,MG3 trigger housing and grip,MG3,Vital,grip,mg3.grip,,MG3,West,0,,0,0,0,0,0,1,,Tooled,2x1,0.5,3000,Engineer,Slice,
+p1_barrel,P1 barrel,Walther P1,Vital,barrel,p1.barrel,,Pistol,West,0,,0,0,0,0,0,1,,Tooled,1x1,0.1,1500,Engineer,Slice,
+p1_slide,P1 slide,Walther P1,Vital,bolt,p1.slide,,Pistol,West,0,,0,0,0,0,0,1,,Tooled,2x1,0.25,2500,Engineer,Slice,Slide is the bolt group
+p1_grip_panels,P1 grip panels,Walther P1,Vital,grip,p1.grip,,Pistol,West,0,,0,0,0,0,0,1,,Tooled,1x1,0.05,500,Engineer,Slice,
+scope_4x_east,4x rifle scope (East),PSO-1,Functional,optic,dovetail.side / planka70,,"AK, Soviet 7.62x54R",East,0,sight_line,0,0,8,0,-6,1,4x,Tool-free,2x1,0.6,14000,Soviet QM; Engineer,Slice,QD dovetail clamp
+scope_4x_west,4x rifle scope (West),Hensoldt ZF 4x24,Functional,optic,ns67 / hk.claw,,"HK, any NS-67 rail",West,8,sight_line,0,0,8,0,-6,1,4x,Tool-free,2x1,0.5,15000,Allied QM; Engineer,Slice,
+pu_scope,3.5x sniper scope,PU,Functional,optic,pu.mount,,Mosin,East,0,sight_line,0,0,6,0,-5,1,3.5x,Tooled,2x1,0.3,8000,Soviet QM,Post-slice,
+ranging_telescope,Ranging telescope,US ART,Functional,optic,m14.base / ns67,,"M14, NS-67 rails",West,10,sight_line,0,0,10,0,-9,1,3-9x,Tool-free,3x1,0.9,30000,Allied QM,Post-slice,
+old_pattern_scope,Old-pattern scope,ZF 4 / ZF41,Functional,optic,zf.mount,,"Kar 98k, StG",Relic,0,sight_line,0,0,5,0,-4,1,1.5-4x,Tooled,2x1,0.4,12000,,Post-slice,
+collimator_sight_prototype,Collimator sight prototype,alt-history reflex,Functional,optic,ns67 / planka70,,NS-67 and Planka-70 rails,Proto,4,sight_line,0,0,2,4,-2,1,1x,Tool-free,1x1,0.3,25000,Smuggler,Post-slice,Low mount: conflicts with fixed tall rear sights
+starlight_night_scope,Starlight night scope,AN/PVS-2,Functional,optic,ns67 / ar.handle,,"AR, NS-67 rails",West,12,sight_line,0,0,4,0,-14,1,4x night,Tool-free,3x2,2.7,60000,Allied QM,Post-slice,M9
+active_ir_night_sight,Active IR night sight,NSP-2,Functional,optic,planka70 / dovetail.side,,"AK, SVD",East,0,sight_line; side_left,0,0,3,0,-15,1,2.5x night,Tool-free,3x2,3,45000,Soviet QM,Post-slice,Needs the IR illuminator lamp; M9
+side_dovetail_mount,Side dovetail mount (NS-67 bracket),Zenit B-13 equivalent,Functional,mount,dovetail.side / planka70,"ns67 (6 steps, top)","AK, SVD, PK",East,0,,0,0,0,0,-2,1,,Tool-free,1x1,0.15,3500,Soviet QM; Smuggler,Slice,Lets Western optics onto Eastern rifles
+clamp_scope_base,Clamp scope base,FAL/M14 clamp,Functional,mount,fal.clamp / m14.base,"ns67 (8 steps, top)","FAL, M14",West,0,,0,0,0,0,-1,1,,Tooled,1x1,0.2,2500,Allied QM,Slice,
+claw_mount,Claw mount (NS-67),HK claw,Functional,mount,hk.claw,"ns67 (6 steps, top)",HK roller-delayed,West,0,,0,0,0,0,-1,1,,Tool-free,1x1,0.2,3000,Allied QM,Post-slice,
+planka70_plate,Planka-70 side plate,alt-history,Functional,mount,dovetail.side,planka70 (2 bars),"AK, SVD, PK",East,0,side_left,0,0,0,0,-2,1,,Tooled,1x1,0.25,4000,Soviet QM,Post-slice,Stacked bars: optic plus light on one side plate
+ar_handle_ns67_base,NS-67 carry-handle base,alt-history,Functional,mount,ar.handle,"ns67 (8 steps, top)",AR,West,0,,0,0,0,0,-1,1,,Tool-free,1x1,0.15,2500,Allied QM,Post-slice,
+klemmschiene_short,Klemmschiene segment (short),alt-history clamp rail,Functional,rail,klemmschiene,ns67 (4 steps),any klemmschiene surface,Any,4,,0,0,0,0,-1,1,,Tooled,1x1,0.1,1200,Engineer,Post-slice,
+klemmschiene_long,Klemmschiene segment (long),alt-history clamp rail,Functional,rail,klemmschiene,ns67 (8 steps),any klemmschiene surface,Any,8,,0,0,0,0,-2,1,,Tooled,2x1,0.2,1800,Engineer,Post-slice,
+slant_compensator,Slant compensator,AKM,Functional,muzzle,thread.14x1lh,,"AK, RPK and 14x1 LH barrels",East,0,muzzle,6,2,0,0,-1,1,,Tooled,1x1,0.05,1500,Soviet QM,Slice,
+muzzle_brake_fal,Muzzle brake (FAL),FAL-style,Functional,muzzle,fal.thread,,FAL,West,0,muzzle,10,4,0,0,-3,1,,Tooled,1x1,0.15,3000,Allied QM,Post-slice,Louder; thread pitch to verify
+flash_hider_birdcage,Flash hider (birdcage),M16A1,Functional,muzzle,thread.1/2-28,,"AR, Stoner 63",West,0,muzzle,2,3,0,0,-1,1,,Tooled,1x1,0.07,2000,Allied QM,Post-slice,Flash -60% (night)
+qd_host_east,QD muzzle host (East),alt-history,Functional,muzzle,thread.14x1lh,qd.east,AK and 14x1 LH barrels,East,0,muzzle,4,1,0,0,-1,1,,Tooled,1x1,0.1,4000,Soviet QM,Post-slice,Lets a QD suppressor mount
+qd_host_west,QD muzzle host (West),alt-history,Functional,muzzle,thread.1/2-28 / thread.15x1,qd.west,"AR, HK, Stoner",West,0,muzzle,4,1,0,0,-1,1,,Tooled,1x1,0.1,4500,Allied QM,Post-slice,
+suppressor_east,"Suppressor (East, threaded)",PBS-1,Functional,muzzle,thread.14x1lh,,AK and 14x1 LH barrels,East,0,muzzle,8,3,2,0,-12,0.98,,Tooled,2x1,0.5,25000,Smuggler,Post-slice,Much quieter; best with subsonic
+suppressor_west,"Suppressor (West, threaded)",Sionics/MAC-style,Functional,muzzle,thread.1/2-28 / thread.15x1,,"AR, HK",West,0,muzzle,8,3,2,0,-11,0.98,,Tooled,2x1,0.4,28000,Smuggler,Post-slice,Variant per thread
+qd_suppressor_east,QD suppressor (East),alt-history,Functional,muzzle,qd.east,,QD East host,East,0,muzzle,8,3,2,0,-12,0.98,,Tool-free,2x1,0.55,32000,Smuggler,Post-slice,Tool-free in raid
+qd_suppressor_west,QD suppressor (West),alt-history,Functional,muzzle,qd.west,,QD West host,West,0,muzzle,8,3,2,0,-11,0.98,,Tool-free,2x1,0.45,34000,Smuggler,Post-slice,Tool-free in raid
+improvised_suppressor,Improvised suppressor,oil-filter type,Functional,muzzle,thread.any (adapter),,most threaded rifles,Bandit,0,muzzle,4,1,0,0,-10,0.97,,Tooled,2x1,0.6,8000,Smuggler,Post-slice,Wears out
+ak_mag_40,AK 40-round mag,RPK mag,Structural,mag,ak.mag.762x39,,"AK, TKB-408, TKB-022PM, Konstantinov",East,0,,0,0,1,0,-4,1,,Tool-free,1x2,0.4,4500,Soviet QM,Post-slice,
+ak_drum_75,AK 75-round drum,RPK drum,Structural,mag,ak.mag.762x39,,AK family,East,0,,0,0,2,-2,-14,1,,Tool-free,2x2,1.4,15000,Soviet QM,Post-slice,
+fal_mag_30,FAL 30-round mag,,Structural,mag,fal.mag,,FAL,West,0,,0,0,1,0,-4,1,,Tool-free,1x2,0.4,4500,Allied QM,Post-slice,
+gew59_drum_50,Gew 59 50-round drum,,Structural,mag,hk.mag.762x51,,HK roller-delayed (7.62x51),West,0,,0,0,2,-2,-14,1,,Tool-free,2x2,1.3,16000,Allied QM,Post-slice,
+ppsh_drum_71,PPSh 71-round drum,,Structural,mag,ppsh.mag,,PPSh-41,East,0,,0,0,2,0,-10,1,,Tool-free,2x2,1.8,5000,Soviet QM,Post-slice,
+mg_belt_250,MG belt 250,,Structural,mag,mg.belt,,"MG3, M60",Any,0,,0,0,3,0,-18,1,,Tool-free,2x2,3.5,9000,Engineer,Post-slice,
+clamp_on_bipod,Clamp-on bipod,FAL/G3-style,Functional,underbarrel,fal.bipod_lug / hk.handguard / klemmschiene,,"FAL, HK, klemmschiene surfaces",West,4,under_barrel,0,0,6,0,-4,1,,Tooled,2x1,0.5,4000,Allied QM; Engineer,Slice,Deployed bipod logic per GDD §7
+wooden_foregrip,Wooden foregrip,improvised,Functional,underbarrel,ns67 / klemmschiene,,NS-67 and klemmschiene surfaces,Any,3,under_barrel,3,3,0,4,-1,1,,Tool-free,1x1,0.15,1500,Engineer,Post-slice,
+weapon_flashlight_clamp,Weapon flashlight clamp,improvised taped light,Functional,light,ns67 / klemmschiene / barrel clamp,,most rifles,Any,3,side_right,0,0,0,1,-2,1,,Tool-free,1x1,0.3,2000,Engineer,Slice,Arrives with M9 flashlights
+ir_illuminator_lamp,IR illuminator lamp,NSP-2 lamp,Functional,light,planka70,,"AK, SVD (Planka-70)",East,0,side_left,0,0,0,0,-6,1,,Tool-free,2x2,1.5,15000,Soviet QM,Post-slice,M9
+ir_laser_prototype,IR aiming laser prototype,alt-history,Functional,light,ns67,,NS-67 rails,Proto,3,side_right,0,0,0,10,-2,1,,Tool-free,1x1,0.3,30000,Smuggler,Post-slice,Visible only with night optics; M9
+ak_underfolder_stock,Folding stock (AK underfolder),AKMS,Structural,stock,ak.stock,,AK,East,0,,-5,-3,-6,2,6,1,,Tooled,2x1,0.4,6000,Soviet QM,Post-slice,
+fal_para_stock,Paratrooper folding stock (FAL),FAL Para,Structural,stock,fal.stock,,FAL,West,0,,-5,-3,-6,2,6,1,,Tooled,2x1,0.5,7000,Allied QM,Post-slice,
+gew59_retractable_stock,Retractable stock (Gew 59),G3 collapsible,Structural,stock,hk.stock,,HK roller-delayed,West,0,,-4,-2,-5,2,5,1,,Tooled,2x1,0.6,7000,Allied QM,Post-slice,
+target_pistol_grip,Target pistol grip,,Vital,grip,ak.grip / hk.grip,,"AK, HK",Any,0,,0,1,2,0,4,1,,Tooled,1x1,0.1,2500,Engineer,Post-slice,
+polymer_handguard_ns67,Polymer handguard with NS-67 rail,alt-history,Structural,handguard,ak.handguard / hk.handguard,"ns67 (6 steps, under)","AK, HK",Any,0,,0,0,0,0,3,1,,Tooled,2x1,0.2,3000,Engineer,Post-slice,
+wooden_handguard_accurized,Wooden handguard (accurized),,Structural,handguard,ak.handguard / fal.handguard,klemmschiene (6 steps),"AK, FAL",Any,0,,0,0,3,0,-1,1,,Tooled,2x1,0.35,3500,Engineer,Post-slice,
+ar_long_handguard_ns67,Long handguard with NS-67 rail (AR),alt-history,Structural,handguard,ar.handguard_long,"ns67 (10 steps, top); ns67 (6 steps, under)",AR,West,0,fore_barrel,1,1,2,0,-2,1,,Tooled,3x1,0.4,6000,Allied QM,Post-slice,Needs a low-profile gas block (fore_barrel zone)
+carbine_barrel_short,Short barrel (carbine),per family,Vital,barrel,ak.barrel / hk.barrel / fal.barrel,muzzle (family thread),"AK, HK, FAL",Any,0,fore_barrel,-2,-1,-4,3,8,0.92,,Tooled,2x1,0.8,8000,Engineer,Post-slice,One variant per family
+dmr_barrel_long,Long heavy barrel (DMR),per family,Vital,barrel,ak.barrel / hk.barrel / fal.barrel / m14.barrel,muzzle (family thread),"AK, HK, FAL, M14",Any,0,fore_barrel,2,1,10,-2,-8,1.04,,Tooled,3x1,1.6,15000,Engineer,Post-slice,One variant per family
+ar_upper_receiver_a1,AR upper receiver (A1),M16A1,Vital,receiver_upper,ar.upper,barrel; bolt; carry handle (ar.handle); handguard,AR,West,0,,0,0,0,0,0,1,,Never,3x1,0.6,12000,Allied QM,Post-slice,Must match an AR lower
+ar_lower_receiver,AR lower receiver,M16A1,Vital,receiver_lower,ar.lower,grip; buffer tube; mag well; trigger,AR,West,0,,0,0,0,0,0,1,,Never,2x1,0.4,10000,Allied QM,Post-slice,
+ar_buffer_tube,AR buffer tube,M16A1,Structural,buffer,ar.buffer,stock,AR,West,0,,0,0,0,0,0,1,,Tooled,2x1,0.2,1500,Allied QM,Post-slice,
+ar_front_sight_gas_block,AR front sight gas block,M16A1,Vital,gas,ar.gas,,AR,West,0,fore_barrel; sight_line,0,0,0,0,0,1,,Tooled,1x1,0.2,2000,Allied QM,Post-slice,High profile: blocks long handguards
+ar_low_profile_gas_block,AR low-profile gas block,alt-history,Vital,gas,ar.gas,,AR,West,0,,0,0,0,0,1,1,,Tooled,1x1,0.1,4500,Engineer,Post-slice,Frees fore_barrel; needs a separate front sight
+ar_flip_rear_sight,Flip-down rear sight,alt-history,Functional,sight,ns67,,NS-67 top rails,West,2,sight_line (only when raised),0,0,0,0,0,1,,Tool-free,1x1,0.05,2000,Engineer,Post-slice,Folded: frees sight_line for a low optic
+stoner_rifle_upper,Stoner 63 rifle upper (XM22),Stoner 63,Vital,receiver_upper,stoner.upper,barrel; feed: mag,Stoner 63,Proto,0,,0,0,0,0,0,1,,Never,3x1,1.2,30000,,Post-slice,Receiver swap: rifle configuration
+stoner_lmg_upper,Stoner 63 LMG upper (XM207),Stoner 63,Vital,receiver_upper,stoner.upper,barrel; feed: belt,Stoner 63,Proto,0,,0,0,0,0,0,1,,Never,3x1,1.6,35000,,Post-slice,Receiver swap: belt-fed LMG
+receiver_cover_ns67,Receiver cover with NS-67 rail (AK),alt-history,Functional,receiver_cover,ak.cover,"ns67 (10 steps, top)",AK,East,0,sight_line,0,0,1,0,-1,1,,Tooled,2x1,0.4,9000,Engineer,Post-slice,Stable top optic mount on an AK
+ewigstein_trigger_group,Ewigstein-tuned trigger group,alt-history,Vital,trigger,per family,,most rifles,Late,0,,0,0,0,0,0,1,,Never,1x1,0.2,0,,Late,Fire-rate effect TBD
