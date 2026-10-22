@@ -7,7 +7,8 @@
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
 Interfaces = PackedStringArray("ak.muzzle.24x1.5")
-RecoilPct = -0.08
+VerticalRecoilPts = 8.0
+HorizontalRecoilPts = 4.0
 
 [resource]
 script = ExtResource("1")

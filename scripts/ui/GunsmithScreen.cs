@@ -217,15 +217,16 @@ public partial class GunsmithScreen : Control
 		if (missing != "")
 			sb.AppendLine($"MISSING: {missing} - cannot be equipped or fired");
 		sb.AppendLine();
-		void Line(string label, string value, string delta) => sb.AppendLine($"{label,-12}{value}{delta}");
+		void Line(string label, string value, string delta) => sb.AppendLine($"{label,-14}{value}{delta}");
 		string D(float a, float b, string fmt = "0.##", bool inverse = false)
 			=> after is null || Math.Abs(a - b) < 0.0001f ? "" : $"   ({(b - a >= 0 ? "+" : "")}{(b - a).ToString(fmt)})";
 		var a = after ?? before;
-		Line("Recoil", $"x{before.RecoilMult:0.00}", D(before.RecoilMult, a.RecoilMult, "0.00"));
+		Line("Vert. recoil", $"{before.VerticalRecoil:0}", D(before.VerticalRecoil, a.VerticalRecoil, "0"));
+		Line("Horiz. recoil", $"{before.HorizontalRecoil:0}", D(before.HorizontalRecoil, a.HorizontalRecoil, "0"));
+		Line("Stability", $"{before.Stability:0}", D(before.Stability, a.Stability, "0"));
+		Line("Hip stability", $"{before.HipStability:0}", D(before.HipStability, a.HipStability, "0"));
 		Line("Ergonomics", $"{before.Ergonomics:0}", D(before.Ergonomics, a.Ergonomics, "0"));
-		Line("Sway", $"x{before.SwayMult:0.00}", D(before.SwayMult, a.SwayMult, "0.00"));
 		Line("Velocity", $"x{before.VelocityMult:0.00}", D(before.VelocityMult, a.VelocityMult, "0.00"));
-		Line("Dispersion", $"x{before.DispersionMult:0.00}", D(before.DispersionMult, a.DispersionMult, "0.00"));
 		Line("Noise", $"x{before.NoiseMult:0.00}", D(before.NoiseMult, a.NoiseMult, "0.00"));
 		Line("Zoom", before.Zoom > 0f ? $"{before.Zoom:0.#}x" : "-", D(before.Zoom, a.Zoom, "0.#"));
 		Line("Weight", $"{before.WeightKg:0.00} kg", D(before.WeightKg, a.WeightKg, "0.00"));

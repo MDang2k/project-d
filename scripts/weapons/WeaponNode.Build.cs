@@ -27,7 +27,7 @@ public partial class WeaponNode
 		get
 		{
 			var t = Data.ToRecoilTuning();
-			return t with { VerticalDeg = t.VerticalDeg * Stats.RecoilMult, HorizontalDeg = t.HorizontalDeg * Stats.RecoilMult };
+			return t with { VerticalDeg = t.VerticalDeg * Stats.VerticalRecoilMult, HorizontalDeg = t.HorizontalDeg * Stats.HorizontalRecoilMult };
 		}
 	}
 
@@ -37,7 +37,7 @@ public partial class WeaponNode
 	/// <summary>Sight line height above the weapon origin; an optic sits higher than iron sights.</summary>
 	public float SightHeight => Data.SightHeight + (Stats.Zoom > 0f ? 0.035f : 0f);
 
-	private WeaponStats NeutralStats() => new(1f, Data.Ergonomics, 1f, 1f, 1f, 1f, 0f, Data.WeightKg, 0, 0,
+	private WeaponStats NeutralStats() => new(50f, 50f, 50f, 50f, Data.Ergonomics, 1f, 1f, 0f, Data.WeightKg, 0, 0,
 		Data.HasBipod, false);
 
 	/// <summary>Recomputes the stats and rebuilds the part meshes when the attached parts changed.</summary>

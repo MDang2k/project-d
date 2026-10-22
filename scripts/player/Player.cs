@@ -1024,6 +1024,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var turn = sens * _weights.TurnMult(Tier);
 		if (IsSprinting)
 			turn *= _cfg.SprintTurnMult;
+		// Pulling against the accumulated recoil pays it down first; only the rest moves the view.
+		var rest = _recoil.Pull(new Vector2(-rel.X * Mathf.RadToDeg(turn), -rel.Y * Mathf.RadToDeg(sens)));
+		rel = new Vector2(-rest.X / Mathf.Max(Mathf.RadToDeg(turn), 1e-6f), -rest.Y / Mathf.Max(Mathf.RadToDeg(sens), 1e-6f));
 		RotateY(-rel.X * turn);
 		if (_support.BipodDeployed)
 		{

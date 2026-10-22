@@ -33,10 +33,10 @@ public static class ModItems
 		Part: new PartSpec(new[] { "rifle.handguard" }, new List<WeaponSlotSpec>(), new[] { "muzzle" }, ErgonomicsPts: 3f));
 
 	public static readonly ItemSpec Compensator = new("comp", "comp", ItemCategory.WeaponPart, 1, 1, 0.05f, BaseValue: 1500,
-		Part: new PartSpec(new[] { "rifle.muzzle" }, new List<WeaponSlotSpec>(), new List<string>(), RecoilPct: -0.08f, NoisePct: 0.1f));
+		Part: new PartSpec(new[] { "rifle.muzzle" }, new List<WeaponSlotSpec>(), new List<string>(), VerticalRecoilPts: 8f, NoisePct: 0.1f));
 
 	public static readonly ItemSpec Brake = new("brake", "brake", ItemCategory.WeaponPart, 1, 1, 0.1f, BaseValue: 3000,
-		Part: new PartSpec(new[] { "rifle.muzzle" }, new List<WeaponSlotSpec>(), new List<string>(), RecoilPct: -0.10f));
+		Part: new PartSpec(new[] { "rifle.muzzle" }, new List<WeaponSlotSpec>(), new List<string>(), VerticalRecoilPts: 10f));
 
 	public static readonly ItemSpec Mount = new("mount", "mount", ItemCategory.WeaponPart, 1, 1, 0.1f, BaseValue: 2000,
 		Part: new PartSpec(new[] { "rifle.rail" }, new[]
@@ -53,7 +53,7 @@ public static class ModItems
 
 	public static readonly ItemSpec LongBarrel = new("longbarrel", "longbarrel", ItemCategory.WeaponPart, 3, 1, 1.2f, BaseValue: 15000,
 		Part: new PartSpec(new[] { "rifle.muzzle" }, new List<WeaponSlotSpec>(), new List<string>(),
-			VelocityPct: 0.05f, DispersionPct: -0.15f, GridWidthAdd: 1));
+			VelocityPct: 0.05f, HipStabilityPts: 15f, GridWidthAdd: 1));
 
 	private static readonly Dictionary<string, ItemSpec> All = new[]
 	{
@@ -177,7 +177,8 @@ public class WeaponBuildTests
 		var rifle = ModItems.NewRifle();
 		WeaponBuild.Attach(rifle, "muzzle", ModItems.Part("comp")!);
 		var stats = WeaponBuild.Stats(rifle);
-		Assert.Equal(0.92f, stats.RecoilMult, 3);
+		Assert.Equal(58f, stats.VerticalRecoil, 3);
+		Assert.Equal(50f, stats.HorizontalRecoil, 3);
 		Assert.Equal(1.1f, stats.NoiseMult, 3);
 		Assert.Equal(45f, stats.Ergonomics, 3);
 
@@ -199,7 +200,7 @@ public class WeaponBuildTests
 		WeaponBuild.Attach(rifle, "optic", ModItems.Part("scope")!);
 		var s = WeaponBuild.Stats(rifle);
 		Assert.Equal(1.05f, s.VelocityMult, 3);
-		Assert.Equal(0.85f, s.DispersionMult, 3);
+		Assert.Equal(65f, s.HipStability, 3);
 		Assert.Equal(40f, s.Ergonomics, 3);
 	}
 
@@ -222,8 +223,8 @@ public class WeaponBuildTests
 	{
 		var rifle = ModItems.NewRifle();
 		var (before, after) = WeaponBuild.Preview(rifle, "muzzle", ModItems.Part("brake")!)!.Value;
-		Assert.Equal(1f, before.RecoilMult, 3);
-		Assert.Equal(0.9f, after.RecoilMult, 3);
+		Assert.Equal(50f, before.VerticalRecoil, 3);
+		Assert.Equal(60f, after.VerticalRecoil, 3);
 		Assert.Empty(rifle.Parts.Keys.Where(k => k == "muzzle"));
 		Assert.Null(WeaponBuild.Preview(rifle, "muzzle", ModItems.Part("mount")!));
 	}
@@ -235,8 +236,8 @@ public class WeaponBuildTests
 		var comp = ModItems.Part("comp")!;
 		WeaponBuild.Attach(rifle, "muzzle", comp);
 		var preview = WeaponBuild.Preview(rifle, "muzzle", ModItems.Part("brake")!)!.Value;
-		Assert.Equal(0.92f, preview.Before.RecoilMult, 3);
-		Assert.Equal(0.9f, preview.After.RecoilMult, 3);
+		Assert.Equal(58f, preview.Before.VerticalRecoil, 3);
+		Assert.Equal(60f, preview.After.VerticalRecoil, 3);
 		Assert.Same(comp, rifle.Parts["muzzle"]);
 	}
 
@@ -478,5 +479,79 @@ public class GunsmithTests
 		var weapons = Gunsmith.Weapons(profile, character).ToList();
 		Assert.Contains(stashed, weapons);
 		Assert.Contains(equipped, weapons);
+	}
+}
+
+public class WeaponClearanceTests
+{
+	private static WeaponSlotSpec Slot(string id, string type, string accepts, string rail = "", int start = 0, bool required = false)
+		=> new(id, type, new[] { accepts }, required, true, "", rail, start);
+
+	private static ItemSpec Receiver(params WeaponSlotSpec[] slots) => new("recv", "recv", ItemCategory.Weapon, 5, 2, 3f,
+		WeaponClass: WeaponClass.Primary,
+		Build: new WeaponBuildSpec(slots, new Dictionary<string, string>(), 50f, false, null,
+			new Dictionary<string, int> { ["top"] = 20 }));
+
+	private static ItemInstance Part(string id, string iface, int steps = 0, string[]? zones = null)
+		=> ItemInstance.Create(new ItemSpec(id, id, ItemCategory.WeaponPart, 1, 1, 0.1f,
+			Part: new PartSpec(new[] { iface }, new List<WeaponSlotSpec>(), new List<string>(), Steps: steps, Zones: zones)));
+
+	[Fact]
+	public void PartsOnTheSameRailMayNotOverlap()
+	{
+		var gun = ItemInstance.Create(Receiver(Slot("front", "mount", "m", "top", 0), Slot("mid", "mount", "m", "top", 4), Slot("rear", "mount", "m", "top", 10)));
+		Assert.True(WeaponBuild.Attach(gun, "front", Part("a", "m", steps: 5)));
+		Assert.Equal(AttachFailure.RailOverlap, WeaponBuild.CanAttach(gun, "mid", Part("b", "m", steps: 3)));
+		Assert.Equal(AttachFailure.None, WeaponBuild.CanAttach(gun, "rear", Part("c", "m", steps: 3)));
+	}
+
+	[Fact]
+	public void PartsMustFitTheRailLength()
+	{
+		var gun = ItemInstance.Create(Receiver(Slot("rear", "mount", "m", "top", 15)));
+		Assert.Equal(AttachFailure.RailOverflow, WeaponBuild.CanAttach(gun, "rear", Part("long", "m", steps: 8)));
+		Assert.Equal(AttachFailure.None, WeaponBuild.CanAttach(gun, "rear", Part("short", "m", steps: 5)));
+	}
+
+	[Fact]
+	public void TwoPartsInOneZoneConflictUntilALowProfilePartReplacesOne()
+	{
+		var gun = ItemInstance.Create(Receiver(Slot("sight", "sight", "s"), Slot("optic", "optic", "o")));
+		Assert.True(WeaponBuild.Attach(gun, "sight", Part("tall_rear", "s", zones: new[] { "sight_line" })));
+		Assert.Equal(AttachFailure.ZoneConflict, WeaponBuild.CanAttach(gun, "optic", Part("scope", "o", zones: new[] { "sight_line" })));
+		WeaponBuild.Detach(gun, "sight");
+		Assert.True(WeaponBuild.Attach(gun, "sight", Part("flip_rear", "s")));
+		Assert.Equal(AttachFailure.None, WeaponBuild.CanAttach(gun, "optic", Part("scope", "o", zones: new[] { "sight_line" })));
+	}
+
+	[Fact]
+	public void AHandguardProvidesRailsForItsOwnMounts()
+	{
+		var handguard = ItemInstance.Create(new ItemSpec("hg", "hg", ItemCategory.WeaponPart, 1, 1, 0.1f,
+			Part: new PartSpec(new[] { "hg" }, new[] { Slot("hg_mount", "mount", "m", "hg_top", 0) }, new List<string>(),
+				Rails: new Dictionary<string, int> { ["hg_top"] = 6 })));
+		var gun = ItemInstance.Create(Receiver(Slot("handguard", "handguard", "hg")));
+		Assert.True(WeaponBuild.Attach(gun, "handguard", handguard));
+		Assert.Equal(AttachFailure.RailOverflow, WeaponBuild.CanAttach(gun, "hg_mount", Part("big", "m", steps: 8)));
+		Assert.Equal(AttachFailure.None, WeaponBuild.CanAttach(gun, "hg_mount", Part("ok", "m", steps: 6)));
+	}
+
+	[Fact]
+	public void MissingVitalPartRedFlagsTheWeaponButStructuralDoesNot()
+	{
+		var gun = ItemInstance.Create(Receiver(Slot("bolt", "bolt", "b", required: true), Slot("stock", "stock", "s")));
+		Assert.False(WeaponBuild.IsComplete(gun));
+		WeaponBuild.Attach(gun, "bolt", Part("bolt", "b"));
+		Assert.True(WeaponBuild.IsComplete(gun));
+	}
+
+	[Fact]
+	public void RecoilSkillPointsRaiseBothRecoilRatings()
+	{
+		var gun = ItemInstance.Create(Receiver());
+		var s = WeaponBuild.Stats(gun, recoilSkillPts: 10f);
+		Assert.Equal(60f, s.VerticalRecoil, 3);
+		Assert.Equal(60f, s.HorizontalRecoil, 3);
+		Assert.Equal(50f, s.Stability, 3);
 	}
 }

@@ -7,7 +7,7 @@ namespace ProjectD;
 /// <summary>One slot of a weapon tree with its owner and whatever is attached.</summary>
 public sealed record SlotEntry(WeaponSlotSpec Spec, ItemInstance Owner, ItemInstance? Part, bool Blocked);
 
-public enum AttachFailure { None, NoSuchSlot, SlotTaken, SlotBlocked, WrongInterface, NotAPart, Cycle }
+public enum AttachFailure { None, NoSuchSlot, SlotTaken, SlotBlocked, WrongInterface, NotAPart, Cycle, RailOverflow, RailOverlap, ZoneConflict }
 
 /// <summary>
 /// Weapon modding rules (GDD s11, weapon modding spec): a weapon is a tree of parts. Fit by interface,
@@ -71,7 +71,49 @@ public static class WeaponBuild
 			return AttachFailure.SlotBlocked;
 		if (slot.Part is not null)
 			return AttachFailure.SlotTaken;
-		return spec.Interfaces.Any(slot.Spec.Accepts.Contains) ? AttachFailure.None : AttachFailure.WrongInterface;
+		if (!spec.Interfaces.Any(slot.Spec.Accepts.Contains))
+			return AttachFailure.WrongInterface;
+		return Clearance(weapon, slot.Spec, part);
+	}
+
+	// --- clearance (rail steps and named zones) ------------------------------------------------
+
+	/// <summary>Rail surfaces on the weapon: the receiver's plus those provided by attached parts.</summary>
+	public static Dictionary<string, int> Rails(ItemInstance weapon)
+	{
+		var rails = new Dictionary<string, int>();
+		foreach (var kv in weapon.Spec.Build?.Rails ?? new Dictionary<string, int>())
+			rails[kv.Key] = kv.Value;
+		foreach (var p in AllParts(weapon))
+			foreach (var kv in p.Spec.Part?.Rails ?? new Dictionary<string, int>())
+				rails[kv.Key] = kv.Value;
+		return rails;
+	}
+
+	private static IEnumerable<string> ZonesOf(ItemInstance part)
+		=> part.Spec.Part?.Zones ?? Array.Empty<string>();
+
+	/// <summary>None when a part fits its slot's rail range and shares no zone with what is attached.</summary>
+	private static AttachFailure Clearance(ItemInstance weapon, WeaponSlotSpec slot, ItemInstance part)
+	{
+		var len = part.Spec.Part!.Steps;
+		if (slot.Rail != "" && len > 0)
+		{
+			if (Rails(weapon).TryGetValue(slot.Rail, out var railLength) && slot.RailStart + len > railLength)
+				return AttachFailure.RailOverflow;
+			foreach (var other in Slots(weapon))
+			{
+				if (other.Part is null || other.Spec.Rail != slot.Rail)
+					continue;
+				var olen = other.Part.Spec.Part?.Steps ?? 0;
+				if (olen > 0 && slot.RailStart < other.Spec.RailStart + olen && other.Spec.RailStart < slot.RailStart + len)
+					return AttachFailure.RailOverlap;
+			}
+		}
+		var incoming = ZonesOf(part).Concat(AllParts(part).SelectMany(ZonesOf)).ToHashSet();
+		if (incoming.Count > 0 && AllParts(weapon).SelectMany(ZonesOf).Any(incoming.Contains))
+			return AttachFailure.ZoneConflict;
+		return AttachFailure.None;
 	}
 
 	public static bool Attach(ItemInstance weapon, string slotId, ItemInstance part)
@@ -141,25 +183,31 @@ public static class WeaponBuild
 
 	// --- stats ------------------------------------------------------------------------------
 
-	/// <summary>Final numbers: percent modifiers add (final = base x (1 + sum)), points add, ergonomics clamps to 0-100.</summary>
-	public static WeaponStats Stats(ItemInstance weapon)
+	/// <summary>
+	/// Final numbers: part points add to the weapon's base ratings (each clamped to 0-100), percent modifiers
+	/// add. <paramref name="recoilSkillPts"/> is the Recoil Control skill bonus on both recoil ratings.
+	/// </summary>
+	public static WeaponStats Stats(ItemInstance weapon, float recoilSkillPts = 0f)
 	{
 		var parts = AllParts(weapon).Select(p => p.Spec.Part).Where(p => p is not null).Select(p => p!).ToList();
 		float Sum(Func<PartSpec, float> f) => parts.Sum(f);
-		var baseErgo = weapon.Spec.Build?.Ergonomics ?? 50f;
+		var build = weapon.Spec.Build;
+		var r = build?.Ratings ?? new WeaponRatings();
 		var width = weapon.Spec.Width + parts.Sum(p => p.GridWidthAdd);
+		float Rate(float baseValue, float pts) => Math.Clamp(baseValue + pts, 0f, 100f);
 		return new WeaponStats(
-			Math.Max(0.1f, 1f + Sum(p => p.RecoilPct)),
-			Math.Clamp(baseErgo + Sum(p => p.ErgonomicsPts), 0f, 100f),
-			Math.Max(0.1f, 1f + Sum(p => p.SwayPct)),
-			Math.Max(0.1f, 1f + Sum(p => p.DispersionPct)),
+			Rate(r.VerticalRecoil, Sum(p => p.VerticalRecoilPts) + recoilSkillPts),
+			Rate(r.HorizontalRecoil, Sum(p => p.HorizontalRecoilPts) + recoilSkillPts),
+			Rate(r.Stability, Sum(p => p.StabilityPts)),
+			Rate(r.HipStability, Sum(p => p.HipStabilityPts)),
+			Rate(build?.Ergonomics ?? 50f, Sum(p => p.ErgonomicsPts)),
 			Math.Max(0.1f, 1f + Sum(p => p.VelocityPct)),
 			Math.Max(0.1f, 1f + Sum(p => p.NoisePct)),
 			parts.Count == 0 ? 0f : parts.Max(p => p.Zoom),
 			TotalWeightKg(weapon),
 			TotalValue(weapon),
 			width,
-			(weapon.Spec.Build?.IntegratedBipod ?? false) || parts.Any(p => p.Bipod),
+			(build?.IntegratedBipod ?? false) || parts.Any(p => p.Bipod),
 			parts.Any(p => p.Light));
 	}
 

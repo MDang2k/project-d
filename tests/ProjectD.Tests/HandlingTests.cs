@@ -80,7 +80,8 @@ public class SwayModelTests
 
 public class RecoilModelTests
 {
-	private static readonly RecoilTuning Tune = new(1f, 0.5f, 4f, 0.1f);
+	// 1 deg climb, 0.5 drift, settle 30% over 0.5 s after a 0.1 s release delay
+	private static readonly RecoilTuning Tune = new(1f, 0.5f, 0.3f, 0.5f, 0.1f);
 
 	[Fact]
 	public void KickClimbsAndDriftsDeterministically()
@@ -101,17 +102,72 @@ public class RecoilModelTests
 	}
 
 	[Fact]
-	public void RecoversAfterDelay()
+	public void NoRecoveryDuringABurst()
+	{
+		var r = new RecoilModel();
+		for (var i = 0; i < 10; i++)
+		{
+			r.Kick(Tune, 1f, 0f);
+			r.Update(0.05f, Tune); // shots 50 ms apart, inside the release delay
+		}
+		Assert.Equal(10f, r.Offset.Y, 3);
+	}
+
+	[Fact]
+	public void SettlesThirtyPercentAfterReleaseAndKeepsTheRest()
+	{
+		var r = new RecoilModel();
+		for (var i = 0; i < 10; i++)
+			r.Kick(Tune, 1f, 0f);
+		r.Update(0.1f, Tune);
+		r.Update(5f, Tune);
+		Assert.Equal(7f, r.Offset.Y, 3);
+		r.Update(10f, Tune);
+		Assert.Equal(7f, r.Offset.Y, 3);
+	}
+
+	[Fact]
+	public void PullingDownPaysTheKickBeforeMovingTheView()
+	{
+		var r = new RecoilModel();
+		r.Kick(Tune, 3f, 0f); // 3 deg up
+		var rest = r.Pull(new Vector2(0f, -2f));
+		Assert.Equal(1f, r.Offset.Y, 4);
+		Assert.Equal(0f, rest.Y, 4);
+		rest = r.Pull(new Vector2(0f, -1.5f));
+		Assert.Equal(0f, r.Offset.Y, 4);
+		Assert.Equal(-0.5f, rest.Y, 4);
+	}
+
+	[Fact]
+	public void PullingUpOrSidewaysAgainstNothingPassesThrough()
 	{
 		var r = new RecoilModel();
 		r.Kick(Tune, 1f, 0f);
-		r.Update(0.05f, Tune);
+		var rest = r.Pull(new Vector2(0.3f, 0.4f));
+		Assert.Equal(new Vector2(0.3f, 0.4f), rest);
 		Assert.Equal(1f, r.Offset.Y, 4);
-		r.Update(0.05f, Tune);
-		r.Update(0.1f, Tune);
-		Assert.Equal(0.6f, r.Offset.Y, 3);
-		r.Update(10f, Tune);
-		Assert.Equal(Vector2.Zero, r.Offset);
+	}
+}
+
+public class RatingCurveTests
+{
+	[Fact]
+	public void FiftyIsNeutralAndHundredStillKicks()
+	{
+		Assert.Equal(1f, RatingCurves.RecoilMult(50f), 4);
+		Assert.Equal(RatingCurves.RecoilFloor, RatingCurves.RecoilMult(100f), 4);
+		Assert.True(RatingCurves.RecoilMult(150f) >= RatingCurves.RecoilFloor);
+	}
+
+	[Fact]
+	public void CurvesAreMonotonic()
+	{
+		for (var r = 1; r <= 100; r++)
+		{
+			Assert.True(RatingCurves.RecoilMult(r) <= RatingCurves.RecoilMult(r - 1));
+			Assert.True(RatingCurves.SwayMult(r) <= RatingCurves.SwayMult(r - 1));
+		}
 	}
 }
 

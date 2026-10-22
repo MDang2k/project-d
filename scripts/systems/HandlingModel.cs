@@ -30,7 +30,14 @@ public sealed record HandlingTuning(
 }
 
 /// <summary>Per-weapon recoil numbers, degrees and seconds.</summary>
-public sealed record RecoilTuning(float VerticalDeg, float HorizontalDeg, float RecoveryDegS, float RecoveryDelayS);
+public sealed record RecoilTuning(
+	float VerticalDeg,
+	float HorizontalDeg,
+	/// <summary>Share of the climb that settles back after release.</summary>
+	float SettleFraction,
+	float SettleTimeS,
+	/// <summary>Pause after the last shot before settling starts.</summary>
+	float ReleaseDelayS);
 
 public readonly record struct HandlingContext(
 	Stance Stance,
@@ -94,10 +101,15 @@ public sealed class SwayModel
 	}
 }
 
-/// <summary>Accumulated view kick: vertical climb plus random horizontal drift, then recovery.</summary>
+/// <summary>
+/// Accumulated view kick: vertical climb plus random horizontal drift. No recovery during a burst. After
+/// the trigger is released the muzzle settles back a fraction of the climb; the player drags the rest
+/// down with <see cref="Pull"/> (weapon modding v2 s5).
+/// </summary>
 public sealed class RecoilModel
 {
 	private float _delayLeft;
+	private Vector2 _settleLeft;
 
 	/// <summary>x = yaw, y = pitch (positive = up), degrees.</summary>
 	public Vector2 Offset { get; private set; }
@@ -106,7 +118,8 @@ public sealed class RecoilModel
 	public void Kick(RecoilTuning tuning, float multiplier, float random)
 	{
 		Offset += new Vector2(tuning.HorizontalDeg * random, tuning.VerticalDeg) * multiplier;
-		_delayLeft = tuning.RecoveryDelayS;
+		_delayLeft = tuning.ReleaseDelayS;
+		_settleLeft = Vector2.Zero; // armed again once the delay passes
 	}
 
 	public void Update(float delta, RecoilTuning tuning)
@@ -114,10 +127,51 @@ public sealed class RecoilModel
 		if (_delayLeft > 0f)
 		{
 			_delayLeft = MathF.Max(0f, _delayLeft - delta);
-			return;
+			if (_delayLeft > 0f)
+				return;
+			_settleLeft = Offset * tuning.SettleFraction;
 		}
-		Offset = Offset.MoveToward(Vector2.Zero, tuning.RecoveryDegS * delta);
+		if (_settleLeft == Vector2.Zero)
+			return;
+		var step = tuning.SettleTimeS > 0.001f ? MathF.Min(1f, delta / tuning.SettleTimeS) : 1f;
+		var take = _settleLeft * step;
+		_settleLeft -= take;
+		Offset -= take;
 	}
+
+	/// <summary>
+	/// The player moves the view by <paramref name="deg"/> (x = yaw, y = pitch, positive up). Movement that opposes
+	/// the accumulated kick pays it down first; the unused rest is returned for the normal look.
+	/// </summary>
+	public Vector2 Pull(Vector2 deg)
+	{
+		static float One(float offset, float move, out float rest)
+		{
+			if (offset > 0f && move < 0f)
+			{
+				var used = MathF.Min(offset, -move);
+				rest = move + used;
+				return offset - used;
+			}
+			if (offset < 0f && move > 0f)
+			{
+				var used = MathF.Min(-offset, move);
+				rest = move - used;
+				return offset + used;
+			}
+			rest = move;
+			return offset;
+		}
+		var x = One(Offset.X, deg.X, out var restX);
+		var y = One(Offset.Y, deg.Y, out var restY);
+		Offset = new Vector2(x, y);
+		_settleLeft = new Vector2(Clip(_settleLeft.X, x), Clip(_settleLeft.Y, y));
+		return new Vector2(restX, restY);
+	}
+
+	/// <summary>Pending settle can never exceed what is left of the offset in the same direction.</summary>
+	private static float Clip(float settle, float offset)
+		=> MathF.Sign(settle) == MathF.Sign(offset) ? MathF.Sign(settle) * MathF.Min(MathF.Abs(settle), MathF.Abs(offset)) : 0f;
 }
 
 /// <summary>Aim-down-sights blend 0..1 over the weapon's ADS time.</summary>

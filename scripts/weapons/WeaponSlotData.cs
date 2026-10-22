@@ -17,6 +17,10 @@ public partial class WeaponSlotData : Resource
 	[Export] public bool Accessory { get; set; }
 	/// <summary>Model marker the part sits at (Muzzle, OpticMount, BipodMount, ...).</summary>
 	[Export] public string Marker { get; set; } = "";
+	/// <summary>Rail surface this slot sits on (clearance), empty when none.</summary>
+	[Export] public string Rail { get; set; } = "";
+	/// <summary>First 10 mm step of a part in this slot on that rail.</summary>
+	[Export] public int RailStart { get; set; }
 
-	public WeaponSlotSpec ToSpec() => new(Id, Type, Accepts.ToList(), Required, Accessory, Marker);
+	public WeaponSlotSpec ToSpec() => new(Id, Type, Accepts.ToList(), Required, Accessory, Marker, Rail, RailStart);
 }

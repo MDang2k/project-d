@@ -20,8 +20,11 @@ public partial class WeaponData : Resource
 	/// <summary>Vertical kick per shot in degrees.</summary>
 	[Export] public float RecoilVerticalDeg { get; set; } = 1.1f;
 	[Export] public float RecoilHorizontalDeg { get; set; } = 0.5f;
-	[Export] public float RecoilRecoveryDegS { get; set; } = 6f;
-	[Export] public float RecoilRecoveryDelayS { get; set; } = 0.1f;
+	/// <summary>Pause after the last shot before the muzzle settles; there is no recovery during a burst.</summary>
+	[Export] public float RecoilReleaseDelayS { get; set; } = 0.1f;
+	/// <summary>Share of the accumulated climb that settles back after release (the player drags the rest).</summary>
+	[Export] public float RecoilSettleFraction { get; set; } = 0.3f;
+	[Export] public float RecoilSettleTimeS { get; set; } = 0.5f;
 	[Export] public float AdsTimeS { get; set; } = 0.22f;
 	/// <summary>Peak sway in degrees before stance, stamina and weight modifiers.</summary>
 	[Export] public float SwayBaseDeg { get; set; } = 0.35f;
@@ -32,6 +35,14 @@ public partial class WeaponData : Resource
 	[ExportGroup("Modding")]
 	/// <summary>0-100 before parts; final ergonomics scales ADS time, sway and arm-stamina drain.</summary>
 	[Export] public float Ergonomics { get; set; } = 50f;
+	/// <summary>Base ratings 0-100 before parts (weapon modding v2 s4).</summary>
+	[Export] public float VerticalRecoilRating { get; set; } = 50f;
+	[Export] public float HorizontalRecoilRating { get; set; } = 50f;
+	[Export] public float StabilityRating { get; set; } = 50f;
+	[Export] public float HipStabilityRating { get; set; } = 50f;
+	/// <summary>Rail surfaces of the receiver (parallel arrays): id and length in 10 mm steps.</summary>
+	[Export] public string[] RailIds { get; set; } = System.Array.Empty<string>();
+	[Export] public int[] RailLengths { get; set; } = System.Array.Empty<int>();
 	/// <summary>The weapon's slot tree.</summary>
 	[Export] public Godot.Collections.Array<WeaponSlotData> Slots { get; set; } = new();
 	/// <summary>Default build: slot ids and the part item ids that fill them (parallel arrays).</summary>
@@ -44,7 +55,9 @@ public partial class WeaponData : Resource
 		for (var i = 0; i < DefaultPartSlots.Length && i < DefaultPartItems.Length; i++)
 			defaults[DefaultPartSlots[i]] = DefaultPartItems[i];
 		return new WeaponBuildSpec(System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(Slots, s => s.ToSpec())),
-			defaults, Ergonomics, HasBipod);
+			defaults, Ergonomics, HasBipod,
+			new WeaponRatings(VerticalRecoilRating, HorizontalRecoilRating, StabilityRating, HipStabilityRating),
+			PartData.RailMap(RailIds, RailLengths));
 	}
 
 	/// <summary>How far a shot carries (metres) for AI hearing. Suppressors will lower this later.</summary>
@@ -74,7 +87,7 @@ public partial class WeaponData : Resource
 	};
 
 	public RecoilTuning ToRecoilTuning()
-		=> new(RecoilVerticalDeg, RecoilHorizontalDeg, RecoilRecoveryDegS, RecoilRecoveryDelayS);
+		=> new(RecoilVerticalDeg, RecoilHorizontalDeg, RecoilSettleFraction, RecoilSettleTimeS, RecoilReleaseDelayS);
 
 	/// <summary>Height of the sight line above the weapon origin (placeholder model).</summary>
 	public float SightHeight => BodySize.Y * 0.5f + 0.025f;
