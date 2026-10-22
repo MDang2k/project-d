@@ -5,6 +5,41 @@
 [ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
 [ext_resource type="Script" path="res://scripts/trade/TraderLevelData.cs" id="4"]
 
+[sub_resource type="Resource" id="s0_17"]
+script = ExtResource("2")
+ItemId = "fal_barrel_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_18"]
+script = ExtResource("2")
+ItemId = "fal_grip_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_19"]
+script = ExtResource("2")
+ItemId = "fal_handguard_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_20"]
+script = ExtResource("2")
+ItemId = "fal_stock_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_21"]
+script = ExtResource("2")
+ItemId = "scope_4x_west"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_22"]
+script = ExtResource("2")
+ItemId = "clamp_scope_base"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_23"]
+script = ExtResource("2")
+ItemId = "clamp_on_bipod"
+PriceMultiplier = 1.0
+
 [sub_resource type="Resource" id="s0_0"]
 script = ExtResource("2")
 ItemId = "fal_type"
@@ -95,7 +130,7 @@ script = ExtResource("4")
 HasInsurance = true
 PremiumFraction = 0.12
 ReturnChance = 0.35
-Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11"), SubResource("s0_12"), SubResource("s0_13"), SubResource("s0_14"), SubResource("s0_15"), SubResource("s0_16")])
+Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11"), SubResource("s0_12"), SubResource("s0_13"), SubResource("s0_14"), SubResource("s0_15"), SubResource("s0_16"), SubResource("s0_17"), SubResource("s0_18"), SubResource("s0_19"), SubResource("s0_20"), SubResource("s0_21"), SubResource("s0_22"), SubResource("s0_23")])
 BuyCategories = PackedStringArray("Weapon", "Ammo", "Armor", "Helmet", "Rig", "Backpack", "Food", "Drink")
 BuyMultiplier = 1.25
 SellFraction = 0.45

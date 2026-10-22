@@ -41,6 +41,7 @@ public partial class InventoryScreen : CanvasLayer
 	private Label _tooltipText = null!;
 	private DragOverlay _drag = null!;
 	private HealthPanel _health = null!;
+	private FieldStripPanel _strip = null!;
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
@@ -75,10 +76,20 @@ public partial class InventoryScreen : CanvasLayer
 	public void Bind(Player player)
 	{
 		_player = player;
+		_strip = new FieldStripPanel(player, Toggle);
+		_root.AddChild(_strip);
+		var modify = new Button { Text = "Modify weapon" };
+		modify.SetAnchorsPreset(Control.LayoutPreset.TopRight);
+		modify.OffsetLeft = -170f;
+		modify.OffsetTop = 28f;
+		modify.OffsetRight = -28f;
+		modify.Pressed += _strip.Toggle;
+		_root.AddChild(modify);
 		player.Inventory.Changed += () =>
 		{
 			if (IsOpen)
 				Rebuild();
+			_strip.Rebuild();
 		};
 	}
 
@@ -190,6 +201,7 @@ public partial class InventoryScreen : CanvasLayer
 
 	private void Close()
 	{
+		_strip.Visible = false;
 		_container?.Model.StopSearch();
 		_container = null;
 		CancelDrag();

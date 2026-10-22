@@ -5,6 +5,11 @@
 [ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
 [ext_resource type="Script" path="res://scripts/trade/TraderLevelData.cs" id="4"]
 
+[sub_resource type="Resource" id="s0_4"]
+script = ExtResource("2")
+ItemId = "side_dovetail_mount"
+PriceMultiplier = 1.0
+
 [sub_resource type="Resource" id="s0_0"]
 script = ExtResource("2")
 ItemId = "ammo_280"
@@ -48,7 +53,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv0"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3")])
+Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4")])
 BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
 BuyMultiplier = 1.25
 SellFraction = 0.3

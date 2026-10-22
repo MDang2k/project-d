@@ -100,6 +100,23 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private HandlingTuning _handling = null!;
 	private readonly SwayModel _swayModel = new();
 	private readonly RecoilModel _recoil = new();
+	private readonly FieldSwapTimer _swap = new();
+	private ProgressBar _swapBar = null!;
+	private Label _swapLabel = null!;
+
+	/// <summary>A part swap is running: the weapon cannot be fired or aimed (weapon modding v2 s7).</summary>
+	public bool SwapActive => _swap.Active;
+
+	/// <summary>Starts a timed swap; sprinting or taking damage cancels it. False when one is already running.</summary>
+	public bool BeginFieldSwap(float seconds, string label, Action apply)
+		=> !Health.IsDead && _swap.Start(seconds, label, () =>
+		{
+			apply();
+			Inventory.NotifyChanged();
+		});
+
+	/// <summary>The held weapon is missing a vital part and cannot chamber or fire.</summary>
+	private bool WeaponRedFlagged => Weapon?.Item is { } held && !WeaponBuild.IsComplete(held);
 	private readonly AimModel _aim = new();
 	private SupportModel _support = null!;
 	private HealthComponent? _health;
@@ -172,7 +189,22 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_prompt.OffsetLeft = -200f;
 		_prompt.OffsetRight = 200f;
 		promptLayer.AddChild(_prompt);
+		_swapBar = new ProgressBar { MinValue = 0, MaxValue = 1, ShowPercentage = false, Visible = false, CustomMinimumSize = new Vector2(240f, 14f) };
+		_swapBar.SetAnchorsPreset(Control.LayoutPreset.CenterBottom);
+		_swapBar.OffsetTop = -120f;
+		_swapBar.OffsetBottom = -106f;
+		_swapBar.OffsetLeft = -120f;
+		_swapBar.OffsetRight = 120f;
+		promptLayer.AddChild(_swapBar);
+		_swapLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center, Visible = false };
+		_swapLabel.SetAnchorsPreset(Control.LayoutPreset.CenterBottom);
+		_swapLabel.OffsetTop = -146f;
+		_swapLabel.OffsetLeft = -200f;
+		_swapLabel.OffsetRight = 200f;
+		promptLayer.AddChild(_swapLabel);
 		AddChild(promptLayer);
+		Health.HitTaken += _ => _swap.Cancel();
+		_swap.Cancelled += () => GD.Print("[swap] cancelled");
 		Inventory.Changed += RefreshHeldWeapon;
 		Health.MedicalFinished += (_, ok) => FinishPendingUse(ok);
 		Health.ConsumableFinished += _ => FinishPendingUse(true);
@@ -812,12 +844,19 @@ public partial class Player : CharacterBody3D, IPerceivable
 	}
 
 	private bool AimHeld()
-		=> Weapon is not null && !_mantling && !Weapon.Controller.IsBusy && !_melee.IsBusy
+		=> Weapon is not null && !_mantling && !Weapon.Controller.IsBusy && !_melee.IsBusy && !_swap.Active && !WeaponRedFlagged
 			&& (DebugForceAds || (Input.MouseMode == Input.MouseModeEnum.Captured && Input.IsActionPressed("aim")));
 
 	/// <summary>ADS blend, breath hold, sway, recoil recovery, weapon position and FOV.</summary>
 	private void UpdateHandling(float delta)
 	{
+		_swap.Update(delta, IsSprinting);
+		_swapBar.Visible = _swapLabel.Visible = _swap.Active;
+		if (_swap.Active)
+		{
+			_swapBar.Value = _swap.Progress;
+			_swapLabel.Text = _swap.Label;
+		}
 		var weapon = Weapon;
 		var aimHeld = AimHeld();
 		var ergo = _cfg.ToErgonomicsTuning();
@@ -900,7 +939,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			return;
 		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
 		weapon.Controller.ReloadTimeMultiplier = _penalties.ReloadTimeMultiplier;
-		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling
+		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling && !_swap.Active && !WeaponRedFlagged
 			&& !_clearance.BlocksFire && !_melee.IsBusy;
 		weapon.TriggerHeld = DebugForceTrigger || Input.IsActionPressed("fire");
 		if (Input.IsActionJustPressed("fire") || DebugForceTrigger)

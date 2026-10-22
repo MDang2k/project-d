@@ -5,6 +5,121 @@
 [ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
 [ext_resource type="Script" path="res://scripts/trade/TraderLevelData.cs" id="4"]
 
+[sub_resource type="Resource" id="s0_12"]
+script = ExtResource("2")
+ItemId = "ak_barrel_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_13"]
+script = ExtResource("2")
+ItemId = "ak_bolt_carrier"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_14"]
+script = ExtResource("2")
+ItemId = "ak_gas_tube"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_15"]
+script = ExtResource("2")
+ItemId = "ak_grip_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_16"]
+script = ExtResource("2")
+ItemId = "ak_handguard_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_17"]
+script = ExtResource("2")
+ItemId = "ak_stock_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_18"]
+script = ExtResource("2")
+ItemId = "fal_barrel_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_19"]
+script = ExtResource("2")
+ItemId = "fal_bolt_carrier"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_20"]
+script = ExtResource("2")
+ItemId = "fal_gas_block_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_21"]
+script = ExtResource("2")
+ItemId = "fal_grip_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_22"]
+script = ExtResource("2")
+ItemId = "fal_handguard_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_23"]
+script = ExtResource("2")
+ItemId = "fal_stock_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_24"]
+script = ExtResource("2")
+ItemId = "mg3_barrel_std"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_25"]
+script = ExtResource("2")
+ItemId = "mg3_bolt"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_26"]
+script = ExtResource("2")
+ItemId = "mg3_trigger_grip"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_27"]
+script = ExtResource("2")
+ItemId = "p1_barrel"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_28"]
+script = ExtResource("2")
+ItemId = "p1_slide"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_29"]
+script = ExtResource("2")
+ItemId = "p1_grip_panels"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_30"]
+script = ExtResource("2")
+ItemId = "scope_4x_east"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_31"]
+script = ExtResource("2")
+ItemId = "scope_4x_west"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_32"]
+script = ExtResource("2")
+ItemId = "clamp_on_bipod"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_33"]
+script = ExtResource("2")
+ItemId = "weapon_flashlight_clamp"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="s0_34"]
+script = ExtResource("2")
+ItemId = "field_armorer_kit"
+PriceMultiplier = 1.0
+
 [sub_resource type="Resource" id="s0_0"]
 script = ExtResource("2")
 ItemId = "ak_mag"
@@ -81,7 +196,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv0"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11")])
+Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11"), SubResource("s0_12"), SubResource("s0_13"), SubResource("s0_14"), SubResource("s0_15"), SubResource("s0_16"), SubResource("s0_17"), SubResource("s0_18"), SubResource("s0_19"), SubResource("s0_20"), SubResource("s0_21"), SubResource("s0_22"), SubResource("s0_23"), SubResource("s0_24"), SubResource("s0_25"), SubResource("s0_26"), SubResource("s0_27"), SubResource("s0_28"), SubResource("s0_29"), SubResource("s0_30"), SubResource("s0_31"), SubResource("s0_32"), SubResource("s0_33"), SubResource("s0_34")])
 BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
 BuyMultiplier = 1.25
 SellFraction = 0.5
