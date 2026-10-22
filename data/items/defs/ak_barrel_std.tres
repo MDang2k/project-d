@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+
+[sub_resource type="Resource" id="part"]
+script = ExtResource("2")
+Interfaces = PackedStringArray("ak.barrel")
+
+[resource]
+script = ExtResource("1")
+Id = "ak_barrel_std"
+NameKey = "item.ak_barrel_std"
+Category = 13
+Width = 3
+Height = 1
+WeightKg = 0.0
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("part")
+IconColor = Color(0.22, 0.22, 0.24, 1)
+IconLabel = "Bar"
+BaseValue = 0

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=40 format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="1"]
 [ext_resource type="Resource" path="res://data/ammo/7_92x57.tres" id="2"]
@@ -13,6 +13,33 @@ Accepts = PackedStringArray("mg3.barrel")
 Required = true
 Accessory = false
 Marker = "Muzzle"
+
+[sub_resource type="Resource" id="vslot_bolt"]
+script = ExtResource("90")
+Id = "bolt"
+Type = "bolt"
+Accepts = PackedStringArray("mg3.bolt")
+Required = true
+Accessory = false
+Marker = ""
+
+[sub_resource type="Resource" id="vslot_gas"]
+script = ExtResource("90")
+Id = "gas"
+Type = "gas"
+Accepts = PackedStringArray("mg3.gas")
+Required = true
+Accessory = false
+Marker = ""
+
+[sub_resource type="Resource" id="vslot_grip"]
+script = ExtResource("90")
+Id = "grip"
+Type = "grip"
+Accepts = PackedStringArray("mg3.grip")
+Required = true
+Accessory = false
+Marker = ""
 
 [resource]
 script = ExtResource("1")
@@ -39,6 +66,6 @@ BodySize = Vector3(0.07, 0.13, 1.2)
 GripRightOffset = Vector3(0, -0.07, 0.05)
 GripLeftOffset = Vector3(0, -0.05, -0.4)
 Ergonomics = 20.0
-Slots = Array[ExtResource("90")]([SubResource("slot0")])
-DefaultPartSlots = PackedStringArray("barrel")
-DefaultPartItems = PackedStringArray("mg3_barrel_std")
+Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("vslot_bolt"), SubResource("vslot_gas"), SubResource("vslot_grip")])
+DefaultPartSlots = PackedStringArray("barrel", "bolt", "gas", "grip")
+DefaultPartItems = PackedStringArray("mg3_barrel_std", "mg3_bolt_std", "mg3_gas_std", "mg3_grip_std")
