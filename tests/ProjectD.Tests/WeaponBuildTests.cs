@@ -225,7 +225,7 @@ public class WeaponBuildTests
 		var (before, after) = WeaponBuild.Preview(rifle, "muzzle", ModItems.Part("brake")!)!.Value;
 		Assert.Equal(50f, before.VerticalRecoil, 3);
 		Assert.Equal(60f, after.VerticalRecoil, 3);
-		Assert.Empty(rifle.Parts.Keys.Where(k => k == "muzzle"));
+		Assert.DoesNotContain("muzzle", rifle.Parts.Keys);
 		Assert.Null(WeaponBuild.Preview(rifle, "muzzle", ModItems.Part("mount")!));
 	}
 
@@ -553,5 +553,111 @@ public class WeaponClearanceTests
 		Assert.Equal(60f, s.VerticalRecoil, 3);
 		Assert.Equal(60f, s.HorizontalRecoil, 3);
 		Assert.Equal(50f, s.Stability, 3);
+	}
+}
+
+public class WeaponWorkshopTests
+{
+	private static ItemSpec? Lookup(string id) => ModItems.Part(id)?.Spec;
+
+	private static (GameProfile Profile, CharacterInventory Character, ItemInstance Rifle) Setup()
+	{
+		var profile = new GameProfile();
+		var character = new CharacterInventory();
+		var rifle = ModItems.NewRifle();
+		profile.Stash.TryPlaceAnywhere(rifle);
+		return (profile, character, rifle);
+	}
+
+	[Fact]
+	public void SandboxEditsDoNotTouchTheRealWeapon()
+	{
+		var (_, _, rifle) = Setup();
+		var sandbox = WeaponWorkshop.Copy(rifle);
+		WeaponBuild.Attach(sandbox, "muzzle", ModItems.Part("brake")!);
+		Assert.False(rifle.Parts.ContainsKey("muzzle"));
+		Assert.Equal(60f, WeaponBuild.Stats(sandbox).VerticalRecoil, 3);
+	}
+
+	[Fact]
+	public void OnlyOwnedOrExaminedPartsAreOffered()
+	{
+		var (profile, character, rifle) = Setup();
+		profile.Stash.TryPlaceAnywhere(ModItems.Part("comp")!);
+		var ids = WeaponWorkshop.ExaminedIds(profile, character).ToList();
+		Assert.Contains("comp", ids);
+		Assert.DoesNotContain("brake", ids);
+		profile.ExaminedParts.Add("brake");
+		Assert.Contains("brake", WeaponWorkshop.ExaminedIds(profile, character));
+		Assert.Contains("stock_wood", ids); // default part attached to an owned weapon
+	}
+
+	[Fact]
+	public void PresetCapturesNestedPartsAndListsWhatIsMissing()
+	{
+		var (profile, character, rifle) = Setup();
+		var sandbox = WeaponWorkshop.Copy(rifle);
+		WeaponBuild.Attach(sandbox, "dovetail", ModItems.Part("mount")!);
+		WeaponBuild.Attach(sandbox, "optic", ModItems.Part("scope")!);
+		WeaponBuild.Attach(sandbox, "muzzle", ModItems.Part("brake")!);
+		var preset = WeaponWorkshop.Capture("sniper", sandbox);
+		Assert.Equal("scope", preset.Parts["optic"]);
+		var missing = WeaponWorkshop.Missing(preset, profile, character, rifle);
+		Assert.Equal(3, missing.Count);
+		profile.Stash.TryPlaceAnywhere(ModItems.Part("brake")!);
+		Assert.Equal(2, WeaponWorkshop.Missing(preset, profile, character, rifle).Count);
+	}
+
+	[Fact]
+	public void PresetBuildsAVirtualWeaponWithoutOwnership()
+	{
+		var (_, _, rifle) = Setup();
+		var sandbox = WeaponWorkshop.Copy(rifle);
+		WeaponBuild.Attach(sandbox, "dovetail", ModItems.Part("mount")!);
+		WeaponBuild.Attach(sandbox, "optic", ModItems.Part("scope")!);
+		var preset = WeaponWorkshop.Capture("p", sandbox);
+		var built = WeaponWorkshop.Build(preset, ModItems.Rifle, Lookup);
+		Assert.Equal("scope", built.Parts["dovetail"].Parts["optic"].Spec.Id);
+	}
+
+	[Fact]
+	public void ApplyRefusesWhileAnyPartIsMissing()
+	{
+		var (profile, character, rifle) = Setup();
+		var preset = new PartPreset("p", "rifle", new Dictionary<string, string> { ["muzzle"] = "brake" });
+		Assert.Equal(GunsmithResult.PartNotOwned, WeaponWorkshop.Apply(profile, character, rifle, preset));
+		Assert.False(rifle.Parts.ContainsKey("muzzle"));
+	}
+
+	[Fact]
+	public void ApplyRebuildsFromOwnedPartsAndReturnsTheOldOnesToTheStash()
+	{
+		var (profile, character, rifle) = Setup();
+		var comp = ModItems.Part("comp")!;
+		WeaponBuild.Attach(rifle, "muzzle", comp);
+		profile.Stash.TryPlaceAnywhere(ModItems.Part("brake")!);
+		profile.Stash.TryPlaceAnywhere(ModItems.Part("hg_tac")!);
+		var preset = new PartPreset("p", "rifle", new Dictionary<string, string>
+		{
+			["muzzle"] = "brake", ["handguard"] = "hg_tac", ["stock"] = "stock_wood",
+		});
+		// hg_tac blocks the muzzle slot in the test data, so the brake stays in the stash
+		Assert.Equal(GunsmithResult.Ok, WeaponWorkshop.Apply(profile, character, rifle, preset));
+		Assert.Equal("hg_tac", rifle.Parts["handguard"].Spec.Id);
+		Assert.Contains(profile.Stash.Items, i => i == comp);
+	}
+
+	[Fact]
+	public void PresetsAndExaminedPartsSurviveSaving()
+	{
+		var run = new RunProgress();
+		var profile = new GameProfile();
+		profile.ExaminedParts.Add("brake");
+		profile.Presets.Add(new PartPreset("sniper", "rifle", new Dictionary<string, string> { ["muzzle"] = "brake" }));
+		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(run, profile, null, false));
+		var loaded = new GameProfile();
+		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, Lookup, new List<string>());
+		Assert.Contains("brake", loaded.ExaminedParts);
+		Assert.Equal("brake", Assert.Single(loaded.Presets).Parts["muzzle"]);
 	}
 }

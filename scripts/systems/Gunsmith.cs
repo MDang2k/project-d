@@ -72,6 +72,16 @@ public static class Gunsmith
 		return GunsmithResult.Ok;
 	}
 
+	/// <summary>An equipped weapon that is no longer complete goes to the stash (nothing changes when it is full).</summary>
+	public static void KeepEquippedComplete(GameProfile profile, CharacterInventory character, ItemInstance weapon)
+	{
+		if (character.Locate(weapon) is { Slot: { } } && !WeaponBuild.IsComplete(weapon))
+		{
+			character.Remove(weapon);
+			profile.Stash.TryPlaceAnywhere(weapon);
+		}
+	}
+
 	private static bool WouldBecomeIncomplete(ItemInstance weapon, string slotId)
 	{
 		var entry = WeaponBuild.Find(weapon, slotId);

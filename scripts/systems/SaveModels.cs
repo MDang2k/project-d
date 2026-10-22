@@ -39,6 +39,8 @@ public sealed record InsuranceReturnSave(ItemSave Item, int RaidsRemaining);
 /// <summary>Per-trader progress (v3).</summary>
 public sealed record TraderSave(int Level = 1, long Spent = 0);
 
+public sealed record PresetSave(string Name, string WeaponId, Dictionary<string, string> Parts);
+
 public sealed record CountersSave(int Raids, int Extractions, int Deaths, int Mia);
 
 /// <summary>The single autosave (GDD s15). Bump <see cref="CurrentVersion"/> with a migration when the shape changes.</summary>
@@ -57,7 +59,9 @@ public sealed record SaveFile(
 	string? Tracked = null,
 	List<string>? UnlockedTraders = null,
 	List<PendingRewardSave>? PendingRewards = null,
-	Dictionary<string, int>? Reputation = null)
+	Dictionary<string, int>? Reputation = null,
+	List<string>? Examined = null,
+	List<PresetSave>? Presets = null)
 {
-	public const int CurrentVersion = 6;
+	public const int CurrentVersion = 7;
 }

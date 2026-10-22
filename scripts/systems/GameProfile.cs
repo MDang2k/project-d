@@ -32,6 +32,12 @@ public sealed class GameProfile
 	/// <summary>Quest states, progress, tracking and pending rewards (GDD s14).</summary>
 	public QuestLog Quests { get; } = new();
 
+	/// <summary>Part item ids the player has owned or seen; the workshop sandbox may use them (weapon modding v2 s6).</summary>
+	public HashSet<string> ExaminedParts { get; } = new();
+
+	/// <summary>Saved named builds.</summary>
+	public List<PartPreset> Presets { get; } = new();
+
 	private readonly Dictionary<string, TraderState> _traders = new();
 	private readonly HashSet<string> _unlockedTraders = new();
 
@@ -80,6 +86,8 @@ public sealed class GameProfile
 		_unlockedTraders.Clear();
 		InsuranceReturns.Clear();
 		Quests.Clear();
+		ExaminedParts.Clear();
+		Presets.Clear();
 	}
 
 	/// <summary>Every item in the stash, nested grids included.</summary>
