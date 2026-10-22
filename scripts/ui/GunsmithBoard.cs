@@ -18,7 +18,7 @@ public partial class GunsmithBoard : Control
 {
 	private const float BoxW = 124f;
 	private const float BoxH = 46f;
-	private const float BodyHalfW = 130f;
+	private const float BodyHalfW = 140f;
 	private const float BodyHalfH = 28f;
 
 	private enum Side { Left, Right, Top, Bottom }
@@ -33,10 +33,19 @@ public partial class GunsmithBoard : Control
 
 	private WeaponViewport _view = null!;
 	private ItemInstance? _weapon;
+	private List<SlotEntry> _lastSlots = new();
+	private Func<SlotEntry, BoxInfo?>? _lastInfo;
+	private Vector2 _laidOutFor;
 
 	public override void _Ready()
 	{
-		Resized += QueueRedraw;
+		Resized += () =>
+		{
+			QueueRedraw();
+			// the real size is only known after layout: lay the boxes out again around the true centre
+			if (_weapon is not null && _lastInfo is not null && Size.DistanceTo(_laidOutFor) > 4f)
+				Rebuild(_lastSlots, _weapon, _lastInfo);
+		};
 		_view = new WeaponViewport();
 		AddChild(_view);
 		MoveChild(_view, 0);
@@ -109,6 +118,10 @@ public partial class GunsmithBoard : Control
 			p.Box.QueueFree();
 		_placed.Clear();
 		_weapon = weapon;
+		_lastSlots = new List<SlotEntry>(slots);
+		_lastInfo = info;
+		_laidOutFor = Area;
+		slots = _lastSlots;
 		_view.ShowWeapon(weapon);
 		_byId.Clear();
 
@@ -193,10 +206,10 @@ public partial class GunsmithBoard : Control
 		box.AddThemeFontSizeOverride("font_size", 12);
 		var (border, bg) = i.State switch
 		{
-			BoxState.MissingVital => (new Color(0.9f, 0.2f, 0.2f), new Color(0.25f, 0.1f, 0.1f)),
-			BoxState.Conflict => (new Color(0.95f, 0.7f, 0.2f), new Color(0.25f, 0.2f, 0.08f)),
+			BoxState.MissingVital => (new Color(0.9f, 0.2f, 0.2f), new Color(0.25f, 0.1f, 0.1f, 0.85f)),
+			BoxState.Conflict => (new Color(0.95f, 0.7f, 0.2f), new Color(0.25f, 0.2f, 0.08f, 0.85f)),
 			BoxState.Open => (new Color(0.5f, 0.5f, 0.55f), new Color(0.12f, 0.13f, 0.15f, 0.6f)),
-			_ => (new Color(0.75f, 0.78f, 0.85f), new Color(0.17f, 0.19f, 0.23f)),
+			_ => (new Color(0.75f, 0.78f, 0.85f), new Color(0.17f, 0.19f, 0.23f, 0.85f)),
 		};
 		foreach (var state in new[] { "normal", "hover", "pressed", "focus" })
 		{

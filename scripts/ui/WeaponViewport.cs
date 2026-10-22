@@ -54,7 +54,7 @@ public partial class WeaponViewport : SubViewportContainer
 		if (ItemDb.Data(weapon.Spec.Id)?.Payload is not WeaponData data)
 			return;
 		_size = data.BodySize;
-		_defaultDistance = Mathf.Max(1.6f, _size.Z * 3.2f);
+		_defaultDistance = Mathf.Max(2.0f, _size.Z * 4.4f);
 		if (_shownId != weapon.Spec.Id)
 		{
 			_shownId = weapon.Spec.Id;
