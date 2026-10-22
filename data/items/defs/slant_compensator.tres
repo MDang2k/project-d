@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -6,9 +6,12 @@
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
-Interfaces = PackedStringArray("ak.muzzle.24x1.5")
-VerticalRecoilPts = 8.0
-HorizontalRecoilPts = 4.0
+Interfaces = PackedStringArray("thread.14x1lh")
+VerticalRecoilPts = 6.0
+HorizontalRecoilPts = 2.0
+ErgonomicsPts = -1.0
+Zones = PackedStringArray("muzzle")
+Swap = "Tooled"
 
 [resource]
 script = ExtResource("1")

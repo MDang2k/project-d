@@ -42,6 +42,9 @@ public partial class PartData : Resource
 	[Export] public string[] RailIds { get; set; } = System.Array.Empty<string>();
 	[Export] public int[] RailLengths { get; set; } = System.Array.Empty<int>();
 
+	/// <summary>"Tool-free", "Tooled" or "Never": who can swap this part in a raid.</summary>
+	[Export] public string Swap { get; set; } = "Tooled";
+
 	public static System.Collections.Generic.Dictionary<string, int> RailMap(string[] ids, int[] lengths)
 	{
 		var map = new System.Collections.Generic.Dictionary<string, int>();
@@ -52,5 +55,6 @@ public partial class PartData : Resource
 
 	public PartSpec ToSpec() => new(Interfaces.ToList(), AddsSlots.Select(s => s.ToSpec()).ToList(), Blocks.ToList(),
 		VerticalRecoilPts, HorizontalRecoilPts, StabilityPts, HipStabilityPts, ErgonomicsPts, VelocityPct, NoisePct,
-		Zoom, GridWidthAdd, Bipod, Light, Steps, Zones.ToList(), RailMap(RailIds, RailLengths));
+		Zoom, GridWidthAdd, Bipod, Light, Steps, Zones.ToList(), RailMap(RailIds, RailLengths),
+		Swap switch { "Tool-free" => SwapKind.Free, "Never" => SwapKind.Never, _ => SwapKind.Tooled });
 }

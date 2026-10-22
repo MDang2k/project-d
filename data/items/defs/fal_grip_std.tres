@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="3"]
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
 Interfaces = PackedStringArray("fal.grip")
+Swap = "Tooled"
 
 [resource]
 script = ExtResource("1")
@@ -14,10 +16,10 @@ NameKey = "item.fal_grip_std"
 Category = 13
 Width = 1
 Height = 1
-WeightKg = 0.0
+WeightKg = 0.15
 MaxStack = 1
 WeaponClass = 0
 Payload = SubResource("part")
 IconColor = Color(0.22, 0.22, 0.24, 1)
 IconLabel = "Grp"
-BaseValue = 0
+BaseValue = 900

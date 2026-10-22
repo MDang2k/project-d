@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -8,24 +8,31 @@
 script = ExtResource("3")
 Id = "underbarrel"
 Type = "underbarrel"
-Accepts = PackedStringArray("fal.under")
+Accepts = PackedStringArray("fal.bipod_lug", "hk.handguard", "klemmschiene")
 Required = false
 Accessory = true
 Marker = "BipodMount"
+Rail = ""
+RailStart = 0
 
 [sub_resource type="Resource" id="slot1"]
 script = ExtResource("3")
 Id = "light"
 Type = "light"
-Accepts = PackedStringArray("handguard.clamp")
+Accepts = PackedStringArray("ns67", "klemmschiene", "barrel_clamp")
 Required = false
 Accessory = true
 Marker = "Light"
+Rail = "klem"
+RailStart = 0
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
 Interfaces = PackedStringArray("fal.handguard")
 AddsSlots = Array[ExtResource("3")]([SubResource("slot0"), SubResource("slot1")])
+RailIds = PackedStringArray("klem")
+RailLengths = PackedInt32Array(6)
+Swap = "Tooled"
 
 [resource]
 script = ExtResource("1")
@@ -34,10 +41,10 @@ NameKey = "item.fal_handguard_std"
 Category = 13
 Width = 2
 Height = 1
-WeightKg = 0.0
+WeightKg = 0.35
 MaxStack = 1
 WeaponClass = 0
 Payload = SubResource("part")
 IconColor = Color(0.3, 0.22, 0.14, 1)
 IconLabel = "HG"
-BaseValue = 0
+BaseValue = 1800

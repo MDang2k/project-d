@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -6,8 +6,13 @@
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
-Interfaces = PackedStringArray("handguard.clamp")
+Interfaces = PackedStringArray("ns67", "klemmschiene", "barrel_clamp")
+HipStabilityPts = 1.0
+ErgonomicsPts = -2.0
 Light = true
+Steps = 3
+Zones = PackedStringArray("side_right")
+Swap = "Tool-free"
 
 [resource]
 script = ExtResource("1")

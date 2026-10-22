@@ -12,9 +12,11 @@ Type = "barrel"
 Accepts = PackedStringArray("mg3.barrel")
 Required = true
 Accessory = false
-Marker = "Muzzle"
+Marker = ""
+Rail = ""
+RailStart = 0
 
-[sub_resource type="Resource" id="vslot_bolt"]
+[sub_resource type="Resource" id="slot1"]
 script = ExtResource("90")
 Id = "bolt"
 Type = "bolt"
@@ -22,17 +24,10 @@ Accepts = PackedStringArray("mg3.bolt")
 Required = true
 Accessory = false
 Marker = ""
+Rail = ""
+RailStart = 0
 
-[sub_resource type="Resource" id="vslot_gas"]
-script = ExtResource("90")
-Id = "gas"
-Type = "gas"
-Accepts = PackedStringArray("mg3.gas")
-Required = true
-Accessory = false
-Marker = ""
-
-[sub_resource type="Resource" id="vslot_grip"]
+[sub_resource type="Resource" id="slot2"]
 script = ExtResource("90")
 Id = "grip"
 Type = "grip"
@@ -40,6 +35,8 @@ Accepts = PackedStringArray("mg3.grip")
 Required = true
 Accessory = false
 Marker = ""
+Rail = ""
+RailStart = 0
 
 [resource]
 script = ExtResource("1")
@@ -66,6 +63,10 @@ BodySize = Vector3(0.07, 0.13, 1.2)
 GripRightOffset = Vector3(0, -0.07, 0.05)
 GripLeftOffset = Vector3(0, -0.05, -0.4)
 Ergonomics = 20.0
-Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("vslot_bolt"), SubResource("vslot_gas"), SubResource("vslot_grip")])
-DefaultPartSlots = PackedStringArray("barrel", "bolt", "gas", "grip")
-DefaultPartItems = PackedStringArray("mg3_barrel_std", "mg3_bolt_std", "mg3_gas_std", "mg3_grip_std")
+VerticalRecoilRating = 35.0
+HorizontalRecoilRating = 35.0
+StabilityRating = 60.0
+HipStabilityRating = 15.0
+Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2")])
+DefaultPartSlots = PackedStringArray("barrel", "bolt", "grip")
+DefaultPartItems = PackedStringArray("mg3_barrel_std", "mg3_bolt", "mg3_trigger_grip")

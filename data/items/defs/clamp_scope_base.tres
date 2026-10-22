@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -8,15 +8,21 @@
 script = ExtResource("3")
 Id = "optic"
 Type = "optic"
-Accepts = PackedStringArray("optic.std")
+Accepts = PackedStringArray("ns67")
 Required = false
 Accessory = true
 Marker = "OpticMount"
+Rail = "ns67"
+RailStart = 0
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
 Interfaces = PackedStringArray("fal.clamp", "m14.base")
 AddsSlots = Array[ExtResource("3")]([SubResource("slot0")])
+ErgonomicsPts = -1.0
+RailIds = PackedStringArray("ns67")
+RailLengths = PackedInt32Array(8)
+Swap = "Tooled"
 
 [resource]
 script = ExtResource("1")

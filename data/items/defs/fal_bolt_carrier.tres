@@ -1,23 +1,25 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="3"]
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
-Interfaces = PackedStringArray("ak.gas")
+Interfaces = PackedStringArray("fal.bolt")
+Swap = "Tooled"
 
 [resource]
 script = ExtResource("1")
-Id = "ak_gas_std"
-NameKey = "item.ak_gas_std"
+Id = "fal_bolt_carrier"
+NameKey = "item.fal_bolt_carrier"
 Category = 13
-Width = 1
+Width = 2
 Height = 1
-WeightKg = 0.0
+WeightKg = 0.6
 MaxStack = 1
 WeaponClass = 0
 Payload = SubResource("part")
 IconColor = Color(0.22, 0.22, 0.24, 1)
-IconLabel = "Gas"
-BaseValue = 0
+IconLabel = "Vit"
+BaseValue = 5000

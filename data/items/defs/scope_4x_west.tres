@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -6,9 +6,13 @@
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
-Interfaces = PackedStringArray("hk.claw", "optic.std")
-ErgonomicsPts = -5.0
+Interfaces = PackedStringArray("ns67", "hk.claw")
+StabilityPts = 8.0
+ErgonomicsPts = -6.0
 Zoom = 4.0
+Steps = 8
+Zones = PackedStringArray("sight_line")
+Swap = "Tool-free"
 
 [resource]
 script = ExtResource("1")

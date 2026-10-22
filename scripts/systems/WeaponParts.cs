@@ -70,7 +70,9 @@ public sealed record PartSpec(
 	/// <summary>Named zones this part occupies (sight_line, fore_barrel...); two parts in one zone conflict.</summary>
 	IReadOnlyList<string>? Zones = null,
 	/// <summary>Rail surfaces this part provides (a handguard): id to length in steps.</summary>
-	IReadOnlyDictionary<string, int>? Rails = null);
+	IReadOnlyDictionary<string, int>? Rails = null,
+	/// <summary>Whether and how the part can be swapped in a raid (weapon modding v2 s7).</summary>
+	SwapKind Swap = SwapKind.Tooled);
 
 /// <summary>
 /// Final ratings and handling numbers of a weapon with its parts. Ratings are 0-100; the multipliers come

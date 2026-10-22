@@ -661,3 +661,108 @@ public class WeaponWorkshopTests
 		Assert.Equal("brake", Assert.Single(loaded.Presets).Parts["muzzle"]);
 	}
 }
+
+public class FieldStripTests
+{
+	private static ItemSpec PartSpec(string id, SwapKind swap, string iface = "rifle.muzzle", int w = 1)
+		=> new(id, id, ItemCategory.WeaponPart, w, 1, 0.1f, Part: new PartSpec(new[] { iface }, new List<WeaponSlotSpec>(), new List<string>(), Swap: swap));
+
+	private static readonly ItemSpec Kit = new(FieldStrip.KitItemId, "kit", ItemCategory.Misc, 1, 1, 0.8f);
+
+	private static (CharacterInventory Character, ItemInstance Rifle) Setup()
+	{
+		var character = new CharacterInventory();
+		var rifle = ModItems.NewRifle();
+		character.TryEquip(rifle, EquipSlot.Primary);
+		return (character, rifle);
+	}
+
+	[Fact]
+	public void ToolFreePartsNeedNoKitTooledPartsDo()
+	{
+		var (character, rifle) = Setup();
+		var free = ItemInstance.Create(PartSpec("qd", SwapKind.Free));
+		var tooled = ItemInstance.Create(PartSpec("thr", SwapKind.Tooled));
+		character.Pockets[0].TryPlaceAnywhere(free);
+		character.Pockets[1].TryPlaceAnywhere(tooled);
+		Assert.Equal(FieldStripResult.Ok, FieldStrip.Install(character, rifle, "muzzle", free));
+		Assert.Equal(FieldStripResult.Ok, FieldStrip.Remove(character, rifle, "muzzle"));
+		Assert.Equal(FieldStripResult.NeedsKit, FieldStrip.Install(character, rifle, "muzzle", tooled));
+		character.Pockets[0].TryPlaceAnywhere(ItemInstance.Create(Kit));
+		Assert.Equal(FieldStripResult.Ok, FieldStrip.Install(character, rifle, "muzzle", tooled));
+		Assert.Same(tooled, rifle.Parts["muzzle"]);
+	}
+
+	[Fact]
+	public void NeverPartsCannotBeTouchedEvenWithTheKit()
+	{
+		var (character, rifle) = Setup();
+		character.Pockets[0].TryPlaceAnywhere(ItemInstance.Create(Kit));
+		var locked = ItemInstance.Create(PartSpec("fixed", SwapKind.Never));
+		character.Pockets[1].TryPlaceAnywhere(locked);
+		Assert.Equal(FieldStripResult.Never, FieldStrip.Install(character, rifle, "muzzle", locked));
+	}
+
+	[Fact]
+	public void KitInTheBackpackDoesNotCount()
+	{
+		var (character, _) = Setup();
+		var pack = ItemInstance.Create(new ItemSpec("pack", "pack", ItemCategory.Backpack, 4, 4, 1f, Grids: new[] { new GridSize(5, 4) }));
+		character.TryEquip(pack, EquipSlot.Backpack);
+		pack.Grids[0].TryPlaceAnywhere(ItemInstance.Create(Kit));
+		Assert.False(FieldStrip.HasKit(character));
+		character.Pockets[0].TryPlaceAnywhere(ItemInstance.Create(Kit));
+		Assert.True(FieldStrip.HasKit(character));
+	}
+
+	[Fact]
+	public void RemoveWithNoRoomChangesNothing()
+	{
+		var (character, rifle) = Setup();
+		var qd = ItemInstance.Create(PartSpec("qd", SwapKind.Free));
+		WeaponBuild.Attach(rifle, "muzzle", qd);
+		foreach (var grid in character.StorageGrids)
+		{
+			var filler = 0;
+			while (grid.TryPlaceAnywhere(ItemInstance.Create(new ItemSpec("junk" + filler++, "j", ItemCategory.Misc, 1, 1, 0f))))
+			{
+			}
+		}
+		Assert.Equal(FieldStripResult.NoRoom, FieldStrip.Remove(character, rifle, "muzzle"));
+		Assert.Same(qd, rifle.Parts["muzzle"]);
+	}
+
+	[Fact]
+	public void DurationsFollowKindAndSlot()
+	{
+		var optic = new WeaponSlotSpec("o", "optic", new[] { "x" });
+		var barrel = new WeaponSlotSpec("b", "barrel", new[] { "x" });
+		Assert.Equal(2.5f, FieldStrip.Duration(optic, SwapKind.Free), 3);
+		Assert.Equal(15f, FieldStrip.Duration(barrel, SwapKind.Tooled), 3);
+		Assert.True(FieldStrip.Duration(optic, SwapKind.Tooled) is >= 8f);
+	}
+
+	[Fact]
+	public void TimerCompletesOnceAndCancelsWhenInterrupted()
+	{
+		var timer = new FieldSwapTimer();
+		var done = 0;
+		Assert.True(timer.Start(2f, "x", () => done++));
+		Assert.False(timer.Start(1f, "y", () => done += 10));
+		timer.Update(1f, false);
+		Assert.Equal(0.5f, timer.Progress, 3);
+		timer.Update(1.2f, false);
+		Assert.Equal(1, done);
+		Assert.False(timer.Active);
+		timer.Update(5f, false);
+		Assert.Equal(1, done);
+
+		var cancelled = 0;
+		timer.Cancelled += () => cancelled++;
+		timer.Start(2f, "z", () => done++);
+		timer.Update(1f, true);
+		Assert.Equal(1, cancelled);
+		Assert.False(timer.Active);
+		Assert.Equal(1, done);
+	}
+}

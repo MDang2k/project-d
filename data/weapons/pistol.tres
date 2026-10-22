@@ -5,32 +5,38 @@
 
 [ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="90"]
 
-[sub_resource type="Resource" id="vslot_bolt"]
-script = ExtResource("90")
-Id = "bolt"
-Type = "bolt"
-Accepts = PackedStringArray("pistol.bolt")
-Required = true
-Accessory = false
-Marker = ""
-
-[sub_resource type="Resource" id="vslot_grip"]
-script = ExtResource("90")
-Id = "grip"
-Type = "grip"
-Accepts = PackedStringArray("pistol.grip")
-Required = true
-Accessory = false
-Marker = ""
-
-[sub_resource type="Resource" id="vslot_barrel"]
+[sub_resource type="Resource" id="slot0"]
 script = ExtResource("90")
 Id = "barrel"
 Type = "barrel"
-Accepts = PackedStringArray("pistol.barrel")
+Accepts = PackedStringArray("p1.barrel")
 Required = true
 Accessory = false
 Marker = ""
+Rail = ""
+RailStart = 0
+
+[sub_resource type="Resource" id="slot1"]
+script = ExtResource("90")
+Id = "bolt"
+Type = "bolt"
+Accepts = PackedStringArray("p1.slide")
+Required = true
+Accessory = false
+Marker = ""
+Rail = ""
+RailStart = 0
+
+[sub_resource type="Resource" id="slot2"]
+script = ExtResource("90")
+Id = "grip"
+Type = "grip"
+Accepts = PackedStringArray("p1.grip")
+Required = true
+Accessory = false
+Marker = ""
+Rail = ""
+RailStart = 0
 
 [resource]
 script = ExtResource("1")
@@ -55,7 +61,11 @@ WeightKg = 0.8
 BodySize = Vector3(0.035, 0.14, 0.2)
 GripRightOffset = Vector3(0, -0.07, 0.03)
 GripLeftOffset = Vector3(0, -0.06, -0.02)
-Ergonomics = 60.0
-Slots = Array[ExtResource("90")]([SubResource("vslot_bolt"), SubResource("vslot_grip"), SubResource("vslot_barrel")])
-DefaultPartSlots = PackedStringArray("bolt", "grip", "barrel")
-DefaultPartItems = PackedStringArray("pistol_bolt_std", "pistol_grip_std", "pistol_barrel_std")
+Ergonomics = 85.0
+VerticalRecoilRating = 45.0
+HorizontalRecoilRating = 55.0
+StabilityRating = 35.0
+HipStabilityRating = 60.0
+Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2")])
+DefaultPartSlots = PackedStringArray("barrel", "bolt", "grip")
+DefaultPartItems = PackedStringArray("p1_barrel", "p1_slide", "p1_grip_panels")

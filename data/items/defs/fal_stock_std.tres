@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -7,6 +7,7 @@
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
 Interfaces = PackedStringArray("fal.stock")
+Swap = "Tooled"
 
 [resource]
 script = ExtResource("1")
@@ -15,10 +16,10 @@ NameKey = "item.fal_stock_std"
 Category = 13
 Width = 2
 Height = 1
-WeightKg = 0.0
+WeightKg = 0.6
 MaxStack = 1
 WeaponClass = 0
 Payload = SubResource("part")
 IconColor = Color(0.3, 0.22, 0.14, 1)
 IconLabel = "Stk"
-BaseValue = 0
+BaseValue = 2200

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -6,8 +6,13 @@
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
-Interfaces = PackedStringArray("fal.under", "hk.under")
+Interfaces = PackedStringArray("fal.bipod_lug", "hk.handguard", "klemmschiene")
+StabilityPts = 6.0
+ErgonomicsPts = -4.0
 Bipod = true
+Steps = 4
+Zones = PackedStringArray("under_barrel")
+Swap = "Tooled"
 
 [resource]
 script = ExtResource("1")

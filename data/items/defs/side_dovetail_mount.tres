@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
@@ -8,15 +8,21 @@
 script = ExtResource("3")
 Id = "optic"
 Type = "optic"
-Accepts = PackedStringArray("optic.std")
+Accepts = PackedStringArray("ns67")
 Required = false
 Accessory = true
 Marker = "OpticMount"
+Rail = "ns67"
+RailStart = 0
 
 [sub_resource type="Resource" id="part"]
 script = ExtResource("2")
-Interfaces = PackedStringArray("ak.dovetail")
+Interfaces = PackedStringArray("dovetail.side", "planka70")
 AddsSlots = Array[ExtResource("3")]([SubResource("slot0")])
+ErgonomicsPts = -2.0
+RailIds = PackedStringArray("ns67")
+RailLengths = PackedInt32Array(6)
+Swap = "Tool-free"
 
 [resource]
 script = ExtResource("1")
@@ -25,10 +31,10 @@ NameKey = "item.side_dovetail_mount"
 Category = 13
 Width = 1
 Height = 1
-WeightKg = 0.1
+WeightKg = 0.15
 MaxStack = 1
 WeaponClass = 0
 Payload = SubResource("part")
 IconColor = Color(0.3, 0.3, 0.32, 1)
 IconLabel = "Mnt"
-BaseValue = 2000
+BaseValue = 3500

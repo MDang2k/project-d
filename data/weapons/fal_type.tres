@@ -7,41 +7,16 @@
 
 [sub_resource type="Resource" id="slot0"]
 script = ExtResource("90")
-Id = "stock"
-Type = "stock"
-Accepts = PackedStringArray("fal.stock")
-Required = false
+Id = "barrel"
+Type = "barrel"
+Accepts = PackedStringArray("fal.barrel")
+Required = true
 Accessory = false
-Marker = "Stock"
+Marker = ""
+Rail = ""
+RailStart = 0
 
 [sub_resource type="Resource" id="slot1"]
-script = ExtResource("90")
-Id = "handguard"
-Type = "handguard"
-Accepts = PackedStringArray("fal.handguard")
-Required = false
-Accessory = false
-Marker = "Handguard"
-
-[sub_resource type="Resource" id="slot2"]
-script = ExtResource("90")
-Id = "muzzle"
-Type = "muzzle"
-Accepts = PackedStringArray("fal.muzzle")
-Required = false
-Accessory = true
-Marker = "Muzzle"
-
-[sub_resource type="Resource" id="slot3"]
-script = ExtResource("90")
-Id = "scope_base"
-Type = "mount"
-Accepts = PackedStringArray("fal.clamp")
-Required = false
-Accessory = true
-Marker = "OpticMount"
-
-[sub_resource type="Resource" id="vslot_bolt"]
 script = ExtResource("90")
 Id = "bolt"
 Type = "bolt"
@@ -49,8 +24,10 @@ Accepts = PackedStringArray("fal.bolt")
 Required = true
 Accessory = false
 Marker = ""
+Rail = ""
+RailStart = 0
 
-[sub_resource type="Resource" id="vslot_gas"]
+[sub_resource type="Resource" id="slot2"]
 script = ExtResource("90")
 Id = "gas"
 Type = "gas"
@@ -58,8 +35,10 @@ Accepts = PackedStringArray("fal.gas")
 Required = true
 Accessory = false
 Marker = ""
+Rail = ""
+RailStart = 0
 
-[sub_resource type="Resource" id="vslot_grip"]
+[sub_resource type="Resource" id="slot3"]
 script = ExtResource("90")
 Id = "grip"
 Type = "grip"
@@ -67,15 +46,41 @@ Accepts = PackedStringArray("fal.grip")
 Required = true
 Accessory = false
 Marker = ""
+Rail = ""
+RailStart = 0
 
-[sub_resource type="Resource" id="vslot_barrel"]
+[sub_resource type="Resource" id="slot4"]
 script = ExtResource("90")
-Id = "barrel"
-Type = "barrel"
-Accepts = PackedStringArray("fal.barrel")
-Required = true
+Id = "handguard"
+Type = "handguard"
+Accepts = PackedStringArray("fal.handguard")
+Required = false
 Accessory = false
-Marker = ""
+Marker = "Handguard"
+Rail = ""
+RailStart = 0
+
+[sub_resource type="Resource" id="slot5"]
+script = ExtResource("90")
+Id = "stock"
+Type = "stock"
+Accepts = PackedStringArray("fal.stock")
+Required = false
+Accessory = false
+Marker = "Stock"
+Rail = ""
+RailStart = 0
+
+[sub_resource type="Resource" id="slot6"]
+script = ExtResource("90")
+Id = "scope_base"
+Type = "mount"
+Accepts = PackedStringArray("fal.clamp")
+Required = false
+Accessory = true
+Marker = "OpticMount"
+Rail = ""
+RailStart = 0
 
 [resource]
 script = ExtResource("1")
@@ -100,7 +105,11 @@ WeightKg = 4.3
 BodySize = Vector3(0.05, 0.11, 1.05)
 GripRightOffset = Vector3(0, -0.06, 0.05)
 GripLeftOffset = Vector3(0, -0.04, -0.32)
-Ergonomics = 40.0
-Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2"), SubResource("slot3"), SubResource("vslot_bolt"), SubResource("vslot_gas"), SubResource("vslot_grip"), SubResource("vslot_barrel")])
-DefaultPartSlots = PackedStringArray("stock", "handguard", "bolt", "gas", "grip", "barrel")
-DefaultPartItems = PackedStringArray("fal_stock_std", "fal_handguard_std", "fal_bolt_std", "fal_gas_std", "fal_grip_std", "fal_barrel_std")
+Ergonomics = 45.0
+VerticalRecoilRating = 30.0
+HorizontalRecoilRating = 40.0
+StabilityRating = 55.0
+HipStabilityRating = 35.0
+Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2"), SubResource("slot3"), SubResource("slot4"), SubResource("slot5"), SubResource("slot6")])
+DefaultPartSlots = PackedStringArray("barrel", "bolt", "gas", "grip", "handguard", "stock")
+DefaultPartItems = PackedStringArray("fal_barrel_std", "fal_bolt_carrier", "fal_gas_block_std", "fal_grip_std", "fal_handguard_std", "fal_stock_std")
