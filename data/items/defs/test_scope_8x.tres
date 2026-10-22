@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="3"]
+
+[sub_resource type="Resource" id="part"]
+script = ExtResource("2")
+Interfaces = PackedStringArray("ns67", "hk.claw")
+StabilityPts = 10.0
+ErgonomicsPts = -9.0
+Zoom = 8.0
+Steps = 10
+Zones = PackedStringArray("sight_line")
+Swap = "Tool-free"
+
+[resource]
+script = ExtResource("1")
+Id = "test_scope_8x"
+NameKey = "item.test_scope_8x"
+Category = 13
+Width = 2
+Height = 1
+WeightKg = 0.9
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("part")
+IconColor = Color(0.8, 0.5, 0.2, 1)
+IconLabel = "Tst"
+BaseValue = 9000

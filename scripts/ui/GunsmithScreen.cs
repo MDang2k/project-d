@@ -57,6 +57,22 @@ public partial class GunsmithScreen : Control
 		Open();
 	}
 
+	private static readonly string[] TestParts = { "test_comp_heavy","test_flash_hider","test_qd_host","test_qd_suppressor","test_threaded_suppressor","test_red_dot","test_scope_8x","test_long_side_mount","test_foregrip","test_laser_box","test_match_barrel","test_hq_grip","test_poly_stock","test_fal_brake" };
+
+	/// <summary>Dev: puts one of each placeholder test part in the stash.</summary>
+	private void AddTestParts()
+	{
+		var added = 0;
+		foreach (var id in TestParts)
+		{
+			if (ItemDb.Create(id) is { } part && _profile.Stash.TryPlaceAnywhere(part))
+				added++;
+		}
+		_message.Text = $"Added {added} test parts to the stash.";
+		SaveManager.Instance?.SaveInHub();
+		Rebuild();
+	}
+
 	/// <summary>Dev: opens the flyout of a slot (screenshots).</summary>
 	public void DebugFlyout(string slotId)
 	{
@@ -112,6 +128,9 @@ public partial class GunsmithScreen : Control
 			Rebuild();
 		};
 		top.AddChild(mode);
+		var dev = new Button { Text = "[dev] +test parts", TooltipText = "Adds placeholder test parts to the stash (remove this button later)." };
+		dev.Pressed += AddTestParts;
+		top.AddChild(dev);
 		var close = new Button { Text = "Close" };
 		close.Pressed += Close;
 		top.AddChild(close);

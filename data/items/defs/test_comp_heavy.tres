@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/weapons/PartData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="3"]
+
+[sub_resource type="Resource" id="part"]
+script = ExtResource("2")
+Interfaces = PackedStringArray("thread.14x1lh")
+VerticalRecoilPts = 12.0
+HorizontalRecoilPts = 6.0
+ErgonomicsPts = -3.0
+NoisePct = 0.2
+Zones = PackedStringArray("muzzle")
+Swap = "Tooled"
+
+[resource]
+script = ExtResource("1")
+Id = "test_comp_heavy"
+NameKey = "item.test_comp_heavy"
+Category = 13
+Width = 1
+Height = 1
+WeightKg = 0.15
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("part")
+IconColor = Color(0.8, 0.5, 0.2, 1)
+IconLabel = "Tst"
+BaseValue = 1200
