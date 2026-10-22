@@ -53,7 +53,8 @@ public partial class WeaponNode
 		RebuildParts();
 	}
 
-	private Vector3 MarkerPosition(string marker)
+	/// <summary>Where a slot marker (Muzzle, OpticMount, Stock, ...) sits on the model, weapon space.</summary>
+	public Vector3 MarkerPosition(string marker)
 	{
 		var size = Data.BodySize;
 		return marker switch

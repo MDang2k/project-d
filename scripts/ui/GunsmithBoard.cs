@@ -31,7 +31,39 @@ public partial class GunsmithBoard : Control
 	/// <summary>Raised when a box is clicked, with the box so the flyout can anchor to it.</summary>
 	public event Action<SlotEntry, Control>? BoxClicked;
 
-	public override void _Ready() => Resized += QueueRedraw;
+	private WeaponViewport _view = null!;
+	private ItemInstance? _weapon;
+
+	public override void _Ready()
+	{
+		Resized += QueueRedraw;
+		_view = new WeaponViewport();
+		AddChild(_view);
+		MoveChild(_view, 0);
+		var hint = new Label { Text = "Drag: rotate   Wheel: zoom   Double-click: reset", Modulate = new Color(1f, 1f, 1f, 0.5f), MouseFilter = MouseFilterEnum.Ignore };
+		hint.SetAnchorsPreset(LayoutPreset.BottomLeft);
+		hint.OffsetTop = -26f;
+		hint.OffsetLeft = 6f;
+		AddChild(hint);
+	}
+
+	public override void _Process(double delta) => QueueRedraw();
+
+	/// <summary>Draws a hovered candidate on the 3D model (null restores the real build).</summary>
+	public void SetPreview(string slotId, ItemInstance? part)
+	{
+		if (_weapon is null)
+			return;
+		if (part is null)
+		{
+			_view.ShowWeapon(_weapon);
+			return;
+		}
+		var copy = WeaponWorkshop.Copy(_weapon);
+		WeaponBuild.Detach(copy, slotId);
+		WeaponBuild.Attach(copy, slotId, part);
+		_view.ShowWeapon(copy);
+	}
 
 	public GunsmithBoard()
 	{
@@ -52,7 +84,7 @@ public partial class GunsmithBoard : Control
 	};
 
 	/// <summary>Fraction of the body (x along the barrel, y top to bottom) where a slot's anchor pin sits.</summary>
-	private static Vector2 PinFraction(WeaponSlotSpec s) => s.Marker switch
+	internal static Vector2 PinFraction(WeaponSlotSpec s) => s.Marker switch
 	{
 		"Muzzle" => new Vector2(0f, 0.5f),
 		"Stock" => new Vector2(1f, 0.5f),
@@ -76,6 +108,8 @@ public partial class GunsmithBoard : Control
 		foreach (var p in _placed)
 			p.Box.QueueFree();
 		_placed.Clear();
+		_weapon = weapon;
+		_view.ShowWeapon(weapon);
 		_byId.Clear();
 
 		// first pass: side, depth and row of every visible slot (parents come before their children)
@@ -187,14 +221,16 @@ public partial class GunsmithBoard : Control
 
 	public override void _Draw()
 	{
-		var c = BodyCenter;
-		DrawRect(new Rect2(c - new Vector2(BodyHalfW, BodyHalfH), new Vector2(BodyHalfW * 2f, BodyHalfH * 2f)), new Color(0.22f, 0.24f, 0.28f));
-		DrawRect(new Rect2(c - new Vector2(BodyHalfW, BodyHalfH), new Vector2(BodyHalfW * 2f, BodyHalfH * 2f)), new Color(0.5f, 0.52f, 0.58f), false, 2f);
+		DrawRect(new Rect2(Vector2.Zero, Size), new Color(0.2f, 0.22f, 0.27f));
 		foreach (var p in _placed)
 		{
-			DrawLine(p.From, p.Center, new Color(0.55f, 0.58f, 0.65f, 0.8f), 1.5f);
-			if (p.From != BodyCenter && p.Entry.Owner.Spec.Category == ItemCategory.Weapon)
-				DrawCircle(p.From, 4f, new Color(0.95f, 0.85f, 0.4f));
+			var root = ReferenceEquals(p.Entry.Owner, _weapon);
+			var from = p.From;
+			if (root && _view.Project(_view.PinLocal(p.Entry.Spec, PinFraction(p.Entry.Spec))) is { } pin)
+				from = pin;
+			DrawLine(from, p.Center, new Color(0.55f, 0.58f, 0.65f, 0.8f), 1.5f);
+			if (root)
+				DrawCircle(from, 4f, new Color(0.95f, 0.85f, 0.4f));
 		}
 	}
 }

@@ -328,6 +328,7 @@ public partial class GunsmithScreen : Control
 		{
 			_hover = null;
 			_board?.SetGhost(h.SlotId, null);
+			_board?.SetPreview(h.SlotId, null);
 		}
 	}
 
@@ -484,12 +485,14 @@ public partial class GunsmithScreen : Control
 		{
 			_hover = (slotId, part);
 			_board.SetGhost(slotId, GameText.ItemName(part.Spec.Id));
+			_board.SetPreview(slotId, part);
 			ShowTelemetry();
 		};
 		b.MouseExited += () =>
 		{
 			_hover = null;
 			_board.SetGhost(slotId, null);
+			_board.SetPreview(slotId, null);
 			ShowTelemetry();
 		};
 	}
