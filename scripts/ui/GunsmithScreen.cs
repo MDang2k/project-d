@@ -16,6 +16,9 @@ public partial class GunsmithScreen : Control
 	private readonly GameProfile _profile;
 	private readonly Action _changed;
 	private ItemInstance? _selected;
+	private bool _sandbox;
+	private ItemInstance? _sbx;
+	private VBoxContainer _presets = null!;
 	private VBoxContainer _weapons = null!;
 	private VBoxContainer _slots = null!;
 	private Label _stats = null!;
@@ -29,6 +32,9 @@ public partial class GunsmithScreen : Control
 		SetAnchorsPreset(LayoutPreset.FullRect);
 		MouseFilter = MouseFilterEnum.Stop;
 	}
+
+	/// <summary>The weapon on the bench: the real one, or the throwaway copy in sandbox mode.</summary>
+	private ItemInstance? Work => _sandbox ? _sbx : _selected;
 
 	private static CharacterInventory Character => RunState.Current.Inventory ?? new CharacterInventory();
 
@@ -74,6 +80,15 @@ public partial class GunsmithScreen : Control
 
 		var top = new HBoxContainer();
 		top.AddChild(new Label { Text = "Gunsmith", SizeFlagsHorizontal = SizeFlags.ExpandFill });
+		var mode = new Button { Text = "Sandbox: off", ToggleMode = true };
+		mode.Toggled += on =>
+		{
+			_sandbox = on;
+			mode.Text = on ? "Sandbox: on (nothing is changed)" : "Sandbox: off";
+			_sbx = null;
+			Rebuild();
+		};
+		top.AddChild(mode);
 		var close = new Button { Text = "Close" };
 		close.Pressed += Close;
 		top.AddChild(close);
@@ -89,9 +104,13 @@ public partial class GunsmithScreen : Control
 		columns.AddChild(left);
 
 		var mid = new ScrollContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+		var midBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		_slots = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		_slots.AddThemeConstantOverride("separation", 3);
-		mid.AddChild(_slots);
+		midBox.AddChild(_slots);
+		_presets = new VBoxContainer();
+		midBox.AddChild(_presets);
+		mid.AddChild(midBox);
 		columns.AddChild(mid);
 
 		_stats = new Label { CustomMinimumSize = new Vector2(280f, 0f), AutowrapMode = TextServer.AutowrapMode.WordSmart };
@@ -105,9 +124,12 @@ public partial class GunsmithScreen : Control
 
 	private void Rebuild()
 	{
+		WeaponWorkshop.RememberOwned(_profile, Character);
 		var weapons = Gunsmith.Weapons(_profile, Character).ToList();
 		if (_selected is null || !weapons.Contains(_selected))
 			_selected = weapons.FirstOrDefault();
+		if (_sandbox && _selected is not null && (_sbx is null || _sbx.Spec.Id != _selected.Spec.Id))
+			_sbx = WeaponWorkshop.Copy(_selected);
 		foreach (var child in _weapons.GetChildren())
 			child.QueueFree();
 		foreach (var w in weapons)
@@ -124,6 +146,7 @@ public partial class GunsmithScreen : Control
 			b.Pressed += () =>
 			{
 				_selected = weapon;
+				_sbx = null;
 				Rebuild();
 			};
 			_weapons.AddChild(b);
@@ -131,6 +154,7 @@ public partial class GunsmithScreen : Control
 		if (weapons.Count == 0)
 			_weapons.AddChild(new Label { Text = "No weapons." });
 		BuildSlots();
+		BuildPresets();
 		ShowStats(null);
 	}
 
@@ -138,9 +162,12 @@ public partial class GunsmithScreen : Control
 	{
 		foreach (var child in _slots.GetChildren())
 			child.QueueFree();
-		if (_selected is not { } weapon)
+		if (Work is not { } weapon)
 			return;
-		var pool = Gunsmith.PartPool(_profile, Character).ToList();
+		var pool = _sandbox
+			? WeaponWorkshop.ExaminedIds(_profile, Character).Select(id => ItemDb.Create(id)).OfType<ItemInstance>()
+				.Where(i => i.Spec.Category == ItemCategory.WeaponPart).ToList()
+			: Gunsmith.PartPool(_profile, Character).ToList();
 		var depth = new Dictionary<ItemInstance, int> { [weapon] = 0 };
 		foreach (var slot in WeaponBuild.Slots(weapon))
 		{
@@ -172,12 +199,24 @@ public partial class GunsmithScreen : Control
 			row.AddChild(new Label { Text = GameText.ItemName(part.Spec.Id), SizeFlagsHorizontal = SizeFlags.ExpandFill });
 			var detach = new Button { Text = "Detach" };
 			var slotId = slot.Spec.Id;
-			detach.Pressed += () => Act(Gunsmith.Detach(_profile, Character, weapon, slotId), "Detached.");
+			if (_sandbox)
+				detach.Pressed += () =>
+				{
+					WeaponBuild.Detach(weapon, slotId);
+					Rebuild();
+				};
+			else
+				detach.Pressed += () => Act(Gunsmith.Detach(_profile, Character, weapon, slotId), "Detached.");
 			row.AddChild(detach);
 			return row;
 		}
 		var fitting = WeaponBuild.Fitting(weapon, slot.Spec.Id, pool).ToList();
-		if (fitting.Count == 0)
+		var refused = pool.Where(p => WeaponBuild.CanAttach(weapon, slot.Spec.Id, p) is AttachFailure.RailOverlap
+			or AttachFailure.RailOverflow or AttachFailure.ZoneConflict)
+			.GroupBy(p => p.Spec.Id).Select(g => g.First()).ToList();
+		if (_sandbox)
+			fitting = fitting.GroupBy(p => p.Spec.Id).Select(g => g.First()).ToList();
+		if (fitting.Count == 0 && refused.Count == 0)
 		{
 			row.AddChild(new Label
 			{
@@ -192,19 +231,101 @@ public partial class GunsmithScreen : Control
 			var cand = candidate;
 			var slotId = slot.Spec.Id;
 			var b = new Button { Text = "+ " + GameText.ItemName(cand.Spec.Id) };
-			b.Pressed += () => Act(Gunsmith.Attach(_profile, Character, weapon, slotId, cand), "Attached.");
+			if (_sandbox)
+				b.Pressed += () =>
+				{
+					WeaponBuild.Attach(weapon, slotId, cand);
+					Rebuild();
+				};
+			else
+				b.Pressed += () => Act(Gunsmith.Attach(_profile, Character, weapon, slotId, cand), "Attached.");
 			b.MouseEntered += () => ShowStats((slotId, cand));
 			b.MouseExited += () => ShowStats(null);
 			options.AddChild(b);
+		}
+		foreach (var blocked in refused)
+		{
+			var why = WeaponBuild.CanAttach(weapon, slot.Spec.Id, blocked) switch
+			{
+				AttachFailure.RailOverlap => "rail space taken",
+				AttachFailure.RailOverflow => "too long for the rail",
+				_ => "clashes with another part",
+			};
+			options.AddChild(new Button { Text = $"{GameText.ItemName(blocked.Spec.Id)} ({why})", Disabled = true });
 		}
 		row.AddChild(options);
 		return row;
 	}
 
+	private void BuildPresets()
+	{
+		foreach (var child in _presets.GetChildren())
+			child.QueueFree();
+		if (_selected is not { } real)
+			return;
+		_presets.AddChild(new HSeparator());
+		_presets.AddChild(new Label { Text = _sandbox ? "Sandbox build" : "Saved builds" });
+		if (_sandbox && _sbx is { } sbx)
+		{
+			var current = WeaponWorkshop.Capture("", sbx);
+			var missing = WeaponWorkshop.Missing(current, _profile, Character, real);
+			_presets.AddChild(new Label
+			{
+				Text = missing.Count == 0 ? "You own every part of this build." : "Still to source: " + MissingText(missing),
+				AutowrapMode = TextServer.AutowrapMode.WordSmart,
+			});
+			var save = new Button { Text = "Save as preset" };
+			save.Pressed += () =>
+			{
+				var n = _profile.Presets.Count(p => p.WeaponId == real.Spec.Id) + 1;
+				_profile.Presets.Add(WeaponWorkshop.Capture($"{GameText.ItemName(real.Spec.Id)} build {n}", sbx));
+				SaveManager.Instance?.SaveInHub();
+				_message.Text = "Preset saved.";
+				Rebuild();
+			};
+			_presets.AddChild(save);
+		}
+		foreach (var preset in _profile.Presets.Where(p => p.WeaponId == real.Spec.Id).ToList())
+		{
+			var p = preset;
+			var row = new HBoxContainer();
+			var missing = WeaponWorkshop.Missing(p, _profile, Character, real);
+			row.AddChild(new Label
+			{
+				Text = p.Name + (missing.Count == 0 ? "" : "  (missing: " + MissingText(missing) + ")"),
+				SizeFlagsHorizontal = SizeFlags.ExpandFill,
+				AutowrapMode = TextServer.AutowrapMode.WordSmart,
+			});
+			var load = new Button { Text = "Load in sandbox" };
+			load.Pressed += () =>
+			{
+				_sandbox = true;
+				_sbx = WeaponWorkshop.Build(p, real.Spec, id => ItemDb.Create(id)?.Spec);
+				Rebuild();
+			};
+			row.AddChild(load);
+			var apply = new Button { Text = "Apply", Disabled = missing.Count > 0 };
+			apply.Pressed += () => Act(WeaponWorkshop.Apply(_profile, Character, real, p), "Preset applied.");
+			row.AddChild(apply);
+			var del = new Button { Text = "Delete" };
+			del.Pressed += () =>
+			{
+				_profile.Presets.Remove(p);
+				SaveManager.Instance?.SaveInHub();
+				Rebuild();
+			};
+			row.AddChild(del);
+			_presets.AddChild(row);
+		}
+	}
+
+	private static string MissingText(System.Collections.Generic.IReadOnlyDictionary<string, int> missing)
+		=> string.Join(", ", missing.Select(kv => kv.Value > 1 ? $"{GameText.ItemName(kv.Key)} x{kv.Value}" : GameText.ItemName(kv.Key)));
+
 	/// <summary>Current stats of the weapon, with the change a hovered part would make.</summary>
 	private void ShowStats((string SlotId, ItemInstance Part)? hover)
 	{
-		if (_selected is not { } weapon)
+		if (Work is not { } weapon)
 		{
 			_stats.Text = "";
 			return;

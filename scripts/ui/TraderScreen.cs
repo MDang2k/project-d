@@ -332,6 +332,9 @@ public partial class TraderScreen : Control
 		var scroll = Scroll("Buy", out var list);
 		foreach (var listing in level.Sells)
 		{
+			// seen in a trader list: the gunsmith sandbox may use it
+			if (ItemDb.Data(listing.ItemId)?.Payload is PartData)
+				_profile.ExaminedParts.Add(listing.ItemId);
 			var price = engine.BuyPrice(level, listing);
 			var unit = GameText.Get("currency.unit");
 			var canAfford = engine.Money >= price;
