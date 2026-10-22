@@ -169,6 +169,17 @@ public partial class HubScreen : CanvasLayer
 			_traders.Open();
 		foreach (var a in args)
 		{
+			if (a.StartsWith("--flyout="))
+				_gunsmith.DebugFlyout(a["--flyout=".Length..]);
+			if (a.StartsWith("--hubshot="))
+			{
+				var path = a["--hubshot=".Length..];
+				GetTree().CreateTimer(1.5).Timeout += () =>
+				{
+					GetViewport().GetTexture().GetImage().SavePng(path);
+					GetTree().Quit();
+				};
+			}
 			if (a.StartsWith("--gunsmith="))
 				_gunsmith.DebugOpen(a["--gunsmith=".Length..]);
 			if (a.StartsWith("--trader="))
