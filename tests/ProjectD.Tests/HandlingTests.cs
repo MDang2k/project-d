@@ -204,3 +204,16 @@ public class AimAndBreathTests
 		Assert.False(BreathHold.Update(true, arms, 10f, 0.1f));
 	}
 }
+
+public class HipSpreadTests
+{
+	[Fact]
+	public void SteadierWeaponsSpreadLessAndAimingClosesTheCone()
+	{
+		var loose = HandlingModel.HipSpreadDeg(2.5f, RatingCurves.SwayMult(20f), 0f);
+		var steady = HandlingModel.HipSpreadDeg(2.5f, RatingCurves.SwayMult(80f), 0f);
+		Assert.True(steady < loose);
+		Assert.Equal(0f, HandlingModel.HipSpreadDeg(2.5f, 1f, 1f), 4);
+		Assert.Equal(2.5f, HandlingModel.HipSpreadDeg(2.5f, RatingCurves.SwayMult(50f), 0f), 4);
+	}
+}

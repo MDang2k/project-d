@@ -638,6 +638,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var fired = Weapon is { } held && held.Stats.VelocityMult != 1f
 			? ammo with { MuzzleVelocity = ammo.MuzzleVelocity * held.Stats.VelocityMult }
 			: ammo;
+		var cone = HandlingModel.HipSpreadDeg(_cfg.HipSpreadDeg, Weapon?.Stats.DispersionMult ?? 1f, _aim.Amount);
+		direction = AiAim.Jitter(direction, cone, GD.Randf);
 		_projectiles?.Spawn(fired, position, direction, GetRid(), _ownRids);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)

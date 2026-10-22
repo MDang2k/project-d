@@ -72,6 +72,13 @@ public static class HandlingModel
 		return weaponBaseDeg * stance * exhaustion * movement * weight * ads * breath * support;
 	}
 
+	/// <summary>
+	/// Un-aimed spread cone in degrees: the base cone scaled by the weapon's hip stability and closed while
+	/// aiming down sights (weapon modding v2 s4).
+	/// </summary>
+	public static float HipSpreadDeg(float baseDeg, float dispersionMult, float adsAmount)
+		=> baseDeg * dispersionMult * (1f - Mathf.Clamp(adsAmount, 0f, 1f));
+
 	public static float RecoilMultiplier(HandlingTuning t, Stance stance, float adsAmount,
 		float restAmount = 0f, bool bipodDeployed = false)
 	{

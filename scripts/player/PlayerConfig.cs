@@ -136,6 +136,8 @@ public partial class PlayerConfig : Resource
 	[Export] public float CrouchRecoilMult { get; set; } = 0.85f;
 	[Export] public float ProneRecoilMult { get; set; } = 0.65f;
 	[Export] public float AdsRecoilMult { get; set; } = 0.8f;
+	/// <summary>Hip-fire cone (degrees) of a weapon with hip stability 50; scaled by the rating, closed by aiming.</summary>
+	[Export] public float HipSpreadDeg { get; set; } = 2.5f;
 
 	[ExportGroup("Support (rest and bipod)")]
 	[Export] public float RestMinHeight { get; set; } = 0.45f;
