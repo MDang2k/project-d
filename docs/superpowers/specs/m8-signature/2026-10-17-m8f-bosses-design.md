@@ -28,7 +28,7 @@ Boss-specific quest content, pre-raid boss rumours or intel (8d knowledge), uniq
 - Each map lists the boss ids that can appear on it. At raid start the candidates roll their chance; at most one boss spawns per raid **(tune)**.
 - Compound mode: spawns and patrols inside a `BossArea` box node (by id) placed in the map.
 - Roaming mode: follows a looping route of `BossRoute` waypoint nodes (by id).
-- Toughness over the faction preset: accuracy and courage +25%, body HP +25% **(tune)**.
+- Toughness over the faction preset: accuracy and courage +25% **(tune)**; body HP uses the per-boss `HP multiplier` from the factions and bosses spec (sheet **Bosses**).
 - Bosses respawn by chance in later raids; killing one is not permanent.
 - Map 1: one compound boss, a bandit chief in the vehicle depot with 3 escorts, 35% spawn chance **(tune)**. Roaming mode is supported in data and verified in the AI range; map 1 gets a roaming boss only if the map requirements call for one.
 

@@ -42,6 +42,24 @@ One boss per map (8f) plus the roaming Troika (section 4). Full rows in sheet **
 - Every boss drops its signature gear, key, guaranteed loot and a roll from its boss loot table (8f).
 - Each boss has a distinct look recognisable before any name appears (GDD pillar: information is earned).
 
+### Health pools
+
+- Every human starts from the player body (GDD §9): head 35, thorax 85, stomach 70, arms 60, legs 65 (440 total).
+- Each boss has an **HP multiplier** **(tune)** applied to every body part, head included, rounded to whole HP. Faction grunts and escorts stay at 1.0. This replaces 8f's flat +25% body HP.
+- Scaling the head is deliberate: tanky bosses (Bär, Rauch, Král) can survive one penetrating headshot from weaker rounds.
+- Columns in sheet **Bosses**: `HP multiplier`, `Head HP`, `Thorax HP`, `Stomach HP`, `Arm HP (each)`, `Leg HP (each)`, `Total HP` (per-part columns are formulas off the multiplier).
+
+| Boss | Multiplier | Head | Thorax | Stomach | Arm | Leg | Total |
+|---|---|---|---|---|---|---|---|
+| Die Jägerin, Fuchs | 1.1 | 39 | 94 | 77 | 66 | 72 | 486 |
+| Old Mattes | 1.15 | 40 | 98 | 81 | 69 | 75 | 507 |
+| Haig, Kolb | 1.25 | 44 | 106 | 88 | 75 | 81 | 550 |
+| Harker, Wolf | 1.3 | 46 | 111 | 91 | 78 | 85 | 574 |
+| Vogt | 1.35 | 47 | 115 | 95 | 81 | 88 | 595 |
+| Král | 1.4 | 49 | 119 | 98 | 84 | 91 | 616 |
+| Rauch | 1.5 | 53 | 128 | 105 | 90 | 98 | 662 |
+| Bär | 1.6 | 56 | 136 | 112 | 96 | 104 | 704 |
+
 ## 4. Die Troika (roaming boss squad)
 
 - Three ex-special-forces freelancers, one deserter from each side and one who will not say; hostile to everyone; they deal with the Smuggler.
@@ -65,7 +83,7 @@ One boss per map (8f) plus the roaming Troika (section 4). Full rows in sheet **
 ## 6. System needs
 
 - AI presets per faction and tier rolling from the loadout sheet.
-- Boss data (8f `BossData`) filled from the Bosses sheet.
+- Boss data (8f `BossData`) filled from the Bosses sheet, plus an `HpMultiplier` field scaling the `HealthConfig` body HP.
 - Troika: a roaming multi-member boss with per-map spawn chance that ignores the one-boss limit.
 - Armband and insignia materials on the shared palette (asset pipeline).
 
@@ -75,6 +93,7 @@ One boss per map (8f) plus the roaming Troika (section 4). Full rows in sheet **
 2. Gear tier by map ring plus one per act.
 3. Every boss carries a unique or rare signature weapon.
 4. Die Troika roam five maps with an independent 15% roll each and may coexist with a map boss.
+5. Boss health is a per-boss multiplier on the player body, head included; grunts and escorts use the base body.
 
 ## Open items
 
