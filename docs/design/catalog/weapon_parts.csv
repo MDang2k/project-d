@@ -75,3 +75,5 @@ stoner_rifle_upper,Stoner 63 rifle upper (XM22),Stoner 63,Vital,receiver_upper,s
 stoner_lmg_upper,Stoner 63 LMG upper (XM207),Stoner 63,Vital,receiver_upper,stoner.upper,barrel; feed: belt,Stoner 63,Proto,0,,0,0,0,0,0,1,,Never,3x1,1.6,35000,,Post-slice,Receiver swap: belt-fed LMG
 receiver_cover_ns67,Receiver cover with NS-67 rail (AK),alt-history,Functional,receiver_cover,ak.cover,"ns67 (10 steps, top)",AK,East,0,sight_line,0,0,1,0,-1,1,,Tooled,2x1,0.4,9000,Engineer,Post-slice,Stable top optic mount on an AK
 ewigstein_trigger_group,Ewigstein-tuned trigger group,alt-history,Vital,trigger,per family,,most rifles,Late,0,,0,0,0,0,0,1,,Never,1x1,0.2,0,,Late,Fire-rate effect TBD
+zg1229_vampir,ZG 1229 Vampir IR scope,ZG 1229 Vampir,Functional,optic,stg.vampir_mount,,StG 44,Relic,0,sight_line; side_left,0,0,2,0,-16,1,1x night,Tooled,3x2,3,60000,,Post-slice,Ernst Kolb (Labs boss); active IR lamp plus battery pack; M9
+skorpion_suppressor,Skorpion suppressor,vz. 61 suppressor,Functional,muzzle,thread.skorpion,,Skorpion vz. 61,East,0,muzzle,5,2,1,0,-8,0.98,,Tooled,2x1,0.3,15000,Smuggler,Post-slice,Fuchs (Troika)
