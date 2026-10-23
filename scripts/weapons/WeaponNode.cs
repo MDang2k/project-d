@@ -57,33 +57,39 @@ public partial class WeaponNode : Node3D
 			w.LoadFromItem();
 
 		var size = data.BodySize;
-		w.AddChild(new MeshInstance3D
+		w._model = LoadModel(data.Id);
+		if (w._model is null)
 		{
-			Mesh = new BoxMesh { Size = size },
-			Position = new Vector3(0f, 0f, -size.Z * 0.5f + 0.1f),
-			MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.12f, 0.12f, 0.13f) },
-		});
-		var sightMat = new StandardMaterial3D { AlbedoColor = new Color(0.05f, 0.05f, 0.05f) };
-		var sightY = size.Y * 0.5f + 0.0125f;
-		w.AddChild(new MeshInstance3D
-		{
-			Mesh = new BoxMesh { Size = new Vector3(0.012f, 0.025f, 0.012f) },
-			Position = new Vector3(0f, sightY, 0.04f),
-			MaterialOverride = sightMat,
-		});
-		w.AddChild(new MeshInstance3D
-		{
-			Mesh = new BoxMesh { Size = new Vector3(0.008f, 0.025f, 0.008f) },
-			Position = new Vector3(0f, sightY, -size.Z + 0.11f),
-			MaterialOverride = sightMat,
-		});
-		w.GripRight = new Marker3D { Name = "GripRight", Position = data.GripRightOffset };
-		w.GripLeft = new Marker3D { Name = "GripLeft", Position = data.GripLeftOffset };
-		w.Muzzle = new Marker3D { Name = "Muzzle", Position = new Vector3(0f, 0f, -size.Z + 0.1f) };
+			w.AddChild(new MeshInstance3D
+			{
+				Mesh = new BoxMesh { Size = size },
+				Position = new Vector3(0f, 0f, -size.Z * 0.5f + 0.1f),
+				MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.12f, 0.12f, 0.13f) },
+			});
+			var sightMat = new StandardMaterial3D { AlbedoColor = new Color(0.05f, 0.05f, 0.05f) };
+			var sightY = size.Y * 0.5f + 0.0125f;
+			w.AddChild(new MeshInstance3D
+			{
+				Mesh = new BoxMesh { Size = new Vector3(0.012f, 0.025f, 0.012f) },
+				Position = new Vector3(0f, sightY, 0.04f),
+				MaterialOverride = sightMat,
+			});
+			w.AddChild(new MeshInstance3D
+			{
+				Mesh = new BoxMesh { Size = new Vector3(0.008f, 0.025f, 0.008f) },
+				Position = new Vector3(0f, sightY, -size.Z + 0.11f),
+				MaterialOverride = sightMat,
+			});
+		}
+		else
+			w.AddChild(w._model);
+		w.GripRight = new Marker3D { Name = "GripRight", Position = w.ModelMarker("GripRight") ?? data.GripRightOffset };
+		w.GripLeft = new Marker3D { Name = "GripLeft", Position = w.ModelMarker("GripLeft") ?? data.GripLeftOffset };
+		w.Muzzle = new Marker3D { Name = "Muzzle", Position = w.ModelMarker("Muzzle") ?? new Vector3(0f, 0f, -size.Z + 0.1f) };
 		w.BipodMount = new Marker3D
 		{
 			Name = "BipodMount",
-			Position = new Vector3(0f, -size.Y * 0.5f, -size.Z * 0.7f + 0.1f),
+			Position = w.ModelMarker("BipodMount") ?? new Vector3(0f, -size.Y * 0.5f, -size.Z * 0.7f + 0.1f),
 		};
 		w.AddChild(w.BipodMount);
 		{

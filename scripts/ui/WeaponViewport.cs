@@ -19,7 +19,7 @@ public partial class WeaponViewport : SubViewportContainer
 	private float _pitch;
 	private float _distance = 1.2f;
 	private float _defaultDistance = 1.2f;
-	private Vector3 _size = new(0.05f, 0.1f, 0.8f);
+	private Aabb _bounds = new(new Vector3(-0.025f, -0.05f, -0.7f), new Vector3(0.05f, 0.1f, 0.8f));
 	private bool _dragging;
 	private string _shownId = "";
 
@@ -53,8 +53,9 @@ public partial class WeaponViewport : SubViewportContainer
 		_node = null;
 		if (ItemDb.Data(weapon.Spec.Id)?.Payload is not WeaponData data)
 			return;
-		_size = data.BodySize;
-		_defaultDistance = Mathf.Max(2.0f, _size.Z * 4.4f);
+		_node = WeaponNode.Create(data, weapon);
+		_bounds = _node.ModelBounds;
+		_defaultDistance = Mathf.Max(2.0f, _bounds.Size.Z * 3.8f);
 		if (_shownId != weapon.Spec.Id)
 		{
 			_shownId = weapon.Spec.Id;
@@ -62,9 +63,8 @@ public partial class WeaponViewport : SubViewportContainer
 			_pitch = 0f;
 			_distance = _defaultDistance;
 		}
-		_node = WeaponNode.Create(data, weapon);
 		// centre the model on the pivot so rotation spins it around its middle
-		_node.Position = new Vector3(0f, 0f, _size.Z * 0.5f - 0.1f);
+		_node.Position = -_bounds.GetCenter();
 		_pivot.AddChild(_node);
 		ApplyCamera();
 	}
@@ -131,6 +131,6 @@ public partial class WeaponViewport : SubViewportContainer
 	{
 		if (_node is not null && slot.Marker != "")
 			return _node.MarkerPosition(slot.Marker);
-		return new Vector3(0f, _size.Y * (0.5f - fraction.Y), 0.1f - _size.Z * (1f - fraction.X));
+		return new Vector3(0f, _bounds.Position.Y + _bounds.Size.Y * (1f - fraction.Y), _bounds.Position.Z + _bounds.Size.Z * fraction.X);
 	}
 }

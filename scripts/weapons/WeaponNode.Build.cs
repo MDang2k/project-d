@@ -35,7 +35,7 @@ public partial class WeaponNode
 	public float NoiseRadius => Data.NoiseRadius * Stats.NoiseMult;
 
 	/// <summary>Sight line height above the weapon origin; an optic sits higher than iron sights.</summary>
-	public float SightHeight => Data.SightHeight + (Stats.Zoom > 0f ? 0.035f : 0f);
+	public float SightHeight => (ModelMarker("RearSight") is { } rear ? rear.Y : Data.SightHeight) + (Stats.Zoom > 0f ? 0.035f : 0f);
 
 	private WeaponStats NeutralStats() => new(50f, 50f, 50f, 50f, Data.Ergonomics, 1f, 1f, 0f, Data.WeightKg, 0, 0,
 		Data.HasBipod, false);
@@ -46,7 +46,8 @@ public partial class WeaponNode
 		Stats = Item is null ? NeutralStats() : WeaponBuild.Stats(Item);
 		var signature = Item is null
 			? ""
-			: string.Join(",", WeaponBuild.Slots(Item).Where(s => s.Part is not null).Select(s => $"{s.Spec.Id}={s.Part!.Spec.Id}"));
+			: string.Join(",", WeaponBuild.Slots(Item).Where(s => s.Part is not null).Select(s => $"{s.Spec.Id}={s.Part!.Spec.Id}"))
+				+ $"|mag={Item.InsertedMagazine?.Spec.Id}";
 		if (signature == _buildSignature)
 			return;
 		_buildSignature = signature;
@@ -54,7 +55,9 @@ public partial class WeaponNode
 	}
 
 	/// <summary>Where a slot marker (Muzzle, OpticMount, Stock, ...) sits on the model, weapon space.</summary>
-	public Vector3 MarkerPosition(string marker)
+	public Vector3 MarkerPosition(string marker) => WeaponMarker(marker);
+
+	private Vector3 MarkerPositionFallback(string marker)
 	{
 		var size = Data.BodySize;
 		return marker switch
@@ -72,6 +75,7 @@ public partial class WeaponNode
 	{
 		_partsRoot?.QueueFree();
 		_opticMeshes.Clear();
+		_partNodes.Clear();
 		_partsRoot = new Node3D { Name = "Parts" };
 		AddChild(_partsRoot);
 		var muzzleExtra = 0f;
@@ -81,6 +85,12 @@ public partial class WeaponNode
 			{
 				var part = slot.Part!;
 				var width = Mathf.Max(1, part.Spec.Width);
+				if (PlacePartModel(part, slot.Spec, slot.Owner) is { } placed)
+				{
+					if (slot.Spec.Type == "optic")
+						_opticMeshes.AddRange(placed.FindChildren("*", "MeshInstance3D", true, false).Cast<MeshInstance3D>());
+					continue;
+				}
 				switch (slot.Spec.Type)
 				{
 					case "muzzle":
@@ -89,20 +99,22 @@ public partial class WeaponNode
 						break;
 					case "optic":
 						_opticMeshes.Add(AddPartMesh(part, new Vector3(0.04f, 0.05f, 0.04f * width + 0.06f),
-							MarkerPosition(slot.Spec.Marker) + new Vector3(0f, 0.035f, 0f)));
+							SlotPoint(slot) + new Vector3(0f, 0.035f, 0f)));
 						break;
 					case "mount":
-						AddPartMesh(part, new Vector3(0.035f, 0.02f, 0.07f), MarkerPosition(slot.Spec.Marker));
+						AddPartMesh(part, new Vector3(0.035f, 0.02f, 0.07f), SlotPoint(slot));
 						break;
 					case "underbarrel":
-						AddPartMesh(part, new Vector3(0.03f, 0.03f, 0.05f), MarkerPosition("BipodMount"));
+						AddPartMesh(part, new Vector3(0.03f, 0.03f, 0.05f), SlotPoint(slot));
 						break;
 					case "light":
-						AddPartMesh(part, new Vector3(0.03f, 0.03f, 0.08f), MarkerPosition("Light"));
+						AddPartMesh(part, new Vector3(0.03f, 0.03f, 0.08f), SlotPoint(slot));
 						break;
 				}
 			}
 		}
+		PlaceMagazineModel();
+		SyncIntegralParts(Item is not null && WeaponBuild.Slots(Item).Any(s => s.Spec.Type == "muzzle" && s.Part is not null));
 		Muzzle.Position = _baseMuzzle + new Vector3(0f, 0f, -muzzleExtra);
 	}
 

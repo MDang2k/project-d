@@ -188,7 +188,7 @@ public partial class HubScreen : CanvasLayer
 				_traders.DebugShow(parts[0], parts.Length > 1 ? parts[1] : null);
 			}
 		}
-		if (shot is not null)
+		if (shot is not null && !args.Contains("--deploy"))
 		{
 			await ToSignal(GetTree().CreateTimer(0.6), SceneTreeTimer.SignalName.Timeout);
 			GetViewport().GetTexture().GetImage().SavePng(shot);
