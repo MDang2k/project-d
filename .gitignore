@@ -9,3 +9,4 @@ bin/
 obj/
 .godot/mono/
 *.user
+*.blend1
