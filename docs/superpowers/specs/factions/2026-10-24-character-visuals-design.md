@@ -5,7 +5,7 @@ Status: approved design, not implemented. Proposed by Claude at the designer's r
 ## Intent
 
 - Every named character reads in one glance: one silhouette hook and one colour or prop nobody else has.
-- Same low-poly look, palette and shared rig as everyone else; no character gets special shaders or hand-painted textures.
+- Same low-poly cuboid look and shared rig as everyone else; every character uses the same small pixel-art texture style (decision 8); no special shaders.
 - Faces tell the story where words don't: the player learns things about traders by looking (pillar: information is earned).
 
 ## 1. The player
@@ -182,6 +182,7 @@ Full looks are in the Bosses sheet (`Look` column). The one hook each boss is re
 5. Rauch is the only unmasked Abteilung Ewig soldier; Albrecht wears his old lab coat.
 6. Survey team in bright orange parkas; the hollowed survivor's eyes track the player.
 7. Raid time only from an analog wristwatch both sides wear; raids start at a fixed clock time and the deploy screen states the deadline.
+8. (2026-10-24) Character style is BattleBit Remastered-like: cuboid, flat-shaded, stiff-limbed bodies with small pixel-art textures per outfit (nearest filtering), simple visible box-head faces. This overrides "no hand-painted textures" for characters only (pipeline spec section 1).
 
 ## Open items
 
