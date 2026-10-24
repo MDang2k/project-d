@@ -1,6 +1,6 @@
 # Character visuals: player, traders, story characters, mission NPCs
 
-Status: proposal written at the designer's request ("just propose the whole set"); not yet reviewed. Every choice here is Claude's call until the designer approves or changes it. Part 3 of the factions/characters content pass. Builds on the factions and bosses spec (`2026-10-23-factions-bosses-design.md`), the story characters and names specs (`docs/superpowers/specs/story/`), the asset pipeline spec (`docs/superpowers/specs/art/2026-10-21-asset-pipeline-art-direction-design.md`) and GDD §4 (menu hub) and §19 (art). Spoilers (Weiss, Albrecht). Numbers marked **(tune)**.
+Status: approved design, not implemented. Proposed by Claude at the designer's request ("just propose the whole set") and approved as written, plus the wristwatch raid time (section 1). Part 3 of the factions/characters content pass. Builds on the factions and bosses spec (`2026-10-23-factions-bosses-design.md`), the story characters and names specs (`docs/superpowers/specs/story/`), the asset pipeline spec (`docs/superpowers/specs/art/2026-10-21-asset-pipeline-art-direction-design.md`) and GDD §4 (menu hub) and §19 (art). Spoilers (Weiss, Albrecht). Numbers marked **(tune)**.
 
 ## Intent
 
@@ -19,13 +19,26 @@ The silent contractor (story part 3). No face or body customisation; the side ch
 | Jacket | olive M65-pattern field jacket, sleeves rolled once | olive-brown M69-pattern field jacket ("afghanka" cut), sleeves down |
 | Trousers | olive OG-107-style, bloused into boots | olive-brown field trousers, tucked |
 | Boots | black leather lace-up combat boots | brown lace-up boots |
-| Hands | olive leather-palm gloves, cuffs at the wrist | bare hands, field watch on the left wrist |
+| Hands | olive leather-palm gloves, cuffs at the wrist; field watch on an olive canvas strap over the left glove cuff | bare hands; steel field watch on the left wrist |
 | Side marker | **pale blue armband**, left upper arm | **red armband**, left upper arm |
 | Head (hidden locally) | short hair, stubble, field cap when no helmet | short hair, stubble, pilotka-style cap when no helmet |
 
 - Same armband as the AI PMCs of that side (factions spec), so the player is a commission contractor like them.
 - The arms and sleeves are on screen all the time in first person, so sleeve colour, cuff and glove shape get the most care. The armband sits high enough on the left arm to show when the weapon is raised and the player looks slightly left, a quiet reminder of the side.
-- The Allied gloves and the Soviet bare hand plus watch make the two sides feel different in first person even without armor.
+- The Allied gloves and the Soviet bare hand make the two sides feel different in first person even without armor.
+
+### Wristwatch (raid time)
+
+The only way to know the raid time in a raid; there is no timer on screen (no-HUD rule).
+
+- **Both sides wear one** (fairness): Allied a Western field watch with a canvas strap over the glove cuff, Soviet a steel watch on the bare wrist. Part of the base outfit, not an item: it cannot be lost, looted or sold.
+- **The watch shows the clock, not a countdown.** Each raid starts at a fixed clock time: noon raids 12:00, night raids 00:00 **(tune)**. The deploy screen states the deadline in words ("Exfil closes at 12:20") from the map's raid timer (GDD §15). The player does the maths.
+- **Analog face, read by eye:** hour and minute hands, no second hand, no digits beyond the dial markings, so it is precise to about a minute. Luminous hands and hour dots stay readable at night (period radium/tritium dial; this is paint, not Ewigstein).
+- **Check watch action:** hold a key **(key chosen with the designer at implementation; input map change needs approval)**. The left forearm lifts and turns the dial toward the camera for as long as the key is held (about 0.4 s **(tune)** to raise). The left hand leaves the weapon: no aiming, weapon sway as one-handed; firing or aiming cancels it.
+- Works with a destroyed left arm, but the raise is slower (x1.5 **(tune)**).
+- Useful against timed events: Hochwald fog, the Border Strip wave at T-17, pressure events, Hollowed hours.
+- Watch model: own mesh on `Forearm_L` (`Attach` marker), 100-300 triangles; the hands are separate child nodes named `HourHand` and `MinuteHand` rotated by code from the raid clock.
+- Logic: a pure `RaidClock` (start clock time + `RaidSession.ElapsedS` gives hour and minute angles), xUnit-tested.
 
 ### Worn gear on the body
 
@@ -160,18 +173,19 @@ Full looks are in the Bosses sheet (`Look` column). The one hook each boss is re
   - Player outfit: one outfit mesh per side, chosen from the profile's `Side`.
 - **Rules carried over:** no real Nazi symbols (Abteilung Ewig uses the fictional frost ring); Ewigstein never glows and is never green; original work only.
 
-## Decisions (Claude's calls, pending review)
+## Decisions
 
-1. Player base outfit per side: Allied M65 jacket, gloves and pale blue armband; Soviet M69 jacket, bare hands with watch and red armband. No customisation.
+1. Player base outfit per side: Allied M65 jacket, gloves and pale blue armband; Soviet M69 jacket, bare hands and red armband; both wear a wristwatch. No customisation.
 2. Worn gear meshes are shared by the player and every faction.
 3. Trader portraits are rendered 3D busts in the game style, 512 x 512.
 4. Weiss is the only trader whose portrait changes (scarf off, frost scar, after mission 4).
 5. Rauch is the only unmasked Abteilung Ewig soldier; Albrecht wears his old lab coat.
 6. Survey team in bright orange parkas; the hollowed survivor's eyes track the player.
+7. Raid time only from an analog wristwatch both sides wear; raids start at a fixed clock time and the deploy screen states the deadline.
 
 ## Open items
 
 - 3D character preview in the hub loadout screen.
-- Whether the Soviet watch could tell the raid time (no HUD); a gameplay idea, not decided here.
+- Check-watch key binding (designer).
 - Greeting lines and dialogue (writing pass).
 - Die Wächter visuals (late, art pass).
