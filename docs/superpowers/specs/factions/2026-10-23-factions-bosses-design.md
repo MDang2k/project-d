@@ -97,5 +97,5 @@ One boss per map (8f) plus the roaming Troika (section 4). Full rows in sheet **
 
 ## Open items
 
-- Trader and story character visuals (part 3 of this content pass) come next.
+- Trader and story character visuals: `2026-10-24-character-visuals-design.md`.
 - Loot table contents per boss (`boss_*` tables) are tuning.

@@ -9,7 +9,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `weapons/` | weapon modding (v1 superseded by v2) |
 | `maps/` | raid map standard, world map and transits, map 1 requirements and revision, one spec per map |
 | `story/` | story bible (spoilers): core truth, arc and missions, characters, endings, names |
-| `factions/` | faction identities, loadout tiers, bosses, Die Troika |
+| `factions/` | faction identities, loadout tiers, bosses, Die Troika; character visuals (player, traders, story and mission characters) |
 | `art/` | asset pipeline and art direction (used by the model-designer agent) |
 
 New specs go into the matching folder with the usual `YYYY-MM-DD-<topic>-design.md` name.
