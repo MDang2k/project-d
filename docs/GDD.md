@@ -87,7 +87,7 @@ Walk, sprint, crouch, crouch-sprint, prone, mantle (low obstacles), lean left/ri
 
 ### Player body
 
-Full-body first person: looking down shows legs and torso, and the body casts shadows. Arms hold the weapon through IK so leaning, resting and bipods look physically correct without hand-made animations in the slice. Hand-made animations (reloads, mag checks) replace or layer on top of this when custom art arrives.
+Full-body first person: looking down shows legs and torso, and the body casts shadows. Arms hold the weapon through IK so leaning, resting and bipods look physically correct without hand-made animations in the slice. Hand-made animations (reloads, mag checks) replace or layer on top of this when custom art arrives. The animation system (layered graph, socket-based ADS, spring recoil, interruptible phased reloads) is specified in `docs/superpowers/specs/animation/2026-10-25-animation-system-design.md`.
 
 ### Stamina
 

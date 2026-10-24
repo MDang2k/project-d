@@ -11,6 +11,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `story/` | story bible (spoilers): core truth, arc and missions, characters, endings, names |
 | `factions/` | faction identities, loadout tiers, bosses, Die Troika; character visuals (player, traders, story and mission characters) |
 | `ai/` | AI combat v2 (perception, under-fire reaction, aim through the gun, personalities, squads, performance) |
+| `animation/` | animation system: layered graph, socket ADS and grip IK, spring recoil, wall tuck, interruptible reloads |
 | `art/` | asset pipeline and art direction (used by the model-designer agent) |
 
 New specs go into the matching folder with the usual `YYYY-MM-DD-<topic>-design.md` name.
