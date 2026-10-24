@@ -64,7 +64,9 @@ Godot implementation **(Claude's call; verify every node class in 4.7.2 before b
 - **Bones:** `Hips` (root motion stripped; the `CharacterBody3D` moves the character), legs, and the lower spine (`Spine`).
 - **Directional blendspace:** a `BlendSpace2D` per stance with 8-way clips (forward, back, left, right and the four diagonals) plus idle at the centre, driven by **local velocity** (velocity in the character's facing frame, normalised by the stance's max speed). Walk and sprint are separate rings in the same space (inner ring walk at 0.5, outer ring sprint at 1.0) so speed blends continuously.
 - **Stances:** stand, crouch, prone. **Stance is a continuous float** (`stance_height`, 1 = stand, 0.5 = crouch, 0 = prone) rather than three fixed steps: the graph blends the stand and crouch blendspaces by height above 0.5 and crouch and prone below it (the existing `BodyPoseModel.StanceBlend` math, now feeding blend weights instead of procedural poses). This allows smooth, granular crouch heights in the Tarkov style.
-  - Granular crouch control (mouse wheel or a modifier key adjusting eye height in steps) is supported by the graph; **whether the game exposes it is the designer's decision** and needs an input map change (open item).
+  - **Granular crouch (designer: yes):** hold the crouch key (C) and use the mouse wheel to raise or lower the stance height between crouch (0.5) and full stand (1.0) in 5 steps of 0.1 **(tune)**. A tap of C still toggles stand and crouch; X still goes prone (prone is not on the wheel range). The chosen height is kept until changed.
+  - Effects scale with the height: eye height (camera rig), hitbox and collision capsule height, movement speed (lerp between crouch and walk speeds), sound of footsteps, and the perception stance multiplier (lerp between crouched and standing visibility, `TargetProfile`). Leaning and resting work at every height, so the player can fit the weapon over any ledge or window sill.
+  - Input map: two new actions, `stance_up` (wheel up) and `stance_down` (wheel down), active only while crouch is held (approved with this decision; added in `project.godot` at implementation).
 - **Transitions:** stand to crouch and crouch to prone use short transition clips (prone down 0.6 s, prone up 0.8 s **(tune)**) layered by the stance float; the movement model keeps its own stance timing and the clip is time-scaled to match it (section 5.6 rule: logic owns time).
 - **Foot placement:** a foot IK pass in layer 5 (section 4.5) plants feet on slopes and stairs; the base layer provides the stride.
 - **Turn in place:** when the camera yaw leaves the aim-offset yaw limit (±70° standing, ±45° crouched, ±20° prone **(tune)**), the lower body turns to catch up with a turn clip (90° step, 0.35 s **(tune)**); while moving, the lower body faces the movement direction blended toward the camera yaw (strafe rules of the blendspace). Free look (Alt) never turns the body (GDD §6).
@@ -168,7 +170,7 @@ The project keeps **one full-body character mesh** for the local player and for 
 | Topic | Decision |
 |---|---|
 | Architecture | Unified rig, Tarkov / Arena Breakout style. The player sees their own body; AI and (later) any third-person view use the same mesh and graph. |
-| Camera | The camera stays on the gameplay camera rig (`LeanPivot > Head > Recoil > FreeLook > Camera`), placed at the head bone's eye position. **Camera is the authority (Claude's call):** the body is solved to it (aim offset + `AimOffsetModifier`), instead of parenting the camera inside the animated head bone. Same result as the doc's head-socket camera, without animation shake reaching the view (CLAUDE.md: head and camera stable). Locomotion head motion is removed from the head bone for the local camera; a small, tunable procedural view bob may be added (default off, debug overlay). |
+| Camera | The camera stays on the gameplay camera rig (`LeanPivot > Head > Recoil > FreeLook > Camera`), placed at the head bone's eye position. **Camera is the authority (Claude's call):** the body is solved to it (aim offset + `AimOffsetModifier`), instead of parenting the camera inside the animated head bone. Same result as the doc's head-socket camera, without animation shake reaching the view (CLAUDE.md: head and camera stable). Locomotion head motion is removed from the head bone for the local camera; a small procedural view bob replaces it (section 4.6). |
 | Head mesh | Hidden for the local camera, still casts a shadow (as today). |
 | Bullet origin | Physical barrel origin: bullets spawn at `Muzzle` and travel along the bore axis (already the case). |
 | Height over bore | Fully simulated (already the case): the bore sits below the sight; pointing a sight at a forehead at very close range can hit the chest. No compensation. |
@@ -229,6 +231,14 @@ Pre-baked clips give the weapon cycle; realism comes from real-time maths on top
 
 - Foot IK: a ray per foot down from the knee; feet plant on the hit point and rotate to the normal; the pelvis lowers to keep the lower foot reachable (max 0.25 m **(tune)**). Skipped while airborne, mantling or prone.
 - AI only: a look-at modifier turns the AI head toward its current point of interest within neck limits (perception readability for the player).
+
+### 4.6 View bob (designer: small default)
+
+- A small procedural camera bob, on by default, driven by the locomotion phase so it stays in step with the feet; never taken from the animated head bone.
+- Defaults **(tune)**: walk 0.6 cm vertical, 0.3 cm lateral, 0.3° roll; sprint 1.2 cm vertical, 0.6 cm lateral, 0.5° roll; crouch-walk 60% of walk; prone crawl 0.3 cm; landing dip from fall speed (max 3 cm, spring return).
+- Reduced to 20% while aiming down sights and to 0 while resting or on a bipod, so precision aiming stays stable.
+- A settings slider scales it from 0 to 150% (0 for players sensitive to motion); the debug overlay exposes the per-movement values.
+- Applied on the camera rig (`Head` node offset) before recoil and free look, so it moves the view and the weapon together and does not change the aim point relative to the sight.
 
 ## 5. Interruptible sub-state machines and granular state tracking
 
@@ -299,7 +309,7 @@ Instead of one monolithic reload state, a reload is a sequence of phases separat
 ## 7. Clip sources and authoring
 
 - **Rig:** all clips are made on the game rig (bone names from the asset pipeline spec and `PlayerBody.cs`), no retargeting at runtime.
-- **Locomotion and generic body clips (Claude's call, needs designer approval per CLAUDE.md):** start from a CC0 animation library (for example Quaternius' CC0 animation packs) retargeted to the game rig in Blender, with licence checked and an entry in `assets/CREDITS.md` before use. Fallback if not approved: authored by the model designer or the designer in Blender.
+- **Locomotion and generic body clips (designer approved):** start from a CC0 animation library (Quaternius' CC0 animation packs) retargeted to the game rig in Blender; confirm the licence on the download page and add an entry to `assets/CREDITS.md` before use. More clips are authored in Blender by the designer and the model designer later.
 - **Weapon action clips:** authored in Blender per weapon family (section 1.3) by the model designer agent or the designer, with event markers named as in section 5.
 - **Aim offset poses and lean poses:** 9 + 2 static poses, authored once.
 - **Finger poses:** body-model clips (`HandGrip_R`, `HandSupport_<pose>_L`, `HandRelaxed_*`), read once (existing approach).
@@ -314,7 +324,7 @@ Instead of one monolithic reload state, a reload is a sequence of phases separat
 | `WeaponData` | `AnimFamily`, optional clip overrides; `RecoilTuning` spring fields (section 4.1) |
 | Optic and iron-sight parts | `EyeReliefM`; `SightEye` marker on the model |
 | Support-grip parts | `GripLeft` marker with `grip_pose` metadata |
-| `PlayerConfig` / new `AnimationConfig` | aim offset distribution, turn-in-place limits and timing, sway lag spring, bob amplitudes, tuck thresholds and angles, flinch strength, foot IK limits, LOD rates |
+| `PlayerConfig` / new `AnimationConfig` | aim offset distribution, turn-in-place limits and timing, sway lag spring, view bob amplitudes and ADS scale, granular crouch step size, tuck thresholds and angles, flinch strength, foot IK limits, LOD rates |
 
 - All feel values exposed in the debug overlay where cheap (CLAUDE.md rule 5): spring stiffness and damping, sway lag, bob, tuck angles, aim offset split, view bob on/off.
 
@@ -328,6 +338,8 @@ Instead of one monolithic reload state, a reload is a sequence of phases separat
 | `SupportGripResolver` | socket priority from a build |
 | `AimOffsetSolver` | pitch and yaw distribution, prone clamps, turn-in-place triggers |
 | `LocomotionParams` | local velocity to blendspace coordinates, stance float to blend weights (`BodyPoseModel.StanceBlend`), play rate from ground speed |
+| `StanceHeight` | granular crouch steps and clamps; speed, eye height and visibility lerps from the height |
+| `ViewBob` | bob offsets from locomotion phase and movement type; ADS and rest scaling; landing dip spring |
 | `ReadyPoseModel` | high vs low ready choice from hit height, blend amounts from clearance fraction |
 | `InertiaSway` | lag from angular velocity, scaling by weight and ergonomics |
 
@@ -347,24 +359,23 @@ GUT smoke test: the player scene loads with the `AnimationTree` and modifiers an
 ## 11. Editor and playtest handoff (when implemented)
 
 - Editor: import the animation libraries, check bone names match, place `SightEye`, `GripLeft` (with `grip_pose`), `ChargingHandle`, `BoltHandle`, `EjectionPort` markers on each weapon and part model; confirm the `AnimationTree` filters in the inspector.
-- Playtest: ADS on every optic and iron sight lands centred; left hand sits on every foregrip; reload interrupted by sprint at each moment then resumed (and checks show the true state); spring recoil feel per weapon; wall tuck high vs low; no camera shake from locomotion; turn in place while crouched and prone.
+- Playtest: ADS on every optic and iron sight lands centred; left hand sits on every foregrip; reload interrupted by sprint at each moment then resumed (and checks show the true state); spring recoil feel per weapon; wall tuck high vs low; view bob strength at walk and sprint (and that ADS stays steady); granular crouch steps over a window sill; turn in place while crouched and prone.
 
 ## Decisions
 
 1. Hierarchical layered graph: locomotion base, aim offset, upper-body weapon actions, additive layers, procedural/IK post-pass.
-2. Continuous stance float in the locomotion base (granular crouch possible).
+2. Continuous stance float in the locomotion base; granular crouch exposed: hold C + mouse wheel, 5 steps between crouch and stand.
 3. No per-attachment animations: socket-based ADS (`SightEye`) and left-hand two-bone IK to `GripLeft` on the active support part; right hand rooted to `GripRight`.
 4. Unified rig, true first person; physical barrel origin and full height over bore.
 5. Spring-damper recoil for weapon body, wrist and camera on top of `RecoilModel`, which stays the aim authority.
 6. Inertia sway from mouse angular velocity; wall tuck extends the current retraction with high and low ready poses.
 7. Reloads (and checks, round loading, malfunction clears) are phased, interruptible and resume from the weapon's physical state.
+8. Locomotion clips start from a CC0 library (Quaternius), retargeted in Blender; more clips authored in Blender later.
+9. A small procedural view bob is on by default (reduced in ADS, off when rested), with a 0-150% settings slider.
 
 Claude's calls (designer may change): camera stays the authority with the body solved to it (no head-socket camera); pure logic owns action timing and clips are time-scaled to it, with clip markers as data; clips per weapon family with `WeaponPivot` curves; socket priority for support grips; ready-pose choice rule; interrupter list; post-pass order; AI animation LOD; CC0 locomotion library (needs approval); separate animation libraries per family; build order.
 
 ## Open items
 
-- Granular crouch control: expose it (mouse wheel or modifier) or keep three stances (input map change, designer).
-- Approval of a CC0 animation library for locomotion (CLAUDE.md asks before third-party assets).
-- Procedural view bob: keep off, or a small default (playtest).
 - Death and ragdoll animation (separate spec).
 - CLAUDE.md "Full-body first person" and GDD §6 "Player body" lines updated when the graph is implemented (they still describe IK only).

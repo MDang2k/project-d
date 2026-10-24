@@ -138,7 +138,7 @@ Jams and misfeeds tied to weapon condition. Must have a clear cause the player c
 |---|---|
 | Move | WASD |
 | Sprint / hold breath while aiming | Shift |
-| Crouch / prone | C / X |
+| Crouch / prone | C / X (hold C + mouse wheel: granular crouch height) |
 | Jump / mantle | Space |
 | Lean left / right | Q / E |
 | Aim | Right mouse |
