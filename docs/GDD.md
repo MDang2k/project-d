@@ -357,7 +357,7 @@ One shared human AI system. Factions differ through presets: loadout tables, acc
 - Vision: cone with distance; modified by the target's stance, movement, lighting and cover.
 - Hearing: footsteps (louder when sprinting or on loud surfaces), gunshots (very far), searching containers, reloads at close range.
 
-AI uses the same health, armor and weapon systems as the player.
+AI uses the same health, armor and weapon systems as the player. Full combat design (under-fire reaction, aim through the weapon model, personalities, squads, performance bands): `docs/superpowers/specs/ai/2026-10-25-ai-combat-v2-design.md`.
 
 ### Hostility matrix (slice)
 
