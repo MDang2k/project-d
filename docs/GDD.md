@@ -87,7 +87,7 @@ Walk, sprint, crouch, crouch-sprint, prone, mantle (low obstacles), lean left/ri
 
 ### Player body
 
-Full-body first person: looking down shows legs and torso, and the body casts shadows. Arms hold the weapon through IK so leaning, resting and bipods look physically correct without hand-made animations in the slice. Hand-made animations (reloads, mag checks) replace or layer on top of this when custom art arrives.
+Full-body first person: looking down shows legs and torso, and the body casts shadows. Arms hold the weapon through IK so leaning, resting and bipods look physically correct without hand-made animations in the slice. Hand-made animations (reloads, mag checks) replace or layer on top of this when custom art arrives. The animation system (layered graph, socket-based ADS, spring recoil, interruptible phased reloads) is specified in `docs/superpowers/specs/animation/2026-10-25-animation-system-design.md`.
 
 ### Stamina
 
@@ -138,7 +138,7 @@ Jams and misfeeds tied to weapon condition. Must have a clear cause the player c
 |---|---|
 | Move | WASD |
 | Sprint / hold breath while aiming | Shift |
-| Crouch / prone | C / X |
+| Crouch / prone | C / X (hold C + mouse wheel: granular crouch height) |
 | Jump / mantle | Space |
 | Lean left / right | Q / E |
 | Aim | Right mouse |
@@ -357,7 +357,7 @@ One shared human AI system. Factions differ through presets: loadout tables, acc
 - Vision: cone with distance; modified by the target's stance, movement, lighting and cover.
 - Hearing: footsteps (louder when sprinting or on loud surfaces), gunshots (very far), searching containers, reloads at close range.
 
-AI uses the same health, armor and weapon systems as the player.
+AI uses the same health, armor and weapon systems as the player. Full combat design (under-fire reaction, aim through the weapon model, personalities, squads, performance bands): `docs/superpowers/specs/ai/2026-10-25-ai-combat-v2-design.md`.
 
 ### Hostility matrix (slice)
 
