@@ -27,7 +27,15 @@ public partial class WeaponNode
 		get
 		{
 			var t = Data.ToRecoilTuning();
-			return t with { VerticalDeg = t.VerticalDeg * Stats.VerticalRecoilMult, HorizontalDeg = t.HorizontalDeg * Stats.HorizontalRecoilMult };
+			return t with
+			{
+				VerticalDeg = t.VerticalDeg * Stats.VerticalRecoilMult,
+				HorizontalDeg = t.HorizontalDeg * Stats.HorizontalRecoilMult,
+				KickPitchDeg = t.KickPitchDeg * Stats.VerticalRecoilMult,
+				KickBackM = t.KickBackM * Stats.VerticalRecoilMult,
+				KickYawDeg = t.KickYawDeg * Stats.HorizontalRecoilMult,
+				KickRollDeg = t.KickRollDeg * Stats.HorizontalRecoilMult,
+			};
 		}
 	}
 
@@ -76,6 +84,7 @@ public partial class WeaponNode
 		_partsRoot?.QueueFree();
 		_opticMeshes.Clear();
 		_partNodes.Clear();
+		_partSlotTypes.Clear();
 		_partsRoot = new Node3D { Name = "Parts" };
 		AddChild(_partsRoot);
 		var muzzleExtra = 0f;
@@ -114,6 +123,7 @@ public partial class WeaponNode
 			}
 		}
 		PlaceMagazineModel();
+		ResolveSupportGrip();
 		SyncIntegralParts(Item is not null && WeaponBuild.Slots(Item).Any(s => s.Spec.Type == "muzzle" && s.Part is not null));
 		Muzzle.Position = _baseMuzzle + new Vector3(0f, 0f, -muzzleExtra);
 	}

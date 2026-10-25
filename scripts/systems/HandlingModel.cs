@@ -37,7 +37,17 @@ public sealed record RecoilTuning(
 	float SettleFraction,
 	float SettleTimeS,
 	/// <summary>Pause after the last shot before settling starts.</summary>
-	float ReleaseDelayS);
+	float ReleaseDelayS,
+	/// <summary>Gun-body spring (animation spec s4.1): stiffness and damping ratio (1 = critically damped).</summary>
+	float SpringStiffness = 180f,
+	float SpringDamping = 0.9f,
+	/// <summary>Peak gun kick per shot: pitch, yaw (random sign) and roll degrees; push back into the shoulder, metres.</summary>
+	float KickPitchDeg = 1f,
+	float KickYawDeg = 0.3f,
+	float KickRollDeg = 0.8f,
+	float KickBackM = 0.025f,
+	/// <summary>Peak camera shake per shot, degrees (separate from the aim climb).</summary>
+	float CameraKickDeg = 0.3f);
 
 public readonly record struct HandlingContext(
 	Stance Stance,

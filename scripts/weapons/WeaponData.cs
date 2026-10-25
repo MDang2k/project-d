@@ -25,6 +25,15 @@ public partial class WeaponData : Resource
 	/// <summary>Share of the accumulated climb that settles back after release (the player drags the rest).</summary>
 	[Export] public float RecoilSettleFraction { get; set; } = 0.3f;
 	[Export] public float RecoilSettleTimeS { get; set; } = 0.5f;
+	[ExportGroup("Recoil springs")]
+	[Export] public float SpringStiffness { get; set; } = 180f;
+	/// <summary>1 = critically damped; lower bounces (light weapons with high recoil).</summary>
+	[Export] public float SpringDamping { get; set; } = 0.9f;
+	[Export] public float KickPitchDeg { get; set; } = 1f;
+	[Export] public float KickYawDeg { get; set; } = 0.3f;
+	[Export] public float KickRollDeg { get; set; } = 0.8f;
+	[Export] public float KickBackM { get; set; } = 0.025f;
+	[Export] public float CameraKickDeg { get; set; } = 0.3f;
 	[Export] public float AdsTimeS { get; set; } = 0.22f;
 	/// <summary>Peak sway in degrees before stance, stamina and weight modifiers.</summary>
 	[Export] public float SwayBaseDeg { get; set; } = 0.35f;
@@ -87,7 +96,8 @@ public partial class WeaponData : Resource
 	};
 
 	public RecoilTuning ToRecoilTuning()
-		=> new(RecoilVerticalDeg, RecoilHorizontalDeg, RecoilSettleFraction, RecoilSettleTimeS, RecoilReleaseDelayS);
+		=> new(RecoilVerticalDeg, RecoilHorizontalDeg, RecoilSettleFraction, RecoilSettleTimeS, RecoilReleaseDelayS,
+			SpringStiffness, SpringDamping, KickPitchDeg, KickYawDeg, KickRollDeg, KickBackM, CameraKickDeg);
 
 	/// <summary>Height of the sight line above the weapon origin (placeholder model).</summary>
 	public float SightHeight => BodySize.Y * 0.5f + 0.025f;

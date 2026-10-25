@@ -48,9 +48,14 @@ Markers are Blender **empties** with exact names; they export as nodes and the g
 | Weapon | `Muzzle`, `GripRight`, `GripLeft`, `MagWell`, `OpticMount`, `BipodMount`, plus one per slot in the weapon's slot tree named after the slot (catalog `weapons.csv` "Slot tree", weapon modding spec) |
 | Weapon part | `Attach` (where it meets its slot), plus markers for slots it adds (e.g. a receiver cover adds `OpticMount`); muzzle devices add a forward `Muzzle` |
 | Optic | `Attach`, `SightEye` (where the eye sits for ADS) |
+| Weapon (animation spec s2.4) | also `SightEye` for fixed irons (else `RearSight` is used), `ChargingHandle`, `BoltHandle`, `MagRelease`, `EjectionPort`; `GripLeft` carries custom property `grip_pose` (`wrap`, `vertical`, `angled`, `magwell`, `cup`, `pump`) |
+| Weapon part with a support grip | `GripLeft` (with `grip_pose`) where the support hand goes: foregrips, handguards |
+| Magazine | `Attach`, `Magazine` (left hand target while holding it) |
 | Character | bone names match the game's procedural rig: `Hips`, `Spine`, `Chest`, `Head`, `UpperArm_L/R`, `Forearm_L/R`, `Hand_L/R`, and the leg bones (see `scripts/player/PlayerBody.cs`) |
 | Worn gear | `Attach` at the parent bone it follows |
 | Loot container, door, lock | `Interact` (where the prompt and hand go) |
+
+`GripRight` and `GripLeft` carry a rotation (the hand's Palm point goes on the marker and the hand aligns to it), in Godot space: local -Z runs along the grip axis from pinky to index (pistol grip: up toward the receiver; handguard: toward the muzzle), local +Y points out of the back of the hand, X = Y x Z (same as the character's `Palm_L`/`Palm_R`); author them in Blender so the exported glTF node has this rotation. All other markers stay position-only.
 
 ## 5. Building kit (maps)
 

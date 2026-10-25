@@ -129,6 +129,12 @@ public partial class PlayerConfig : Resource
 	[Export] public float AdsSensitivityMult { get; set; } = 0.55f;
 	/// <summary>Distance of the rear sight from the eye at full ADS, metres.</summary>
 	[Export] public float AdsEyeRelief { get; set; } = 0.3f;
+	/// <summary>Eye relief for optics without their own value (animation spec s2.3, tune).</summary>
+	[Export] public float AdsEyeReliefOptic { get; set; } = 0.22f;
+	/// <summary>Camera view bob: 0 off, 1 default, up to 1.5 (animation spec s4.6).</summary>
+	[Export] public float ViewBobScale { get; set; } = 1f;
+	/// <summary>How far the gun lags behind a turn of the view, before weight and ergonomics (animation spec s4.2).</summary>
+	[Export] public float InertiaLag { get; set; } = 0.35f;
 	[Export] public float BreathHoldDrainPerS { get; set; } = 12f;
 	[Export] public float CrouchSwayMult { get; set; } = 0.75f;
 	[Export] public float ProneSwayMult { get; set; } = 0.5f;

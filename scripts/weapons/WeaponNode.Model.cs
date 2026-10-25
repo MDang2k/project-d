@@ -12,6 +12,52 @@ public partial class WeaponNode
 {
 	private Node3D? _model;
 	private readonly Dictionary<ItemInstance, Node3D> _partNodes = new();
+	private readonly Dictionary<ItemInstance, string> _partSlotTypes = new();
+	private Vector3 _baseGripLeft;
+
+	/// <summary>Finger pose name of the active support grip (the GripLeft marker's grip_pose metadata).</summary>
+	public string GripPose { get; private set; } = "";
+
+	/// <summary>
+	/// The sight the player aims through: a fitted optic's SightEye, else the model SightEye, else the rear sight
+	/// (animation spec s2.3). Weapon space position and the eye relief to use.
+	/// </summary>
+	public (Vector3 Position, float EyeRelief, bool Optic) ActiveSight(float ironRelief, float opticRelief)
+	{
+		foreach (var kv in _partNodes)
+		{
+			if (!_partSlotTypes.TryGetValue(kv.Key, out var type) || type != "optic")
+				continue;
+			if (kv.Value.FindChild("SightEye", true, false) is Node3D eye)
+			{
+				var relief = kv.Key.Spec.Part?.EyeReliefM is > 0f and var own ? own : opticRelief;
+				return (kv.Value.Position + eye.Position, relief, true);
+			}
+		}
+		if (ModelMarker("SightEye") is { } fixedEye)
+			return (fixedEye, ironRelief, false);
+		var iron = ModelMarker("RearSight") ?? new Vector3(0f, Data.SightHeight, 0f);
+		return (iron + new Vector3(0f, Stats.Zoom > 0f ? 0.035f : 0f, 0f), ironRelief, false);
+	}
+
+	/// <summary>Resolves the support-hand socket from the attached parts and moves GripLeft there.</summary>
+	private void ResolveSupportGrip()
+	{
+		var candidates = new List<GripCandidate>();
+		foreach (var kv in _partNodes)
+		{
+			if (kv.Value.FindChild("GripLeft", true, false) is not Node3D marker)
+				continue;
+			var pose = marker.HasMeta("grip_pose") ? marker.GetMeta("grip_pose").AsString() : "";
+			var type = _partSlotTypes.GetValueOrDefault(kv.Key, "");
+			candidates.Add(new GripCandidate(SupportGripResolver.PriorityOf(type), kv.Value.Position + marker.Position, pose));
+		}
+		var weaponDefault = new GripCandidate(99, _baseGripLeft, _model?.FindChild("GripLeft", true, false) is Node3D m
+			&& m.HasMeta("grip_pose") ? m.GetMeta("grip_pose").AsString() : "");
+		var chosen = SupportGripResolver.Resolve(candidates, weaponDefault);
+		GripLeft.Position = chosen.Position;
+		GripPose = chosen.Pose;
+	}
 
 	/// <summary>Loads and instantiates a model; null when the file is missing.</summary>
 	private static Node3D? LoadModel(string id, string folder = "weapons")
@@ -98,6 +144,7 @@ public partial class WeaponNode
 		inst.Rotation = rot;
 		parent.AddChild(inst);
 		_partNodes[part] = inst;
+		_partSlotTypes[part] = slot.Type;
 		return inst;
 	}
 

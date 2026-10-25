@@ -101,6 +101,21 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private readonly SwayModel _swayModel = new();
 	private readonly RecoilModel _recoil = new();
 	private readonly FieldSwapTimer _swap = new();
+
+	// animation post-pass (animation spec s4): gun and camera springs, inertia, view bob, ready pose
+	private readonly Spring3 _gunRot = new();
+	private readonly SpringDamper _gunBack = new();
+	private readonly Spring3 _camKick = new();
+	private readonly InertiaSway _inertia = new();
+	private Vector2 _lookDeltaDeg;
+	private readonly SpringDamper _landDip = new();
+	private readonly ViewBobTuning _bobTuning = ViewBobTuning.Default;
+	private readonly ReadyPoseTuning _readyTuning = ReadyPoseTuning.Default;
+	private float _bobPhase;
+	private bool _wasOnFloor = true;
+	private float _fallSpeed;
+	private float _readyAmount;
+	private ReadyPose _readyPose = ReadyPose.None;
 	private ProgressBar _swapBar = null!;
 	private Label _swapLabel = null!;
 
@@ -450,10 +465,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private void UpdateMelee(float delta)
 	{
 		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
-		var weaponBusy = Weapon?.Controller.IsBusy ?? false;
-		if (captured && !_mantling && !weaponBusy && Input.IsActionJustPressed("melee")
-			&& _melee.TryStart(Arms.IsExhausted))
+		if (captured && !_mantling && Input.IsActionJustPressed("melee") && _melee.TryStart(Arms.IsExhausted))
+		{
+			Weapon?.Controller.Interrupt();
 			Arms.Spend(_melee.Spec.StaminaCost);
+		}
 		if (_melee.Update(delta))
 			MeleeStrike();
 	}
@@ -560,6 +576,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		}
 		if (ItemDb.Data(item.Spec.Id)?.Payload is WeaponData data)
 		{
+			Weapon?.Controller.Interrupt(); // a magazine in the hand goes back before the weapon is put away
 			EquipWeapon(data, item);
 			_heldWeaponUid = item.Uid;
 		}
@@ -589,6 +606,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	{
 		if (_pendingUse is not null || Health.IsDead)
 			return false;
+		Weapon?.Controller.Interrupt();
 		var started = ItemDb.Data(item.Spec.Id)?.Payload switch
 		{
 			MedicalData m => Health.UseMedical(m),
@@ -643,10 +661,24 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_projectiles?.Spawn(fired, position, direction, GetRid(), _ownRids);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)
-			_recoil.Kick(w.RecoilTuning,
-				HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount, _support.RestAmount,
-					_support.BipodDeployed),
-				GD.Randf() * 2f - 1f);
+		{
+			var handling = HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount, _support.RestAmount,
+				_support.BipodDeployed);
+			var tuning = w.RecoilTuning;
+			_recoil.Kick(tuning, handling, GD.Randf() * 2f - 1f);
+			KickSprings(tuning, handling);
+		}
+	}
+
+	/// <summary>Fast gun and camera kick on top of the aim climb: springs that settle between shots.</summary>
+	private void KickSprings(RecoilTuning t, float handling)
+	{
+		// impulse velocity that produces the wanted peak displacement for a (nearly) critically damped spring
+		var toVelocity = Mathf.Sqrt(t.SpringStiffness) * 2.718f * handling;
+		var yaw = (GD.Randf() < 0.5f ? -1f : 1f) * (0.5f + GD.Randf() * 0.5f);
+		_gunRot.Impulse(new Vector3(t.KickPitchDeg, t.KickYawDeg * yaw, t.KickRollDeg * (GD.Randf() * 2f - 1f)) * toVelocity);
+		_gunBack.Impulse(t.KickBackM * toVelocity);
+		_camKick.Impulse(new Vector3(t.CameraKickDeg, t.CameraKickDeg * 0.5f * yaw, t.CameraKickDeg * 0.5f * (GD.Randf() * 2f - 1f)) * toVelocity);
 	}
 
 	private bool _muzzleSurface;
@@ -753,6 +785,24 @@ public partial class Player : CharacterBody3D, IPerceivable
 		// it. Fade the retraction out by RestAmount (no on/off threshold) so entering and leaving rest
 		// blends smoothly instead of the two systems switching and fighting.
 		_clearance.Update(delta, _clearance.TargetRetract(fullLength, hitDistance) * (1f - _support.RestAmount));
+		UpdateReadyPose(delta, weapon, origin, toMuzzle, hitDistance);
+	}
+
+	/// <summary>Wall tuck stage 2: past the start fraction the arms lift the muzzle (high ready) or drop it (low ready).</summary>
+	private void UpdateReadyPose(float delta, WeaponNode weapon, Vector3 origin, Vector3 toMuzzle, float hitDistance)
+	{
+		var fraction = _clearance.Fraction;
+		if (fraction > _readyTuning.StartFraction && _readyAmount < 0.01f && toMuzzle.LengthSquared() > 0.0001f)
+		{
+			var muzzle = Unretracted(weapon.Muzzle);
+			var hitPoint = origin + toMuzzle.Normalized() * hitDistance;
+			var overhead = Ray(origin, muzzle + Vector3.Up * 0.25f).Count != 0;
+			_readyPose = ReadyPoseModel.Choose(hitPoint.Y - muzzle.Y, overhead, _readyTuning);
+		}
+		var target = _readyPose == ReadyPose.None ? 0f : ReadyPoseModel.Amount(fraction, _readyTuning);
+		_readyAmount = Mathf.MoveToward(_readyAmount, target, _readyTuning.BlendSpeed * delta);
+		if (_readyAmount < 0.001f && target <= 0f)
+			_readyPose = ReadyPose.None;
 	}
 
 	private void OnMagazineDropped(WeaponNode weapon, Magazine magazine)
@@ -860,6 +910,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_swapLabel.Text = _swap.Label;
 		}
 		var weapon = Weapon;
+		var springs = weapon?.RecoilTuning;
+		_gunRot.Update(delta, springs?.SpringStiffness ?? 180f, springs?.SpringDamping ?? 0.9f);
+		_gunBack.Update(delta, springs?.SpringStiffness ?? 180f, springs?.SpringDamping ?? 0.9f);
+		_camKick.Update(delta, springs?.SpringStiffness ?? 180f, springs?.SpringDamping ?? 0.9f);
+		_camera.Rotation = new Vector3(Mathf.DegToRad(_camKick.X.Value), Mathf.DegToRad(_camKick.Y.Value), Mathf.DegToRad(_camKick.Z.Value));
 		var aimHeld = AimHeld();
 		var ergo = _cfg.ToErgonomicsTuning();
 		var ergonomics = weapon?.Stats.Ergonomics ?? 50f;
@@ -903,7 +958,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_recoilNode.Rotation = new Vector3(Mathf.DegToRad(_recoil.Offset.Y), Mathf.DegToRad(_recoil.Offset.X), 0f);
 
 		var t = Mathf.SmoothStep(0f, 1f, _aim.Amount);
-		var adsPos = new Vector3(0f, -weapon.SightHeight, -_cfg.AdsEyeRelief);
+		// socket-based ADS: put the active sight (optic SightEye, model SightEye or rear sight) on the view axis
+		var (sightPos, eyeRelief, _) = weapon.ActiveSight(_cfg.AdsEyeRelief, _cfg.AdsEyeReliefOptic);
+		var adsPos = AdsSolve.WeaponOffset(sightPos, eyeRelief);
 		UpdateClearance(delta, weapon, _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset);
 
 		// Weapon visibly settles onto the surface it rests on; ADS keeps the sight line instead.
@@ -920,6 +977,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_swayNode.Position = _cfg.HeldItemOffset.Lerp(adsPos, t) + posOffset
 			+ new Vector3(0f, _restSnap, _clearance.Retract);
 		_swayNode.Rotation += new Vector3(Mathf.DegToRad(_clearance.TiltDeg), 0f, 0f);
+		ApplyPostPass(delta, weapon);
 		if (_melee.IsBusy)
 		{
 			var strikeAt = _melee.Spec.WindupS / Mathf.Max(0.01f, _melee.Spec.WindupS + _melee.Spec.RecoverS);
@@ -932,6 +990,22 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_camera.Fov = Mathf.Lerp(_cfg.HipFovDeg, _cfg.AdsFovDeg / zoom, t);
 		_scope.SetAmount(zoom > 1f ? t : 0f);
 		weapon.SetAds(t);
+	}
+
+	/// <summary>Springs, inertia and the ready pose on top of the aim pose (animation spec s4).</summary>
+	private void ApplyPostPass(float delta, WeaponNode weapon)
+	{
+		var ergonomics = weapon.Stats.Ergonomics;
+		_inertia.BaseLag = _cfg.InertiaLag;
+		_inertia.Update(delta, _lookDeltaDeg, weapon.Stats.WeightKg, ergonomics, Arms.Fraction);
+		_lookDeltaDeg = Vector2.Zero;
+		var gun = _gunRot.Value;
+		var cap = Mathf.Max(2f, weapon.RecoilTuning.KickPitchDeg * 2.5f);
+		var pitch = Mathf.Clamp(gun.X, -cap, cap) + _inertia.Offset.Y;
+		var yaw = Mathf.Clamp(gun.Y, -cap, cap) + _inertia.Offset.X;
+		var readyPitch = ReadyPoseModel.PitchDeg(_readyPose, _readyAmount, _readyTuning);
+		_swayNode.Rotation += new Vector3(Mathf.DegToRad(pitch + readyPitch), Mathf.DegToRad(yaw), Mathf.DegToRad(Mathf.Clamp(gun.Z, -cap, cap)));
+		_swayNode.Position += new Vector3(0f, 0f, _gunBack.Value);
 	}
 
 	private void UpdateWeaponInput()
@@ -958,7 +1032,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var c = weapon.Controller;
 		if (_melee.IsBusy)
 			return;
-		if (Input.IsActionJustPressed("reload"))
+		if (Input.IsActionJustPressed("reload") && !IsSprinting)
 		{
 			// Second tap shortly after the first upgrades the tactical reload to a fast one.
 			if (c.IsBusy)
@@ -1067,6 +1141,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			turn *= _cfg.SprintTurnMult;
 		// Pulling against the accumulated recoil pays it down first; only the rest moves the view.
 		var rest = _recoil.Pull(new Vector2(-rel.X * Mathf.RadToDeg(turn), -rel.Y * Mathf.RadToDeg(sens)));
+		_lookDeltaDeg += rest;
 		rel = new Vector2(-rest.X / Mathf.Max(Mathf.RadToDeg(turn), 1e-6f), -rest.Y / Mathf.Max(Mathf.RadToDeg(sens), 1e-6f));
 		RotateY(-rel.X * turn);
 		if (_support.BipodDeployed)
@@ -1121,6 +1196,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var wantsSprint = Input.IsActionPressed("sprint") && input.Y < -0.1f && Stance != Stance.Prone
 			&& !AimHeld();
 		IsSprinting = wantsSprint && _weights.CanSprint(Tier) && !Legs.IsExhausted && !_penalties.SprintBlocked;
+		if (IsSprinting)
+			Weapon?.Controller.Interrupt();
 
 		var speed = _move.TargetSpeed(Stance, IsSprinting, Tier, _heights.CrouchLevel)
 			* _penalties.MoveSpeedMultiplier;
@@ -1135,6 +1212,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			if (Input.IsActionJustPressed("jump") && Stance == Stance.Stand && !Legs.IsExhausted)
 			{
 				vel.Y = _cfg.JumpVelocity;
+				Weapon?.Controller.Interrupt();
 				Legs.Spend(_cfg.JumpStaminaCost * _weights.StaminaDrainMult(Tier));
 			}
 		}
@@ -1288,12 +1366,35 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var ratio = _cfg.LeanDistance > 0f ? shift / _cfg.LeanDistance : 0f;
 		_pivot.Position = new Vector3(shift, pivotY, 0f);
 		_pivot.Rotation = new Vector3(0f, 0f, -Mathf.DegToRad(_cfg.LeanRollDeg) * ratio);
-		_head.Position = new Vector3(0f, _eyeY - pivotY, 0f);
+		ApplyViewBob(delta, pivotY);
 
 		if (!Input.IsActionPressed("free_look"))
 			_freeLook = LookModel.FreeLookReturn(_freeLook, _cfg.FreeLookReturnDegS, delta);
 		_free.Rotation = new Vector3(Mathf.DegToRad(_freeLook.Y), Mathf.DegToRad(_freeLook.X), 0f);
 		_body.Pose(_eyeY, _pivot.Rotation.Z, shift);
+	}
+
+	/// <summary>Small procedural camera bob in step with the feet, plus a dip on landing (animation spec s4.6).</summary>
+	private void ApplyViewBob(float delta, float pivotY)
+	{
+		var horizontal = new Vector2(Velocity.X, Velocity.Z).Length();
+		var onFloor = IsOnFloor();
+		var move = ViewBob.MoveOf(onFloor && !_mantling, horizontal, IsSprinting, Stance);
+		_bobPhase += horizontal * delta / _bobTuning.StrideM * Mathf.Tau;
+		var scale = ViewBob.Scale(_bobTuning, _aim.Amount, _support.RestAmount, _cfg.ViewBobScale);
+		var (vertical, lateral, rollDeg) = ViewBob.Offset(_bobTuning, move, _bobPhase);
+		if (!onFloor)
+			_fallSpeed = Mathf.Max(_fallSpeed, -Velocity.Y);
+		else if (!_wasOnFloor && _fallSpeed > 2f)
+			_landDip.Impulse(ViewBob.LandingImpulse(_bobTuning, _fallSpeed));
+		if (onFloor)
+			_fallSpeed = 0f;
+		_wasOnFloor = onFloor;
+		_landDip.Update(delta, 120f, 0.7f);
+		_head.Position = new Vector3(lateral * scale, _eyeY - pivotY + vertical * scale + _landDip.Value, 0f);
+		var headRot = _head.Rotation;
+		headRot.Z = Mathf.DegToRad(rollDeg * scale);
+		_head.Rotation = headRot;
 	}
 
 	/// <summary>Shortens a lean so the head never ends up inside a wall.</summary>
@@ -1343,6 +1444,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_mantleT = 0f;
 		_mantleDuration = _cfg.MantleDurationS / Mathf.Max(0.1f, _weights.SpeedMult(Tier));
 		_mantling = true;
+		Weapon?.Controller.Interrupt();
 		IsSprinting = false;
 		Velocity = Vector3.Zero;
 		Legs.Spend(_cfg.MantleStaminaCost * _weights.StaminaDrainMult(Tier));

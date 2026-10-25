@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dxu572lo1jusm"
+
+[deps]
+
+files=["res://docs/design/catalog/bosses.Name.translation", "res://docs/design/catalog/bosses.Role.translation", "res://docs/design/catalog/bosses.Faction.translation", "res://docs/design/catalog/bosses.Maps.translation", "res://docs/design/catalog/bosses.Spawn chance.translation", "res://docs/design/catalog/bosses.Primary.translation", "res://docs/design/catalog/bosses.Secondary / pistol.translation", "res://docs/design/catalog/bosses.Armor.translation", "res://docs/design/catalog/bosses.Helmet.translation", "res://docs/design/catalog/bosses.Key item.translation", "res://docs/design/catalog/bosses.Guaranteed loot.translation", "res://docs/design/catalog/bosses.Loot table.translation", "res://docs/design/catalog/bosses.Behaviour.translation", "res://docs/design/catalog/bosses.Look.translation", "res://docs/design/catalog/bosses.Phase.translation", "res://docs/design/catalog/bosses.HP multiplier.translation", "res://docs/design/catalog/bosses.Head HP.translation", "res://docs/design/catalog/bosses.Thorax HP.translation", "res://docs/design/catalog/bosses.Stomach HP.translation", "res://docs/design/catalog/bosses.Arm HP (each).translation", "res://docs/design/catalog/bosses.Leg HP (each).translation", "res://docs/design/catalog/bosses.Total HP.translation"]
+
+source_file="res://docs/design/catalog/bosses.csv"
+dest_files=["res://docs/design/catalog/bosses.Name.translation", "res://docs/design/catalog/bosses.Role.translation", "res://docs/design/catalog/bosses.Faction.translation", "res://docs/design/catalog/bosses.Maps.translation", "res://docs/design/catalog/bosses.Spawn chance.translation", "res://docs/design/catalog/bosses.Primary.translation", "res://docs/design/catalog/bosses.Secondary / pistol.translation", "res://docs/design/catalog/bosses.Armor.translation", "res://docs/design/catalog/bosses.Helmet.translation", "res://docs/design/catalog/bosses.Key item.translation", "res://docs/design/catalog/bosses.Guaranteed loot.translation", "res://docs/design/catalog/bosses.Loot table.translation", "res://docs/design/catalog/bosses.Behaviour.translation", "res://docs/design/catalog/bosses.Look.translation", "res://docs/design/catalog/bosses.Phase.translation", "res://docs/design/catalog/bosses.HP multiplier.translation", "res://docs/design/catalog/bosses.Head HP.translation", "res://docs/design/catalog/bosses.Thorax HP.translation", "res://docs/design/catalog/bosses.Stomach HP.translation", "res://docs/design/catalog/bosses.Arm HP (each).translation", "res://docs/design/catalog/bosses.Leg HP (each).translation", "res://docs/design/catalog/bosses.Total HP.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

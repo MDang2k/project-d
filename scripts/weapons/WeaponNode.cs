@@ -121,6 +121,7 @@ public partial class WeaponNode : Node3D
 		w.AddChild(w.GripLeft);
 		w.AddChild(w.Muzzle);
 		w._baseMuzzle = w.Muzzle.Position;
+		w._baseGripLeft = w.GripLeft.Position;
 		w.RefreshBuild();
 		return w;
 	}

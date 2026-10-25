@@ -280,6 +280,11 @@ public partial class PlayerBody : Node3D
 	/// <summary>Poses legs and torso from the current eye height and lean (call every frame).</summary>
 	public void Pose(float eyeY, float leanRoll, float leanShift)
 	{
+		// support-hand finger pose from the active grip socket (HandSupport_<pose>_L), else the default one
+		if (HeldItem is { GripPose: { Length: > 0 } pose } && _hands.HasPose($"HandSupport_{pose}_L"))
+			_hands.PoseLeft = $"HandSupport_{pose}_L";
+		else if (HeldItem is not null)
+			_hands.PoseLeft = "HandSupport_L";
 		var (_, crouch, prone) = BodyPoseModel.StanceBlend(
 			eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight);
 		// Hips follow the camera so the head stays under it; prone lies forward along -Z.

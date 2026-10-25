@@ -19,6 +19,8 @@ public partial class HandPoseModifier : SkeletonModifier3D
 	public string PoseLeft { get; set; } = "HandRelaxed_L";
 	public string PoseRight { get; set; } = "HandRelaxed_R";
 
+	public bool HasPose(string name) => _poses.ContainsKey(name);
+
 	/// <summary>Reads finger rotations from the animations (first key of each rotation track).</summary>
 	public void Setup(Skeleton3D skel, AnimationPlayer? player)
 	{
