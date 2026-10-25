@@ -566,3 +566,28 @@ public class AimOffsetTests
 		Assert.Equal(T.PronePitchMinDeg, s2 + c2 + h2, 3);
 	}
 }
+
+public class RealClipMappingTests
+{
+	[Fact]
+	public void StandAndCrouchMapToPackClipsProneStaysGenerated()
+	{
+		Assert.Equal("Idle_Loop", LocomotionClips.ClipFor(GaitStance.Stand, 0f));
+		Assert.Equal("Walk_Loop", LocomotionClips.ClipFor(GaitStance.Stand, 0.5f));
+		Assert.Equal("Sprint_Loop", LocomotionClips.ClipFor(GaitStance.Stand, 1f));
+		Assert.Equal("Crouch_Idle_Loop", LocomotionClips.ClipFor(GaitStance.Crouch, 0f));
+		Assert.Equal("Crouch_Fwd_Loop", LocomotionClips.ClipFor(GaitStance.Crouch, 1f));
+		Assert.Null(LocomotionClips.ClipFor(GaitStance.Prone, 0.5f));
+	}
+
+	[Fact]
+	public void FrontPlaysForwardBackPlaysReversedSidesStayGenerated()
+	{
+		foreach (var d in new[] { 0, 1, 7 })
+			Assert.Equal((true, false), LocomotionClips.DirectionUse(d));
+		foreach (var d in new[] { 3, 4, 5 })
+			Assert.Equal((true, true), LocomotionClips.DirectionUse(d));
+		foreach (var d in new[] { 2, 6 })
+			Assert.False(LocomotionClips.DirectionUse(d).Real);
+	}
+}

@@ -61,14 +61,51 @@ public sealed class LocomotionLayer
 		var library = new AnimationLibrary();
 		foreach (GaitStance stance in Enum.GetValues(typeof(GaitStance)))
 		{
-			library.AddAnimation(ClipName(stance, "idle", 0), BuildClip(skeletonPath, gait, stance, 0f, Vector2.Zero));
+			library.AddAnimation(ClipName(stance, "idle", 0), BuildAny(skeletonPath, gait, stance, 0f, Vector2.Zero, 0));
 			foreach (var (ringName, ring) in Rings)
 			{
 				for (var d = 0; d < 8; d++)
-					library.AddAnimation(ClipName(stance, ringName, d), BuildClip(skeletonPath, gait, stance, ring, Dir(d)));
+					library.AddAnimation(ClipName(stance, ringName, d), BuildAny(skeletonPath, gait, stance, ring, Dir(d), d));
 			}
 		}
 		return library;
+	}
+
+	/// <summary>The retargeted pack clip where one exists for this stance, ring and direction, else the generated gait.</summary>
+	private static Animation BuildAny(string skeletonPath, GaitTuning gait, GaitStance stance, float ring, Vector2 dir, int dirIndex)
+	{
+		var (real, reverse) = ring <= 0f ? (true, false) : LocomotionClips.DirectionUse(dirIndex);
+		if (real && LocomotionClips.ClipFor(stance, ring) is { } name && LocomotionClips.All.TryGetValue(name, out var clip))
+			return BuildRealClip(skeletonPath, gait, stance, clip, reverse);
+		return BuildClip(skeletonPath, gait, stance, ring, dir);
+	}
+
+	/// <summary>Stance base rotation of a leg bone (the pack keys are motion around it); straight legs standing.</summary>
+	private static Quaternion BaseRotation(GaitTuning gait, GaitStance stance, string bone)
+	{
+		if (stance != GaitStance.Crouch)
+			return Quaternion.Identity;
+		var degrees = bone.StartsWith("Thigh") ? gait.CrouchBaseThighDeg
+			: bone.StartsWith("Shin") ? -gait.CrouchBaseShinDeg
+			: gait.CrouchBaseShinDeg - gait.CrouchBaseThighDeg;
+		return new Quaternion(Vector3.Right, Mathf.DegToRad(degrees));
+	}
+
+	private static Animation BuildRealClip(string skeletonPath, GaitTuning gait, GaitStance stance, RealClip clip, bool reverse)
+	{
+		var anim = new Animation { Length = clip.Length, LoopMode = Animation.LoopModeEnum.Linear };
+		foreach (var (bone, keys) in clip.Bones)
+		{
+			var track = anim.AddTrack(Animation.TrackType.Rotation3D);
+			anim.TrackSetPath(track, new NodePath($"{skeletonPath}:{bone}"));
+			var baseRot = BaseRotation(gait, stance, bone);
+			for (var i = 0; i < keys.Length; i++)
+			{
+				var (time, rot) = keys[reverse ? keys.Length - 1 - i : i];
+				anim.RotationTrackInsertKey(track, reverse ? clip.Length - time : time, baseRot * rot);
+			}
+		}
+		return anim;
 	}
 
 	private static Animation BuildClip(string skeletonPath, GaitTuning gait, GaitStance stance, float ring, Vector2 dir)
