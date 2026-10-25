@@ -39,6 +39,9 @@ public interface IMagazineStore
 
 	/// <summary>Gives a magazine back (tactical reload, or an unusable spare).</summary>
 	void Return(Magazine magazine);
+
+	/// <summary>Whether a compatible magazine with rounds is available (nothing is taken).</summary>
+	bool HasUsable();
 }
 
 /// <summary>Debug pouch of spare magazines, used when no inventory is attached.</summary>
@@ -53,6 +56,8 @@ public sealed class MagazinePouch : IMagazineStore
 	public void Add(Magazine magazine) => _mags.Add(magazine);
 
 	public void Return(Magazine magazine) => _mags.Add(magazine);
+
+	public bool HasUsable() => _mags.Any(m => !m.IsEmpty);
 
 	/// <summary>Removes and returns the magazine with the most rounds; null when none.</summary>
 	public Magazine? TakeFullest()
@@ -72,8 +77,11 @@ public sealed class MagazinePouch : IMagazineStore
 public sealed class WeaponController
 {
 	private readonly ActionTuning _t;
+	private ReloadSequence? _seq;
+	/// <summary>The old magazine, detached from the weapon but not yet stowed.</summary>
+	private Magazine? _hand;
+	/// <summary>The new magazine, fetched but not yet inserted.</summary>
 	private Magazine? _incoming;
-	private bool _ejected;
 	private float _elapsed;
 	private float _duration;
 
@@ -84,7 +92,9 @@ public sealed class WeaponController
 	public IMagazineStore Store { get; set; } = null!;
 	public WeaponActionKind Action { get; private set; }
 	public bool IsBusy => Action != WeaponActionKind.None;
-	public float Progress => _duration > 0f ? Math.Min(_elapsed / _duration, 1f) : 0f;
+	public float Progress => _seq is not null ? _seq.Progress : _duration > 0f ? Math.Min(_elapsed / _duration, 1f) : 0f;
+	/// <summary>Current reload phase (None when not reloading); the animation follows it.</summary>
+	public ReloadPhase Phase => _seq?.Phase ?? ReloadPhase.None;
 	/// <summary>True once the Weapon Handling skill gives exact counts (M8).</summary>
 	public bool ExactMagCheck { get; set; }
 
@@ -92,6 +102,8 @@ public sealed class WeaponController
 	public event Action<bool>? ChamberChecked;
 	public event Action<Magazine>? MagazineDropped;
 	public event Action? ReloadFinished;
+	/// <summary>A reload stopped early (sprint, melee, no magazine left): the weapon keeps its physical state.</summary>
+	public event Action? ReloadInterrupted;
 
 	public WeaponController(WeaponState state, ActionTuning tuning)
 	{
@@ -100,35 +112,53 @@ public sealed class WeaponController
 		Store = Pouch;
 	}
 
-	/// <summary>Starts a reload with the fullest spare magazine; false if busy or no usable spare.</summary>
+	/// <summary>
+	/// Starts a reload at the phase that matches the weapon's physical state (resumes a stopped one). False if
+	/// busy or no usable spare is needed and none exists.
+	/// </summary>
 	public bool StartReload(bool fast)
 	{
 		if (IsBusy)
 			return false;
-		var spare = Store.TakeFullest();
-		if (spare is null)
+		var entry = ReloadSequence.EntryFor(State.Magazine is not null, State.Magazine?.Count ?? 0, State.Chamber is not null);
+		if (entry != ReloadEntry.ResumeRack && !Store.HasUsable())
 			return false;
-		if (spare.IsEmpty)
-		{
-			Store.Return(spare);
-			return false;
-		}
-		_incoming = spare;
-		_ejected = false;
-		_elapsed = 0f;
+		_hand = null;
+		_incoming = null;
+		_seq = new ReloadSequence(_t, fast, entry, State.Chamber is null, ReloadTimeMultiplier);
 		Action = fast ? WeaponActionKind.FastReload : WeaponActionKind.TacticalReload;
-		_duration = ReloadDuration(fast);
 		return true;
 	}
 
 	/// <summary>Double-tap reload: converts a just-started tactical reload into a fast one.</summary>
 	public bool UpgradeToFast()
 	{
-		if (Action != WeaponActionKind.TacticalReload || _ejected)
+		if (_seq is not { CanUpgrade: true } seq)
 			return false;
+		seq.UpgradeToFast(State.Chamber is null);
 		Action = WeaponActionKind.FastReload;
-		_duration = ReloadDuration(true);
 		return true;
+	}
+
+	/// <summary>
+	/// Stops whatever is running (sprint, melee, mantle, jump, item use). Magazines in the hand go back to the
+	/// store; the weapon keeps exactly the state it reached, so the next reload resumes from there.
+	/// </summary>
+	public void Interrupt()
+	{
+		if (!IsBusy)
+			return;
+		var wasReload = _seq is not null;
+		if (_hand is not null)
+			Store.Return(_hand);
+		if (_incoming is not null)
+			Store.Return(_incoming);
+		_hand = null;
+		_incoming = null;
+		_seq = null;
+		Action = WeaponActionKind.None;
+		if (wasReload)
+			ReloadInterrupted?.Invoke();
 	}
 
 	public bool StartMagCheck() => Begin(WeaponActionKind.MagCheck, _t.MagCheckS);
@@ -139,17 +169,71 @@ public sealed class WeaponController
 	{
 		if (!IsBusy)
 			return;
-		_elapsed += delta;
-		if (Action is WeaponActionKind.TacticalReload or WeaponActionKind.FastReload)
+		if (_seq is not null)
 		{
-			if (!_ejected && _elapsed >= _t.EjectAt * _duration)
-				Eject();
-			if (_elapsed >= _duration)
-				FinishReload();
+			foreach (var e in _seq.Advance(delta))
+			{
+				Handle(e);
+				if (_seq is null)
+					return;
+			}
+			if (_seq.IsDone)
+			{
+				_seq = null;
+				Action = WeaponActionKind.None;
+			}
+			return;
 		}
-		else if (_elapsed >= _duration)
-		{
+		_elapsed += delta;
+		if (_elapsed >= _duration)
 			FinishCheck();
+	}
+
+	/// <summary>The one place each reload step changes the weapon or the inventory.</summary>
+	private void Handle(ReloadEvent e)
+	{
+		switch (e)
+		{
+			case ReloadEvent.MagDetached:
+				var old = State.EjectMagazine();
+				if (old is null)
+					break;
+				if (Action == WeaponActionKind.FastReload)
+					MagazineDropped?.Invoke(old);
+				else
+					_hand = old;
+				break;
+			case ReloadEvent.MagStowed:
+				if (_hand is not null)
+					Store.Return(_hand);
+				_hand = null;
+				break;
+			case ReloadEvent.MagFetched:
+				var spare = Store.TakeFullest();
+				if (spare is null || spare.IsEmpty)
+				{
+					if (spare is not null)
+						Store.Return(spare);
+					Interrupt();
+					break;
+				}
+				_incoming = spare;
+				break;
+			case ReloadEvent.MagInserted:
+				if (_incoming is not null)
+					State.InsertMagazine(_incoming);
+				_incoming = null;
+				break;
+			case ReloadEvent.BoltRacked:
+				if (State.Chamber is null)
+					State.ChamberRound();
+				break;
+			case ReloadEvent.Finished:
+				_seq?.Stop();
+				_seq = null;
+				Action = WeaponActionKind.None;
+				ReloadFinished?.Invoke();
+				break;
 		}
 	}
 
@@ -167,10 +251,6 @@ public sealed class WeaponController
 	/// <summary>Injuries (destroyed arm) make reloads slower: 1 is normal speed.</summary>
 	public float ReloadTimeMultiplier { get; set; } = 1f;
 
-	private float ReloadDuration(bool fast)
-		=> ((fast ? _t.FastReloadS : _t.TacticalReloadS) + (State.Chamber is null ? _t.ChargeS : 0f))
-			* ReloadTimeMultiplier;
-
 	private bool Begin(WeaponActionKind kind, float seconds)
 	{
 		if (IsBusy)
@@ -179,31 +259,6 @@ public sealed class WeaponController
 		_elapsed = 0f;
 		_duration = seconds;
 		return true;
-	}
-
-	private void Eject()
-	{
-		_ejected = true;
-		var old = State.EjectMagazine();
-		if (old is null)
-			return;
-		if (Action == WeaponActionKind.FastReload)
-			MagazineDropped?.Invoke(old);
-		else
-			Store.Return(old);
-	}
-
-	private void FinishReload()
-	{
-		if (!_ejected)
-			Eject();
-		if (_incoming is not null)
-			State.InsertMagazine(_incoming);
-		_incoming = null;
-		if (State.Chamber is null)
-			State.ChamberRound();
-		Action = WeaponActionKind.None;
-		ReloadFinished?.Invoke();
 	}
 
 	private void FinishCheck()

@@ -24,6 +24,16 @@ public partial class WeaponNode
 	private Vector3? ModelMarker(string name)
 		=> _model?.FindChild(name, true, false) is Node3D n ? n.Position : null;
 
+	/// <summary>Position and rotation of a named empty (grip markers carry a rotation, pipeline spec).</summary>
+	private Transform3D? ModelMarkerTransform(string name)
+		=> _model?.FindChild(name, true, false) is Node3D n ? n.Transform : null;
+
+	// Grip rotations for weapons without a model (grip convention: -Z along the grip from pinky to index,
+	// +Y out of the back of the hand). Right: pistol grip raked 35 deg (as on the FAL), back of the hand to the right.
+	// Left: under the handguard, -Z to the muzzle, back of the hand down-left.
+	private static readonly Quaternion DefaultGripRight = new(0.32651f, 0.32651f, -0.62721f, 0.62721f);
+	private static readonly Quaternion DefaultGripLeft = new(0f, 0f, 0.9239f, 0.3827f);
+
 	/// <summary>Bounds of the weapon model (or the placeholder body), weapon space; for centring in the gunsmith view.</summary>
 	public Aabb ModelBounds
 	{

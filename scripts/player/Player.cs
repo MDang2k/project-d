@@ -221,7 +221,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_eyeY = _move.EyeHeight(Stance, _heights.CrouchLevel);
 		_body = new PlayerBody { Name = "Body" };
 		AddChild(_body);
-		_body.Build(_cfg, _head, _swayNode);
+		_body.Build(_cfg, _head, _swayNode, GameState.Instance?.Profile.Side ?? PlayerSide.Allied);
 		_camera.Near = 0.03f;
 		_camera.Fov = _cfg.HipFovDeg;
 		UpdateRig(0f);

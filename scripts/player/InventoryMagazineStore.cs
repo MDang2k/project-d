@@ -43,6 +43,19 @@ public sealed class InventoryMagazineStore : IMagazineStore
 		return ToMagazine(best);
 	}
 
+	public bool HasUsable()
+	{
+		foreach (var grid in _inventory.StorageGrids)
+		{
+			foreach (var item in grid.Items)
+			{
+				if (item.Spec.Category == ItemCategory.Magazine && item.Spec.Caliber == _caliber && item.Rounds.Count > 0)
+					return true;
+			}
+		}
+		return false;
+	}
+
 	public void Return(Magazine magazine)
 	{
 		var item = FromMagazine(magazine, _caliber);

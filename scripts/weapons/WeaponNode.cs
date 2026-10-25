@@ -83,8 +83,16 @@ public partial class WeaponNode : Node3D
 		}
 		else
 			w.AddChild(w._model);
-		w.GripRight = new Marker3D { Name = "GripRight", Position = w.ModelMarker("GripRight") ?? data.GripRightOffset };
-		w.GripLeft = new Marker3D { Name = "GripLeft", Position = w.ModelMarker("GripLeft") ?? data.GripLeftOffset };
+		w.GripRight = new Marker3D
+		{
+			Name = "GripRight",
+			Transform = w.ModelMarkerTransform("GripRight") ?? new Transform3D(new Basis(DefaultGripRight), data.GripRightOffset),
+		};
+		w.GripLeft = new Marker3D
+		{
+			Name = "GripLeft",
+			Transform = w.ModelMarkerTransform("GripLeft") ?? new Transform3D(new Basis(DefaultGripLeft), data.GripLeftOffset),
+		};
 		w.Muzzle = new Marker3D { Name = "Muzzle", Position = w.ModelMarker("Muzzle") ?? new Vector3(0f, 0f, -size.Z + 0.1f) };
 		w.BipodMount = new Marker3D
 		{
