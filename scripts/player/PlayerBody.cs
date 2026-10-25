@@ -30,6 +30,9 @@ public partial class PlayerBody : Node3D
 	/// <summary>Palm point in hand-bone space (model's Palm_L / Palm_R); identity on the placeholder.</summary>
 	private Transform3D _palmL = Transform3D.Identity, _palmR = Transform3D.Identity;
 	private AnimationPlayer? _handPoses;
+	private LocomotionLayer _loco = null!;
+	private readonly AimOffsetTuning _aimOffset = AimOffsetTuning.Default;
+	private readonly GaitTuning _gait = GaitTuning.Default;
 
 	public WeaponNode? HeldItem { get; private set; }
 
@@ -61,6 +64,7 @@ public partial class PlayerBody : Node3D
 		// Dev hand/elbow probes (DebugBonePositions); the placeholder already has attachments on these bones.
 		foreach (var bone in new[] { "Hand_L", "Hand_R", "Forearm_L", "Forearm_R" })
 			_skel.AddChild(new BoneAttachment3D { Name = $"Probe_{bone}", BoneName = bone });
+		_loco = LocomotionLayer.Build(_skel, _gait);
 		BuildArmIk(head);
 		_hands = new HandPoseModifier { Name = "HandPose" };
 		_skel.AddChild(_hands); // after ArmIK: modifiers run in child order
@@ -256,6 +260,10 @@ public partial class PlayerBody : Node3D
 		ik.SetPoleNode(index, ik.GetPathTo(pole));
 	}
 
+	/// <summary>Dev: left and right thigh pitch in degrees after the locomotion graph (gait check).</summary>
+	public (float Left, float Right) DebugThighPitchDeg()
+		=> (Mathf.RadToDeg(_skel.GetBonePoseRotation(_thighL).GetEuler().X), Mathf.RadToDeg(_skel.GetBonePoseRotation(_thighR).GetEuler().X));
+
 	/// <summary>Dev: world positions of both hand bones (after IK) for jitter measurements.</summary>
 	public (Vector3 Left, Vector3 Right) DebugHandPositions() => DebugBonePositions("Hand_L", "Hand_R");
 
@@ -277,8 +285,19 @@ public partial class PlayerBody : Node3D
 		return (Find(left), Find(right));
 	}
 
-	/// <summary>Poses legs and torso from the current eye height and lean (call every frame).</summary>
-	public void Pose(float eyeY, float leanRoll, float leanShift)
+	/// <summary>Layer 1: feeds the locomotion graph (legs) from the body's velocity and stance (call every frame).</summary>
+	public void Locomote(Vector3 localVelocity, float eyeY, bool airborne)
+	{
+		var weights = BodyPoseModel.StanceBlend(eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight);
+		_loco.Update(localVelocity, _cfg.WalkSpeed, _cfg.SprintSpeed, weights, airborne);
+	}
+
+	/// <summary>
+	/// Poses hips, torso and head from the current eye height, lean and look (call every frame). Legs come from
+	/// the locomotion graph; the spine and chest follow part of the look pitch (aim offset) and the head keeps
+	/// facing the camera.
+	/// </summary>
+	public void Pose(float eyeY, float leanRoll, float leanShift, float lookPitchDeg = 0f, Vector2 freeLookDeg = default)
 	{
 		// support-hand finger pose from the active grip socket (HandSupport_<pose>_L), else the default one
 		if (HeldItem is { GripPose: { Length: > 0 } pose } && _hands.HasPose($"HandSupport_{pose}_L"))
@@ -292,25 +311,16 @@ public partial class PlayerBody : Node3D
 		_skel.SetBonePosePosition(_hips, new Vector3(0f, hipsY, prone * _cfg.ProneBodyBack));
 		_skel.SetBonePoseRotation(_hips, Pitch(-90f * prone));
 
-		var thigh = Pitch(_cfg.CrouchThighDeg * crouch);
-		var shin = Pitch(-_cfg.CrouchShinDeg * crouch);
-		var foot = Pitch((_cfg.CrouchShinDeg - _cfg.CrouchThighDeg) * crouch);
-		_skel.SetBonePoseRotation(_thighL, thigh);
-		_skel.SetBonePoseRotation(_thighR, thigh);
-		_skel.SetBonePoseRotation(_shinL, shin);
-		_skel.SetBonePoseRotation(_shinR, shin);
-		_skel.SetBonePoseRotation(_footL, foot);
-		_skel.SetBonePoseRotation(_footR, foot);
-
 		// Upper body sits behind the camera so looking down shows the legs, not the inside of the chest.
 		_skel.SetBonePosePosition(_spine, _spineRest + new Vector3(leanShift * 0.5f, 0f, _cfg.UpperBodyBack * (1f - prone)));
-		_skel.SetBonePoseRotation(_spine, new Quaternion(Vector3.Back, leanRoll));
+		var (spinePitch, chestPitch, headPitch) = AimOffsetSolver.Distribute(_aimOffset, lookPitchDeg, prone);
+		_skel.SetBonePoseRotation(_spine, new Quaternion(Vector3.Back, leanRoll) * Pitch(spinePitch));
 
 		// Bladed stance while holding a weapon: chest turns right so the left shoulder comes forward,
 		// head turns back so it keeps facing the camera. Off when prone (the chest lies along -Z).
 		var twist = HeldItem is null ? 0f : _cfg.HoldChestTwistDeg * (1f - prone);
-		_skel.SetBonePoseRotation(_chest, Yaw(-twist));
-		_skel.SetBonePoseRotation(_headBone, Yaw(twist));
+		_skel.SetBonePoseRotation(_chest, Yaw(-twist) * Pitch(chestPitch));
+		_skel.SetBonePoseRotation(_headBone, Yaw(twist + freeLookDeg.X) * Pitch(headPitch + freeLookDeg.Y));
 
 		// No weapon: the IK is off, so the arms hang down instead of staying in the model's T-pose rest.
 		if (HeldItem is null)

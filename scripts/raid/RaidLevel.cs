@@ -206,6 +206,7 @@ public partial class RaidLevel : Node3D
 
 	private void PrintReport()
 	{
+		GD.Print($"GAIT thigh L/R pitch = {Player.DebugThighPitchDeg()} speed={Player.Velocity.Length():0.0}");
 		var polys = GetNodeOrNull<NavigationRegion3D>("Geometry")?.NavigationMesh?.GetPolygonCount() ?? 0;
 		GD.Print($"MAP spawns={GetTree().GetNodesInGroup("player_spawns").Count} " +
 			$"ai={GetTree().GetNodesInGroup("ai_spawns").Count} zones={GetTree().GetNodesInGroup("extraction_zones").Count} " +
@@ -237,6 +238,13 @@ public partial class RaidLevel : Node3D
 				GD.Print($"ATTACH {ap[1]} -> {ap[0]}: {WeaponBuild.Attach(primary, ap[0], newPart)} zoom={WeaponBuild.Stats(primary).Zoom}");
 				Player.Inventory.NotifyChanged();
 			}
+			else if (arg.StartsWith("--move=") && arg["--move=".Length..].Split(',') is { Length: 2 } mv
+				&& float.TryParse(mv[0], out var mx) && float.TryParse(mv[1], out var my))
+				Player.DebugMove = new Vector2(mx, my);
+			else if (arg == "--sprint")
+				Player.DebugSprint = true;
+			else if (arg.StartsWith("--stance=") && System.Enum.TryParse<Stance>(arg["--stance=".Length..], true, out var st))
+				Player.DebugSetStance(st);
 			else if (arg == "--ads")
 				Player.DebugForceAds = true;
 			else if (arg == "--report")

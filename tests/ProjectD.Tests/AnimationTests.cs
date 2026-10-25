@@ -436,3 +436,133 @@ internal static class ControllerTestExtensions
 		return total;
 	}
 }
+
+public class GaitModelTests
+{
+	private static readonly GaitTuning T = GaitTuning.Default;
+
+	[Fact]
+	public void StandingIdleIsStraightLegs()
+	{
+		var (l, r) = GaitModel.Legs(T, GaitStance.Stand, 0f, Vector2.Zero, 0.3f);
+		Assert.Equal(0f, l.ThighDeg, 3);
+		Assert.Equal(0f, r.ShinDeg, 3);
+		Assert.Equal(0f, l.FootDeg, 3);
+	}
+
+	[Fact]
+	public void LegsSwingInAntiphaseAndFlipWhenWalkingBackward()
+	{
+		var (l, r) = GaitModel.Legs(T, GaitStance.Stand, 0.5f, new Vector2(0f, 1f), 0.25f);
+		Assert.Equal(-r.ThighDeg, l.ThighDeg, 3);
+		Assert.True(Math.Abs(l.ThighDeg) > 10f);
+		var (lb, _) = GaitModel.Legs(T, GaitStance.Stand, 0.5f, new Vector2(0f, -1f), 0.25f);
+		Assert.Equal(-l.ThighDeg, lb.ThighDeg, 3);
+	}
+
+	[Fact]
+	public void SprintSwingsWiderThanWalk()
+	{
+		float Peak(float ring) => Enumerable.Range(0, 32).Max(i => Math.Abs(GaitModel.Legs(T, GaitStance.Stand, ring, new Vector2(0f, 1f), i / 32f).Left.ThighDeg));
+		Assert.True(Peak(1f) > Peak(0.5f));
+		Assert.True(Peak(0.5f) > Peak(0.1f));
+	}
+
+	[Fact]
+	public void CrouchHoldsTheBaseFlexionAndKeepsTheSoleFlat()
+	{
+		var (l, _) = GaitModel.Legs(T, GaitStance.Crouch, 0f, Vector2.Zero, 0f);
+		Assert.Equal(T.CrouchBaseThighDeg, l.ThighDeg, 3);
+		Assert.Equal(-T.CrouchBaseShinDeg, l.ShinDeg, 3);
+		Assert.Equal(0f, l.ThighDeg + l.ShinDeg + l.FootDeg, 3);
+	}
+
+	[Fact]
+	public void StrafingRollsTheHipsForwardWalkingDoesNot()
+	{
+		var strafe = Enumerable.Range(0, 32).Max(i => Math.Abs(GaitModel.Legs(T, GaitStance.Stand, 0.5f, new Vector2(1f, 0f), i / 32f).Left.ThighRollDeg));
+		var forward = Enumerable.Range(0, 32).Max(i => Math.Abs(GaitModel.Legs(T, GaitStance.Stand, 0.5f, new Vector2(0f, 1f), i / 32f).Left.ThighRollDeg));
+		Assert.True(strafe > 3f);
+		Assert.Equal(0f, forward, 3);
+	}
+
+	[Fact]
+	public void TheCycleLoops()
+	{
+		var a = GaitModel.Legs(T, GaitStance.Stand, 1f, new Vector2(0.6f, 0.8f), 0f);
+		var b = GaitModel.Legs(T, GaitStance.Stand, 1f, new Vector2(0.6f, 0.8f), 1f);
+		Assert.Equal(a.Left.ThighDeg, b.Left.ThighDeg, 3);
+		Assert.Equal(a.Right.ShinDeg, b.Right.ShinDeg, 3);
+	}
+}
+
+public class LocomotionParamsTests
+{
+	[Fact]
+	public void BlendPositionPointsWhereTheBodyMovesOnTheRightRing()
+	{
+		Assert.Equal(Vector2.Zero, LocomotionParams.BlendPosition(Vector3.Zero, 2.8f, 5.2f));
+		var forwardWalk = LocomotionParams.BlendPosition(new Vector3(0f, 0f, -2.8f), 2.8f, 5.2f);
+		Assert.Equal(0f, forwardWalk.X, 3);
+		Assert.Equal(0.5f, forwardWalk.Y, 3);
+		var sprint = LocomotionParams.BlendPosition(new Vector3(0f, 0f, -5.2f), 2.8f, 5.2f);
+		Assert.Equal(1f, sprint.Y, 3);
+		var right = LocomotionParams.BlendPosition(new Vector3(2.8f, 0f, 0f), 2.8f, 5.2f);
+		Assert.Equal(0.5f, right.X, 3);
+		var back = LocomotionParams.BlendPosition(new Vector3(0f, 0f, 2f), 2.8f, 5.2f);
+		Assert.True(back.Y < 0f);
+	}
+
+	[Fact]
+	public void PlayRateGrowsWithSpeedAndIsClamped()
+	{
+		Assert.Equal(1f, LocomotionParams.PlayRate(0f), 3);
+		Assert.True(LocomotionParams.PlayRate(5f) > LocomotionParams.PlayRate(2f));
+		Assert.True(LocomotionParams.PlayRate(100f) <= 2.2f);
+		Assert.True(LocomotionParams.PlayRate(0.1f) >= 0.35f);
+	}
+
+	[Fact]
+	public void StanceWeightsBecomeTwoBlendFactors()
+	{
+		Assert.Equal((0f, 0f), LocomotionParams.StanceFactors((1f, 0f, 0f)));
+		Assert.Equal((1f, 0f), LocomotionParams.StanceFactors((0f, 1f, 0f)));
+		var mid = LocomotionParams.StanceFactors((0.5f, 0.5f, 0f));
+		Assert.Equal(0.5f, mid.CrouchOverStand, 3);
+		Assert.Equal(1f, LocomotionParams.StanceFactors((0f, 0f, 1f)).ProneOverRest, 3);
+	}
+}
+
+public class AimOffsetTests
+{
+	private static readonly AimOffsetTuning T = AimOffsetTuning.Default;
+
+	[Fact]
+	public void TheHeadKeepsFacingTheCamera()
+	{
+		foreach (var pitch in new[] { -60f, -20f, 0f, 30f, 80f })
+		{
+			var (spine, chest, head) = AimOffsetSolver.Distribute(T, pitch, 0f);
+			Assert.Equal(pitch, spine + chest + head, 3);
+		}
+	}
+
+	[Fact]
+	public void LookingDownBendsTheTorsoLessThanLookingUp()
+	{
+		var down = AimOffsetSolver.Distribute(T, -60f, 0f);
+		var up = AimOffsetSolver.Distribute(T, 60f, 0f);
+		Assert.True(Math.Abs(down.Spine + down.Chest) < Math.Abs(up.Spine + up.Chest));
+		Assert.True(Math.Abs(down.Spine + down.Chest) <= T.MaxDownDeg + 0.001f);
+		Assert.True(up.Spine + up.Chest <= T.MaxBodyDeg + 0.001f);
+	}
+
+	[Fact]
+	public void PronePitchIsClamped()
+	{
+		var (spine, chest, head) = AimOffsetSolver.Distribute(T, 80f, 1f);
+		Assert.Equal(T.PronePitchMaxDeg, spine + chest + head, 3);
+		var (s2, c2, h2) = AimOffsetSolver.Distribute(T, -80f, 1f);
+		Assert.Equal(T.PronePitchMinDeg, s2 + c2 + h2, 3);
+	}
+}

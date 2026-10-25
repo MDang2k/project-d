@@ -1,6 +1,47 @@
 # Animation system: layered graph with procedural post-pass
 
-Status: approved design (compiled from the designer's animation research doc, 2026-10-25), not implemented. Replaces the "IK only, no hand-made animations" approach of the slice body (GDD §6 "Player body", CLAUDE.md "Full-body first person") with a hierarchical, layered animation graph in which keyframed clips, procedural IK, spring physics and gameplay code run as one multi-stage pipeline. Applies to the player and to every human AI (AI combat v2 uses the same body). Godot 4.7.2 (mono). Numbers marked **(tune)**. Choices not in the designer's doc are marked **(Claude's call)**.
+Status: approved design (compiled from the designer's animation research doc, 2026-10-25), **partly implemented, see Implementation status**. Replaces the "IK only, no hand-made animations" approach of the slice body (GDD §6 "Player body", CLAUDE.md "Full-body first person") with a hierarchical, layered animation graph in which keyframed clips, procedural IK, spring physics and gameplay code run as one multi-stage pipeline. Applies to the player and to every human AI (AI combat v2 uses the same body). Godot 4.7.2 (mono). Numbers marked **(tune)**. Choices not in the designer's doc are marked **(Claude's call)**.
+
+## Implementation status
+
+Updated 2026-10-26. Keep this table current whenever a part of the spec is built. Legend: **Done**, **Partial** (what is missing is said), **Not started**.
+
+| Section | Item | Status | Notes |
+|---|---|---|---|
+| 1.1 | Locomotion base graph (`AnimationTree`, stand/crouch/prone blend spaces, idle plus walk and sprint rings, 8 directions, stance blend, ground-speed time scale) | **Done** | `LocomotionLayer`, `LocomotionParams`; drives the legs only (hips, spine and head stay procedural in `PlayerBody.Pose`) |
+| 1.1 | Placeholder clips | **Done** | generated at startup from `GaitModel`; real clips with the same names (`Loco_<Stance>_<ring>_<dir>`) replace them without graph changes |
+| 1.1 | Real locomotion clips (CC0 library retargeted in Blender) | Not started | needs the Quaternius download approved and a licence entry in `assets/CREDITS.md` |
+| 1.1 | Granular crouch (C + wheel) | **Done** | already on the branch (`StanceHeightModel`) |
+| 1.1 | Stance transition clips, turn in place, foot sliding fix by real stride, jump/land/mantle/sprint start-stop clips, heavy-load gait set | Not started | |
+| 1.2 | Aim offset | **Partial** | procedural pitch split over spine, chest and head (`AimOffsetSolver`); looking down the torso follows only a little (it would cover the weapon) until the head-anchored correction exists; no 9 authored poses, no lean poses, no yaw split or turn in place (free look turns the head only) |
+| 1.3 | Weapon action layer (upper-body clips, per-hand IK weight curves, `WeaponPivot` curves, `AnimFamily`) | Not started | reloads still use the placeholder pose in `WeaponPoseModel` |
+| 1.4 | Additive layers (breathing, limp, arm injury, tremor, flinch, cold) | Not started | |
+| 2.1 | Right hand rooted to `GripRight` | **Done** | existing IK |
+| 2.2 | Support grip resolver (foregrip > handguard > default) and `grip_pose` metadata | **Done** | `SupportGripResolver`, `WeaponNode.GripPose`; the body only has `HandSupport_L`, so named poses fall back to it until `HandSupport_<pose>_L` clips exist |
+| 2.2 | Reach slide when the socket is out of reach, elbow swing for vertical grips | Not started | |
+| 2.3 | Socket ADS solve (`SightEye` of optic, model or rear sight; eye relief per part) | **Done** | `AdsSolve`, `WeaponNode.ActiveSight`; stock and cheek lean not done; eye relief defaults kept at the old feel (0.3 irons, 0.22 optics) |
+| 2.4 | Marker addendum in the asset pipeline spec | **Done** | no model carries the new markers yet |
+| 3 | Unified rig, camera authority | **Done** | existing |
+| 4.1 | Spring-damper recoil (gun rotation and push-back, camera spring) | **Done** | `SpringDamper`, `Spring3`, fields on `WeaponData`; wrist torque and part modifiers for stiffness (stocks, brakes) not done |
+| 4.2 | Inertia sway | **Done** | `InertiaSway` |
+| 4.2 | Movement sway (strafe tilt, walk figure-eight), sprint carry pose | Not started | view bob exists (4.6) |
+| 4.3 | Wall tuck stage 2 (high and low ready) | **Done** | `ReadyPoseModel` |
+| 4.4 | Hand IK weights from clips, trigger finger curl | Not started | `HandTrigger_R` exists in the body model |
+| 4.5 | Foot IK, AI look-at | Not started | |
+| 4.6 | View bob with landing dip, ADS and rest scaling, settings scale | **Done** | `ViewBob`, `PlayerConfig.ViewBobScale`; not in the debug overlay yet |
+| 5.1 to 5.2 | Phased reloads, interrupt and resume | **Done** | `ReloadSequence`, `WeaponController`; sprint, jump, mantle, melee, item use and weapon switch interrupt |
+| 5.1 | Reload phase variants per family (open-bolt, belt-fed) | Not started | |
+| 5.2 | Phased checks (`Check_Enter`, `Check_Look`, `Check_Exit`) | Not started | checks are still timed actions |
+| 5.3 | Round-by-round loading, stripper clips | Not started | |
+| 5.4 | Malfunction phases | Not started | post-slice |
+| 5.5 | Clip markers as events, phase fractions in `AnimationSet` | Not started | the sequence uses fixed fractions for now |
+| 6 | AI uses the same body and graph, AI animation LOD | Not started | |
+| 7 | Clip authoring (weapon families, aim and lean poses, finger poses) | Not started | |
+| 8 | `AnimationSet` resource, `AnimationConfig` | Not started | spring fields on `WeaponData` and `EyeReliefM` on `PartData` exist |
+
+Tests done (section 9): `SpringDamper`/`Spring3`, `ViewBob`, `InertiaSway`, `AdsSolve`, `SupportGripResolver`, `ReadyPoseModel`, `ReloadSequence` (interrupt at every moment, resume from every state, no round or magazine duplication), `GaitModel`, `LocomotionParams`, `AimOffsetSolver`. Not yet: `StanceHeight` (covered by the existing stance tests), GUT smoke for the `AnimationTree`.
+
+Build order (section 10): step 1 **partly done** (locomotion graph and aim offset; weapon action layer and additive layers not), step 2 done, step 3 partly (logic done, clips and curves not), step 4 done except wrist torque and sprint carry, step 5 done, steps 6 to 8 not started.
 
 ## Intent
 

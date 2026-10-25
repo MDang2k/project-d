@@ -85,6 +85,12 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Dev/screenshot helper: holds the trigger regardless of input.</summary>
 	public bool DebugForceTrigger { get; set; }
 
+	public (float Left, float Right) DebugThighPitchDeg() => _body.DebugThighPitchDeg();
+
+	/// <summary>Dev: constant move input (x right, y back like the real axes) and forced sprint, for screenshots.</summary>
+	public Vector2 DebugMove { get; set; }
+	public bool DebugSprint { get; set; }
+
 	private WeightModel _weights = null!;
 	private MovementModel _move = null!;
 	private PlayerConfig _cfg = null!;
@@ -1186,14 +1192,14 @@ public partial class Player : CharacterBody3D, IPerceivable
 		}
 		HandleStanceInput();
 
-		var input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+		var input = DebugMove != Vector2.Zero ? DebugMove : Input.GetVector("move_left", "move_right", "move_forward", "move_back");
 		if (Input.IsActionJustPressed("jump") && IsOnFloor() && input.Y < -0.1f
 			&& Stance == Stance.Stand && TryMantle())
 			return;
 
 		var wish = GlobalBasis * new Vector3(input.X, 0f, input.Y);
 		// While aiming, Shift holds breath instead of sprinting (GDD s7).
-		var wantsSprint = Input.IsActionPressed("sprint") && input.Y < -0.1f && Stance != Stance.Prone
+		var wantsSprint = (Input.IsActionPressed("sprint") || DebugSprint) && input.Y < -0.1f && Stance != Stance.Prone
 			&& !AimHeld();
 		IsSprinting = wantsSprint && _weights.CanSprint(Tier) && !Legs.IsExhausted && !_penalties.SprintBlocked;
 		if (IsSprinting)
@@ -1371,7 +1377,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (!Input.IsActionPressed("free_look"))
 			_freeLook = LookModel.FreeLookReturn(_freeLook, _cfg.FreeLookReturnDegS, delta);
 		_free.Rotation = new Vector3(Mathf.DegToRad(_freeLook.Y), Mathf.DegToRad(_freeLook.X), 0f);
-		_body.Pose(_eyeY, _pivot.Rotation.Z, shift);
+		var local = GlobalBasis.Inverse() * Velocity;
+		_body.Locomote(local, _eyeY, !IsOnFloor() || _mantling);
+		_body.Pose(_eyeY, _pivot.Rotation.Z, shift, Mathf.RadToDeg(_head.Rotation.X), _freeLook);
 	}
 
 	/// <summary>Small procedural camera bob in step with the feet, plus a dip on landing (animation spec s4.6).</summary>
