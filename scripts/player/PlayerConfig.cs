@@ -93,6 +93,8 @@ public partial class PlayerConfig : Resource
 	[Export] public float FreeLookReturnDegS { get; set; } = 360f;
 
 	[ExportGroup("Mantle")]
+	/// <summary>Steps and curbs up to this height are walked over instead of stopping the body (stairs are 0.18 m).</summary>
+	[Export] public float StepHeight { get; set; } = 0.3f;
 	[Export] public float MantleMinHeight { get; set; } = 0.3f;
 	[Export] public float MantleMaxHeight { get; set; } = 1.3f;
 	[Export] public float MantleReach { get; set; } = 0.8f;

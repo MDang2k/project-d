@@ -7,7 +7,7 @@ namespace ProjectD;
 /// <summary>
 /// M5 AI test range, built in code: open ground, cover walls and one AI of each faction preset.
 /// Keys: F2 noclip ghost fly, F4 toggles AI debug (cones and awareness labels), Backspace respawns the player.
-/// Dev args after "--": --pos=x,z --yaw=deg --crouch --prone --fire=secs --wait=secs --report --shot=path.
+/// Dev args after "--": --pos=x,z --yaw=deg --move=x,y --sprint --crouch --prone --fire=secs --wait=secs --report --shot=path.
 /// </summary>
 public partial class AiRange : Node3D
 {
@@ -301,6 +301,11 @@ public partial class AiRange : Node3D
 				_player.DebugNoclip = true;
 			else if (arg == "--report")
 				report = true;
+			else if (arg.StartsWith("--move=") && arg["--move=".Length..].Split(',') is { Length: 2 } mv
+				&& float.TryParse(mv[0], out var mx) && float.TryParse(mv[1], out var my))
+				_player.DebugMove = new Vector2(mx, my);
+			else if (arg == "--sprint")
+				_player.DebugSprint = true;
 			else if (arg.StartsWith("--pos=") && arg["--pos=".Length..].Split(',') is { Length: 2 } xy
 				&& float.TryParse(xy[0], out var px) && float.TryParse(xy[1], out var pz))
 				_player.Position = new Vector3(px, 0.1f, pz);
@@ -347,7 +352,7 @@ public partial class AiRange : Node3D
 		if (report)
 		{
 			var b = _player.Health.Body;
-			GD.Print($"PLAYER dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
+			GD.Print($"PLAYER pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Y:0.00},{_player.GlobalPosition.Z:0.00} dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
 				GD.Print($"AI {ai.Preset?.Id} state={ai.Brain.State}/{ai.CombatState} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
 		}

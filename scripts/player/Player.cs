@@ -235,6 +235,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_move = new MovementModel(_cfg.ToMovementTuning(), _weights);
 		Legs = new StaminaPool(_cfg.LegsMax, _cfg.ResumeThreshold, _cfg.RecoveryDelayS);
 		Arms = new StaminaPool(_cfg.ArmsMax, _cfg.ResumeThreshold, _cfg.RecoveryDelayS);
+		FloorSnapLength = 0.35f; // stay on the ground going down stairs
 		_gravity = ProjectSettings.GetSetting("physics/3d/default_gravity", 9.8f).AsSingle();
 
 		_capsule = new CapsuleShape3D { Radius = _cfg.CapsuleRadius };
@@ -1232,6 +1233,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (IsSprinting && input != Vector2.Zero)
 			Legs.Spend(_cfg.SprintDrainPerS * _weights.StaminaDrainMult(Tier) * delta);
 		TickStamina(delta);
+		if (Stance != Stance.Prone)
+			StepUp.Try(this, new Vector3(vel.X, 0f, vel.Z), delta, _cfg.StepHeight);
 		MoveAndSlide();
 		UpdateFootsteps(delta);
 		UpdateHitboxes();
