@@ -86,6 +86,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	public bool DebugForceTrigger { get; set; }
 
 	public (float Left, float Right) DebugThighPitchDeg() => _body.DebugThighPitchDeg();
+	public string DebugFootIk() => _body.DebugFootIk();
 
 	/// <summary>Dev: constant move input (x right, y back like the real axes) and forced sprint, for screenshots.</summary>
 	public Vector2 DebugMove { get; set; }
@@ -1379,6 +1380,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_free.Rotation = new Vector3(Mathf.DegToRad(_freeLook.Y), Mathf.DegToRad(_freeLook.X), 0f);
 		var local = GlobalBasis.Inverse() * Velocity;
 		_body.Locomote(local, _eyeY, !IsOnFloor() || _mantling);
+		var proneWeight = BodyPoseModel.StanceBlend(_eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight).Prone;
+		_body.UpdateFootIk(GetWorld3D().DirectSpaceState, CollisionMask, GetRid(), IsOnFloor() && !_mantling, proneWeight);
 		_body.Pose(_eyeY, _pivot.Rotation.Z, shift, Mathf.RadToDeg(_head.Rotation.X), _freeLook);
 	}
 

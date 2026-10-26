@@ -31,6 +31,7 @@ public partial class PlayerBody : Node3D
 	private Transform3D _palmL = Transform3D.Identity, _palmR = Transform3D.Identity;
 	private AnimationPlayer? _handPoses;
 	private LocomotionLayer _loco = null!;
+	private FootIkModifier _footIk = null!;
 	private readonly AimOffsetTuning _aimOffset = AimOffsetTuning.Default;
 	private readonly GaitTuning _gait = GaitTuning.Default;
 
@@ -75,6 +76,9 @@ public partial class PlayerBody : Node3D
 		foreach (var bone in new[] { "Hand_L", "Hand_R", "Forearm_L", "Forearm_R" })
 			_skel.AddChild(new BoneAttachment3D { Name = $"Probe_{bone}", BoneName = bone });
 		_loco = LocomotionLayer.Build(_skel, _gait);
+		_footIk = new FootIkModifier { Name = "FootIK" };
+		_skel.AddChild(_footIk);
+		_footIk.Setup(_skel, FootIkTuning.Default);
 		BuildArmIk(head);
 		_hands = new HandPoseModifier { Name = "HandPose", ForearmTwistShare = cfg.ForearmTwistShare, PalmLeft = _palmL, PalmRight = _palmR };
 		_skel.AddChild(_hands); // after ArmIK: modifiers run in child order
@@ -310,6 +314,38 @@ public partial class PlayerBody : Node3D
 		return (Find(left), Find(right));
 	}
 
+	/// <summary>
+	/// Foot IK input (call every physics frame): probes the ground under each foot where the animation put it, and
+	/// switches the IK off while airborne, mantling or prone.
+	/// </summary>
+	public void UpdateFootIk(PhysicsDirectSpaceState3D space, uint mask, Rid exclude, bool onGround, float proneWeight)
+	{
+		_footIk.Planting = onGround && proneWeight < 0.3f;
+		var t = _footIk.Tuning;
+		var toWorld = _skel.GlobalTransform;
+		var toLocal = toWorld.AffineInverse();
+		var floor = toWorld.Origin.Y;
+		for (var i = 0; i < 2; i++)
+		{
+			var ankle = toWorld * _footIk.AnkleLocal[i];
+			var query = PhysicsRayQueryParameters3D.Create(new Vector3(ankle.X, floor + t.RayUp, ankle.Z),
+				new Vector3(ankle.X, floor - t.RayDown, ankle.Z), mask, new Godot.Collections.Array<Rid> { exclude });
+			var hit = space.IntersectRay(query);
+			_footIk.Probes[i] = hit.Count == 0
+				? new FootProbe()
+				: new FootProbe
+				{
+					Hit = true,
+					GroundY = (toLocal * hit["position"].AsVector3()).Y,
+					Normal = (toLocal.Basis * hit["normal"].AsVector3()).Normalized(),
+				};
+		}
+	}
+
+	/// <summary>Dev: pelvis drop, and the ankle heights above the floor after IK (left, right).</summary>
+	public string DebugFootIk()
+		=> $"drop={_footIk.PelvisDrop:0.000} animated ankle y=({_footIk.AnkleLocal[0].Y:0.000}, {_footIk.AnkleLocal[1].Y:0.000}) final=({_footIk.FinalAnkleY[0]:0.000}, {_footIk.FinalAnkleY[1]:0.000}) rest ankle y={_footIk.RestAnkleY:0.000}";
+
 	/// <summary>Layer 1: feeds the locomotion graph (legs) from the body's velocity and stance (call every frame).</summary>
 	public void Locomote(Vector3 localVelocity, float eyeY, bool airborne)
 	{
@@ -337,7 +373,9 @@ public partial class PlayerBody : Node3D
 		// not the inside of the chest; moving the hips (not the spine) keeps the waist from shearing.
 		var hipsZ = Mathf.Lerp(_cfg.BodyBack, _cfg.ProneBodyBack, prone);
 		var hipsRest = _skel.GetBoneRest(_hips).Origin;
-		_skel.SetBonePosePosition(_hips, new Vector3(hipsRest.X, hipsY, hipsRest.Z + hipsZ));
+		var hipsPos = new Vector3(hipsRest.X, hipsY, hipsRest.Z + hipsZ);
+		_skel.SetBonePosePosition(_hips, hipsPos);
+		_footIk.HipsBase = hipsPos;
 		Rotate(_hips, Pitch(-90f * prone));
 
 		_skel.SetBonePosePosition(_spine, _spineRest + new Vector3(leanShift * 0.5f, 0f, 0f));

@@ -10,7 +10,7 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 |---|---|---|---|
 | 1.1 | Locomotion base graph (`AnimationTree`, stand/crouch/prone blend spaces, idle plus walk and sprint rings, 8 directions, stance blend, ground-speed time scale) | **Done** | `LocomotionLayer`, `LocomotionParams`; drives the legs only (hips, spine and head stay procedural in `PlayerBody.Pose`) |
 | 1.1 | Placeholder clips | **Done** | generated at startup from `GaitModel`; real clips with the same names (`Loco_<Stance>_<ring>_<dir>`) replace them without graph changes |
-| 1.1 | Real locomotion clips (CC0 library) | **Partial** | Quaternius Universal Animation Library (Standard) legs for stand idle/walk/sprint and crouch idle/walk, retargeted by `tools/retarget_ual.py` (script, not Blender) into `data/animation/locomotion_clips.json`; the pack ships forward clips only, so back plays them reversed and the sides, diagonals' strafe and all of prone stay on the generated gait; no foot IK yet so only the motion is used on top of our own hip height and crouch base; credited in `assets/CREDITS.md` |
+| 1.1 | Real locomotion clips (CC0 library) | **Partial** | Quaternius Universal Animation Library (Standard) legs for stand idle/walk/sprint and crouch idle/walk, retargeted by `tools/retarget_ual.py` (script, not Blender) into `data/animation/locomotion_clips.json`; the pack ships forward clips only, so back plays them reversed and the sides, diagonals' strafe and all of prone stay on the generated gait; only the motion is used on top of our own hip height and crouch base (foot IK now plants the feet); credited in `assets/CREDITS.md` |
 | 1.1 | Granular crouch (C + wheel) | **Done** | already on the branch (`StanceHeightModel`) |
 | 1.1 | Stance transition clips, turn in place, foot sliding fix by real stride, jump/land/mantle/sprint start-stop clips, heavy-load gait set | Not started | |
 | 1.2 | Aim offset | **Partial** | procedural pitch split over spine, chest and head (`AimOffsetSolver`); looking down the torso follows only a little (it would cover the weapon) until the head-anchored correction exists; no 9 authored poses, no lean poses, no yaw split or turn in place (free look turns the head only) |
@@ -27,7 +27,8 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 | 4.2 | Movement sway (strafe tilt, walk figure-eight), sprint carry pose | Not started | view bob exists (4.6) |
 | 4.3 | Wall tuck stage 2 (high and low ready) | **Done** | `ReadyPoseModel` |
 | 4.4 | Hand IK weights from clips, trigger finger curl | Not started | `HandTrigger_R` exists in the body model |
-| 4.5 | Foot IK, AI look-at | Not started | |
+| 4.5 | Foot IK | **Done** (player) | `FootIkModifier`, `LegIk`, probes from `PlayerBody.UpdateFootIk`: feet follow steps and slopes, are pulled onto the ground (crouch clips sank the feet 13 cm before), tilt to the surface (max 30 degrees), pelvis lowers up to 0.25 m; off while airborne, mantling or prone; works on any bone orientation. Slopes and stairs are covered by unit tests but not yet checked on a real map |
+| 4.5 | AI look-at, foot IK for AI (LOD bands) | Not started | |
 | 4.6 | View bob with landing dip, ADS and rest scaling, settings scale | **Done** | `ViewBob`, `PlayerConfig.ViewBobScale`; not in the debug overlay yet |
 | 5.1 to 5.2 | Phased reloads, interrupt and resume | **Done** | `ReloadSequence`, `WeaponController`; sprint, jump, mantle, melee, item use and weapon switch interrupt |
 | 5.1 | Reload phase variants per family (open-bolt, belt-fed) | Not started | |

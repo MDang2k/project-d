@@ -591,3 +591,77 @@ public class RealClipMappingTests
 			Assert.False(LocomotionClips.DirectionUse(d).Real);
 	}
 }
+
+public class LegIkTests
+{
+	[Fact]
+	public void TwoBoneKeepsBoneLengthsAndReachesAReachableTarget()
+	{
+		var hip = new Vector3(0f, 0.9f, 0f);
+		var target = new Vector3(0.1f, 0.2f, -0.2f);
+		var (knee, ankle) = LegIk.TwoBone(hip, target, 0.45f, 0.45f, Vector3.Forward);
+		Assert.Equal(0.45f, hip.DistanceTo(knee), 3);
+		Assert.Equal(0.45f, knee.DistanceTo(ankle), 3);
+		Assert.True(ankle.IsEqualApprox(target));
+	}
+
+	[Fact]
+	public void TheKneeBendsTowardThePole()
+	{
+		var hip = new Vector3(0f, 0.9f, 0f);
+		var target = new Vector3(0f, 0.3f, 0f);
+		var (front, _) = LegIk.TwoBone(hip, target, 0.45f, 0.45f, Vector3.Forward);
+		var (back, _) = LegIk.TwoBone(hip, target, 0.45f, 0.45f, Vector3.Back);
+		Assert.True(front.Z < 0f);
+		Assert.True(back.Z > 0f);
+	}
+
+	[Fact]
+	public void AnOutOfReachTargetStopsTheAnkleShortWithTheLegStraight()
+	{
+		var hip = new Vector3(0f, 0.9f, 0f);
+		var (knee, ankle) = LegIk.TwoBone(hip, new Vector3(0f, -1f, 0f), 0.45f, 0.45f, Vector3.Forward);
+		Assert.True(hip.DistanceTo(ankle) <= 0.9f);
+		Assert.True(hip.DistanceTo(ankle) > 0.89f);
+		Assert.Equal(0.45f, hip.DistanceTo(knee), 3);
+	}
+
+	[Fact]
+	public void SoleHeightPullsSunkAndHoveringFeetToTheGroundButKeepsSwing()
+	{
+		Assert.Equal(0f, LegIk.SoleHeight(-0.2f, 0.06f), 4);
+		Assert.Equal(0f, LegIk.SoleHeight(0f, 0.06f), 4);
+		Assert.True(LegIk.SoleHeight(0.02f, 0.06f) < 0.02f);
+		Assert.Equal(0.06f, LegIk.SoleHeight(0.06f, 0.06f), 4);
+		Assert.Equal(0.3f, LegIk.SoleHeight(0.3f, 0.06f), 4);
+		var previous = -1f;
+		for (var h = 0f; h <= 0.2f; h += 0.005f)
+		{
+			var v = LegIk.SoleHeight(h, 0.06f);
+			Assert.True(v >= previous - 1e-5f);
+			previous = v;
+		}
+	}
+
+	[Fact]
+	public void PelvisDropIsClamped()
+	{
+		Assert.Equal(0f, LegIk.PelvisDrop(-0.1f, 0.25f), 4);
+		Assert.Equal(0.1f, LegIk.PelvisDrop(0.1f, 0.25f), 4);
+		Assert.Equal(0.25f, LegIk.PelvisDrop(0.9f, 0.25f), 4);
+	}
+
+	[Fact]
+	public void GroundTiltFollowsTheSlopeUpToTheLimitAndFadesWhenLifted()
+	{
+		Assert.Equal(Quaternion.Identity, LegIk.GroundTilt(Vector3.Up, 30f, 1f));
+		var slope = new Vector3(0f, 1f, -0.4f).Normalized();
+		var tilted = LegIk.GroundTilt(slope, 30f, 1f);
+		Assert.True((tilted * Vector3.Up).IsEqualApprox(slope));
+		var steep = LegIk.GroundTilt(new Vector3(0f, 0.2f, -1f).Normalized(), 30f, 1f);
+		Assert.Equal(30f, Mathf.RadToDeg(Vector3.Up.AngleTo(steep * Vector3.Up)), 1);
+		var half = LegIk.GroundTilt(slope, 30f, 0.5f);
+		Assert.True(Vector3.Up.AngleTo(half * Vector3.Up) < Vector3.Up.AngleTo(tilted * Vector3.Up));
+		Assert.Equal(Quaternion.Identity, LegIk.GroundTilt(slope, 30f, 0f));
+	}
+}

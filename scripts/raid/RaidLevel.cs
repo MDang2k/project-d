@@ -206,6 +206,7 @@ public partial class RaidLevel : Node3D
 
 	private void PrintReport()
 	{
+		GD.Print($"FOOTIK (drop, ankleY L, ankleY R) = {Player.DebugFootIk()}");
 		GD.Print($"GAIT thigh L/R pitch = {Player.DebugThighPitchDeg()} speed={Player.Velocity.Length():0.0}");
 		var polys = GetNodeOrNull<NavigationRegion3D>("Geometry")?.NavigationMesh?.GetPolygonCount() ?? 0;
 		GD.Print($"MAP spawns={GetTree().GetNodesInGroup("player_spawns").Count} " +
