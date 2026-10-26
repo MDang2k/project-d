@@ -112,15 +112,17 @@ public partial class PlayerConfig : Resource
 	[Export] public float CrouchThighDeg { get; set; } = 80f;
 	[Export] public float CrouchShinDeg { get; set; } = 100f;
 	/// <summary>Chest yaw to the right while holding a weapon (bladed stance) so the left hand reaches GripLeft.</summary>
-	[Export] public float HoldChestTwistDeg { get; set; } = 45f;
-	/// <summary>How far the upper body (spine and up) sits behind the camera when not prone.</summary>
-	[Export] public float UpperBodyBack { get; set; } = 0.1f;
+	[Export] public float HoldChestTwistDeg { get; set; } = 25f;
+	/// <summary>How far the whole body (hips and up) sits behind the camera when not prone.</summary>
+	[Export] public float BodyBack { get; set; } = 0.1f;
+	/// <summary>Share of the wrist roll the ForearmTwist bones take while holding a weapon (0 = all in the wrist).</summary>
+	[Export] public float ForearmTwistShare { get; set; } = 0.7f;
 	/// <summary>Held item position relative to the head (camera pitch node).</summary>
-	[Export] public Vector3 HeldItemOffset { get; set; } = new(0.08f, -0.22f, -0.26f);
+	[Export] public Vector3 HeldItemOffset { get; set; } = new(0.04f, -0.22f, -0.18f);
 	[Export] public Vector3 GripRightOffset { get; set; } = new(0f, -0.04f, 0.12f);
 	[Export] public Vector3 GripLeftOffset { get; set; } = new(0f, -0.03f, -0.15f);
 	[Export] public Vector3 ElbowHintRight { get; set; } = new(0.45f, -0.55f, 0.05f);
-	[Export] public Vector3 ElbowHintLeft { get; set; } = new(-0.45f, -0.55f, 0.05f);
+	[Export] public Vector3 ElbowHintLeft { get; set; } = new(-0.1f, -1f, 0f);
 
 	[ExportGroup("Handling")]
 	[Export] public float HipFovDeg { get; set; } = 75f;
@@ -128,7 +130,7 @@ public partial class PlayerConfig : Resource
 	/// <summary>Mouse sensitivity multiplier at full ADS.</summary>
 	[Export] public float AdsSensitivityMult { get; set; } = 0.55f;
 	/// <summary>Distance of the rear sight from the eye at full ADS, metres.</summary>
-	[Export] public float AdsEyeRelief { get; set; } = 0.3f;
+	[Export] public float AdsEyeRelief { get; set; } = 0.18f;
 	/// <summary>Eye relief for optics without their own value (animation spec s2.3, tune).</summary>
 	[Export] public float AdsEyeReliefOptic { get; set; } = 0.22f;
 	/// <summary>Camera view bob: 0 off, 1 default, up to 1.5 (animation spec s4.6).</summary>

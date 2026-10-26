@@ -31,7 +31,11 @@ public sealed class LocomotionLayer
 			Name = "LocomotionTree",
 			CallbackModeProcess = AnimationMixer.AnimationCallbackModeProcess.Physics,
 		};
-		tree.AddAnimationLibrary("", BuildLibrary(skeletonPath, gait));
+		// keys are leg motion on top of each bone's rest (oriented rigs keep their bone directions)
+		var rests = new Dictionary<string, Quaternion>();
+		for (var i = 0; i < skeleton.GetBoneCount(); i++)
+			rests[skeleton.GetBoneName(i)] = skeleton.GetBoneRest(i).Basis.GetRotationQuaternion();
+		tree.AddAnimationLibrary("", BuildLibrary(skeletonPath, gait, rests));
 		tree.TreeRoot = BuildGraph();
 		parent.AddChild(tree);
 		tree.Active = true;
@@ -50,34 +54,37 @@ public sealed class LocomotionLayer
 
 	// --- clips ----------------------------------------------------------------------------------
 
+	private static Quaternion Rest(Dictionary<string, Quaternion> rests, string bone)
+		=> rests.TryGetValue(bone, out var q) ? q : Quaternion.Identity;
+
 	private static readonly (string Name, float Ring)[] Rings = { ("walk", 0.5f), ("sprint", 1f) };
 
 	private static Vector2 Dir(int index) => new(MathF.Sin(index * Mathf.Pi / 4f), MathF.Cos(index * Mathf.Pi / 4f));
 
 	private static string ClipName(GaitStance stance, string ring, int dir) => $"Loco_{stance}_{ring}_{dir}";
 
-	private static AnimationLibrary BuildLibrary(string skeletonPath, GaitTuning gait)
+	private static AnimationLibrary BuildLibrary(string skeletonPath, GaitTuning gait, Dictionary<string, Quaternion> rests)
 	{
 		var library = new AnimationLibrary();
 		foreach (GaitStance stance in Enum.GetValues(typeof(GaitStance)))
 		{
-			library.AddAnimation(ClipName(stance, "idle", 0), BuildAny(skeletonPath, gait, stance, 0f, Vector2.Zero, 0));
+			library.AddAnimation(ClipName(stance, "idle", 0), BuildAny(skeletonPath, gait, rests, stance, 0f, Vector2.Zero, 0));
 			foreach (var (ringName, ring) in Rings)
 			{
 				for (var d = 0; d < 8; d++)
-					library.AddAnimation(ClipName(stance, ringName, d), BuildAny(skeletonPath, gait, stance, ring, Dir(d), d));
+					library.AddAnimation(ClipName(stance, ringName, d), BuildAny(skeletonPath, gait, rests, stance, ring, Dir(d), d));
 			}
 		}
 		return library;
 	}
 
 	/// <summary>The retargeted pack clip where one exists for this stance, ring and direction, else the generated gait.</summary>
-	private static Animation BuildAny(string skeletonPath, GaitTuning gait, GaitStance stance, float ring, Vector2 dir, int dirIndex)
+	private static Animation BuildAny(string skeletonPath, GaitTuning gait, Dictionary<string, Quaternion> rests, GaitStance stance, float ring, Vector2 dir, int dirIndex)
 	{
 		var (real, reverse) = ring <= 0f ? (true, false) : LocomotionClips.DirectionUse(dirIndex);
 		if (real && LocomotionClips.ClipFor(stance, ring) is { } name && LocomotionClips.All.TryGetValue(name, out var clip))
-			return BuildRealClip(skeletonPath, gait, stance, clip, reverse);
-		return BuildClip(skeletonPath, gait, stance, ring, dir);
+			return BuildRealClip(skeletonPath, gait, rests, stance, clip, reverse);
+		return BuildClip(skeletonPath, gait, rests, stance, ring, dir);
 	}
 
 	/// <summary>Stance base rotation of a leg bone (the pack keys are motion around it); straight legs standing.</summary>
@@ -91,7 +98,7 @@ public sealed class LocomotionLayer
 		return new Quaternion(Vector3.Right, Mathf.DegToRad(degrees));
 	}
 
-	private static Animation BuildRealClip(string skeletonPath, GaitTuning gait, GaitStance stance, RealClip clip, bool reverse)
+	private static Animation BuildRealClip(string skeletonPath, GaitTuning gait, Dictionary<string, Quaternion> rests, GaitStance stance, RealClip clip, bool reverse)
 	{
 		var anim = new Animation { Length = clip.Length, LoopMode = Animation.LoopModeEnum.Linear };
 		foreach (var (bone, keys) in clip.Bones)
@@ -102,13 +109,13 @@ public sealed class LocomotionLayer
 			for (var i = 0; i < keys.Length; i++)
 			{
 				var (time, rot) = keys[reverse ? keys.Length - 1 - i : i];
-				anim.RotationTrackInsertKey(track, reverse ? clip.Length - time : time, baseRot * rot);
+				anim.RotationTrackInsertKey(track, reverse ? clip.Length - time : time, baseRot * rot * Rest(rests, bone));
 			}
 		}
 		return anim;
 	}
 
-	private static Animation BuildClip(string skeletonPath, GaitTuning gait, GaitStance stance, float ring, Vector2 dir)
+	private static Animation BuildClip(string skeletonPath, GaitTuning gait, Dictionary<string, Quaternion> rests, GaitStance stance, float ring, Vector2 dir)
 	{
 		var anim = new Animation { Length = 1f, LoopMode = Animation.LoopModeEnum.Linear };
 		var tracks = new Dictionary<string, int>();
@@ -122,18 +129,21 @@ public sealed class LocomotionLayer
 		{
 			var t = i / (float)Steps;
 			var (left, right) = GaitModel.Legs(gait, stance, ring, dir, t % 1f);
-			Key(anim, tracks, "L", left, t);
-			Key(anim, tracks, "R", right, t);
+			Key(anim, tracks, rests, "L", left, t);
+			Key(anim, tracks, rests, "R", right, t);
 		}
 		return anim;
 	}
 
-	private static void Key(Animation anim, Dictionary<string, int> tracks, string side, LegAngles a, float time)
+	private static void Key(Animation anim, Dictionary<string, int> tracks, Dictionary<string, Quaternion> rests, string side, LegAngles a, float time)
 	{
 		anim.RotationTrackInsertKey(tracks[$"Thigh_{side}"], time,
-			new Quaternion(Vector3.Right, Mathf.DegToRad(a.ThighDeg)) * new Quaternion(Vector3.Back, Mathf.DegToRad(a.ThighRollDeg)));
-		anim.RotationTrackInsertKey(tracks[$"Shin_{side}"], time, new Quaternion(Vector3.Right, Mathf.DegToRad(a.ShinDeg)));
-		anim.RotationTrackInsertKey(tracks[$"Foot_{side}"], time, new Quaternion(Vector3.Right, Mathf.DegToRad(a.FootDeg)));
+			new Quaternion(Vector3.Right, Mathf.DegToRad(a.ThighDeg)) * new Quaternion(Vector3.Back, Mathf.DegToRad(a.ThighRollDeg))
+			* Rest(rests, $"Thigh_{side}"));
+		anim.RotationTrackInsertKey(tracks[$"Shin_{side}"], time,
+			new Quaternion(Vector3.Right, Mathf.DegToRad(a.ShinDeg)) * Rest(rests, $"Shin_{side}"));
+		anim.RotationTrackInsertKey(tracks[$"Foot_{side}"], time,
+			new Quaternion(Vector3.Right, Mathf.DegToRad(a.FootDeg)) * Rest(rests, $"Foot_{side}"));
 	}
 
 	// --- graph ----------------------------------------------------------------------------------

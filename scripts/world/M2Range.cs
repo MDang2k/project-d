@@ -644,6 +644,9 @@ public partial class M2Range : Node3D
 			case Key.F3:
 				SetTrajectoryDebug(!_showTrajectory);
 				break;
+			case Key.Quoteleft:
+				_player.CycleDebugView();
+				break;
 			case Key.Delete:
 				_player.Weapon?.RefillDebug();
 				break;
@@ -722,6 +725,6 @@ public partial class M2Range : Node3D
 			$"{PlayerHealthLine()}\n{EffectsLine()}\nmelee {_player.MeleeDebug}\n" +
 			$"last impact: {_lastImpact}   target hits {_hits}\n" +
 			$"{(Time.GetTicksMsec() / 1000.0 < _messageUntil ? _message : "")}{(w is { Controller.IsBusy: true } ? $"   [{w.Controller.Action} {w.Controller.Progress * 100f:0}%]" : "")}\n" +
-			"1-3 draw slot, Ctrl+1-5 add weapon, Tab inventory  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  hold C+wheel height  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  Backspace respawn";
+			"1-3 draw slot, Ctrl+1-5 add weapon, Tab inventory  V fire  RMB aim  Shift(aiming) breath  R reload (2x fast)  T mag check  Shift+T chamber  hold C+wheel height  Delete refill  F3 trajectory " + (_showTrajectory ? "ON" : "off") + "  ` view " + _player.DebugView + "  Backspace respawn";
 	}
 }

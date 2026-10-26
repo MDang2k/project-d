@@ -163,6 +163,9 @@ public partial class AiRange : Node3D
 				foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
 					ai.ShowDebug = _debug;
 				break;
+			case Key.Quoteleft:
+				_player.CycleDebugView();
+				break;
 			case Key.Backspace:
 				_player.Position = SpawnPoint;
 				_player.Velocity = Vector3.Zero;
@@ -201,7 +204,7 @@ public partial class AiRange : Node3D
 			sb.AppendLine($"raid {r.Session.RemainingS:0}s left  extract {r.Session.ExtractProgress * 100f:0}%");
 		else if (_raid is not null)
 			sb.AppendLine($"raid over: {_raid.Session.Outcome}");
-		sb.Append("V fire  RMB aim  Shift sprint  C crouch  Z prone  F4 AI debug " + (_debug ? "ON" : "off") + "  F1 DEBUG MENU  F3 your side " + _player.Faction + "  F2 noclip " + (_player.DebugNoclip ? "ON (Space up, C down, Shift fast)" : "off") + "  Backspace respawn");
+		sb.Append("V fire  RMB aim  Shift sprint  C crouch  Z prone  F4 AI debug " + (_debug ? "ON" : "off") + "  F1 DEBUG MENU  F3 your side " + _player.Faction + "  ` view " + _player.DebugView + "  F2 noclip " + (_player.DebugNoclip ? "ON (Space up, C down, Shift fast)" : "off") + "  Backspace respawn");
 		_label.Text = sb.ToString();
 		_ = w;
 	}

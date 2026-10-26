@@ -59,6 +59,15 @@ public partial class AiRange
 		_sideBox.ItemSelected += i => _player.DebugFaction = (Faction)(int)i;
 		box.AddChild(_sideBox);
 
+		box.AddChild(new Label { Text = "Camera (look at your character, ` cycles):" });
+		var views = new GridContainer { Columns = 4 };
+		foreach (var view in System.Enum.GetValues<DebugCameraView>())
+		{
+			var v = view;
+			views.AddChild(Action(v == DebugCameraView.FirstPerson ? "1st person" : v.ToString(), () => _player.DebugView = v));
+		}
+		box.AddChild(views);
+
 		box.AddChild(new Label { Text = "Game speed:" });
 		var speed = new HSlider { MinValue = 0.1, MaxValue = 3.0, Step = 0.1, Value = 1.0 };
 		speed.ValueChanged += v => Engine.TimeScale = v;
