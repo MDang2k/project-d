@@ -116,6 +116,14 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private readonly InertiaSway _inertia = new();
 	private Vector2 _lookDeltaDeg;
 	private readonly SpringDamper _landDip = new();
+	// camera height lag after a step (stairs): the body jumps, the camera eases
+	private float _stepOffset;
+	private float _prevBodyY;
+	private float? _prevCamY;
+
+	/// <summary>Dev: largest camera height change in one physics frame since start (stair smoothness check).</summary>
+	public float MaxCameraYStep { get; private set; }
+	private bool _prevOnFloor;
 	private readonly ViewBobTuning _bobTuning = ViewBobTuning.Default;
 	private readonly ReadyPoseTuning _readyTuning = ReadyPoseTuning.Default;
 	private float _bobPhase;
@@ -1233,13 +1241,27 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (IsSprinting && input != Vector2.Zero)
 			Legs.Spend(_cfg.SprintDrainPerS * _weights.StaminaDrainMult(Tier) * delta);
 		TickStamina(delta);
+		var lifted = false;
 		if (Stance != Stance.Prone)
-			StepUp.Try(this, new Vector3(vel.X, 0f, vel.Z), delta, _cfg.StepHeight);
+			lifted = StepUp.Try(this, new Vector3(vel.X, 0f, vel.Z), delta, _cfg.StepHeight);
 		MoveAndSlide();
+		if (Stance != Stance.Prone && !_mantling && !lifted)
+			StepUp.Down(this, _cfg.StepHeight, _prevOnFloor);
+		// A step (or a snap down one) moves the body at once; leave the camera where it was and let it catch up.
+		var bodyY = GlobalPosition.Y;
+		var stepped = bodyY - _prevBodyY;
+		if (_prevOnFloor && !_mantling && Velocity.Y <= 0.5f && Mathf.Abs(stepped) is > 0.08f and < 0.4f)
+			_stepOffset -= stepped;
+		_prevBodyY = bodyY;
+		_prevOnFloor = IsOnFloor();
 		UpdateFootsteps(delta);
 		UpdateHitboxes();
 		UpdateHandling(delta);
 		UpdateRig(delta);
+		var camY = _camera.GlobalPosition.Y;
+		if (_prevCamY.HasValue)
+			MaxCameraYStep = Mathf.Max(MaxCameraYStep, Mathf.Abs(camY - _prevCamY.Value));
+		_prevCamY = camY;
 	}
 
 	private float _stepTimer;
@@ -1405,7 +1427,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_fallSpeed = 0f;
 		_wasOnFloor = onFloor;
 		_landDip.Update(delta, 120f, 0.7f);
-		_head.Position = new Vector3(lateral * scale, _eyeY - pivotY + vertical * scale + _landDip.Value, 0f);
+		_stepOffset = Mathf.Lerp(_stepOffset, 0f, 1f - Mathf.Exp(-delta / Mathf.Max(0.01f, _cfg.StepSmoothS)));
+		_head.Position = new Vector3(lateral * scale, _eyeY - pivotY + vertical * scale + _landDip.Value + _stepOffset, 0f);
 		var headRot = _head.Rotation;
 		headRot.Z = Mathf.DegToRad(rollDeg * scale);
 		_head.Rotation = headRot;

@@ -43,6 +43,25 @@ public static class StepUp
 		return true;
 	}
 
+	/// <summary>
+	/// Going down a stair the body walks off the edge and would free-fall step by step. When it was on the floor last
+	/// frame, is not rising and now has none, put it back on the floor up to a step's height below. Call after MoveAndSlide.
+	/// </summary>
+	public static bool Down(CharacterBody3D body, float stepHeight, bool wasOnFloor)
+	{
+		if (!wasOnFloor || body.IsOnFloor() || body.Velocity.Y > 0.1f)
+			return false;
+		var landing = new KinematicCollision3D();
+		// the capsule meets a step edge with its rounded bottom, so the contact normal is slanted: only reject walls
+		if (!body.TestMove(body.GlobalTransform, Vector3.Down * stepHeight, landing) || landing.GetNormal().Y < 0.3f)
+			return false;
+		body.GlobalPosition += landing.GetTravel();
+		var velocity = body.Velocity;
+		velocity.Y = 0f;
+		body.Velocity = velocity;
+		return true;
+	}
+
 	/// <summary>Radius of the body's capsule collision shape (0.3 when it has none).</summary>
 	private static float Radius(CharacterBody3D body)
 	{

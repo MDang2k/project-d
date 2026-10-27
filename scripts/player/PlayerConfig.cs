@@ -95,6 +95,8 @@ public partial class PlayerConfig : Resource
 	[ExportGroup("Mantle")]
 	/// <summary>Steps and curbs up to this height are walked over instead of stopping the body (stairs are 0.18 m).</summary>
 	[Export] public float StepHeight { get; set; } = 0.3f;
+	/// <summary>Seconds the camera takes to catch up after the body steps up or down a stair (smooths the climb).</summary>
+	[Export] public float StepSmoothS { get; set; } = 0.2f;
 	[Export] public float MantleMinHeight { get; set; } = 0.3f;
 	[Export] public float MantleMaxHeight { get; set; } = 1.3f;
 	[Export] public float MantleReach { get; set; } = 0.8f;

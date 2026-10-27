@@ -34,11 +34,11 @@ public partial class Player
 			}
 			var at = value switch
 			{
-				DebugCameraView.Front => new Vector3(0f, 1.3f, -2.4f),
-				DebugCameraView.Side => new Vector3(2.4f, 1.3f, 0f),
-				_ => new Vector3(0f, 1.6f, 2.6f),
+				DebugCameraView.Front => new Vector3(0f, 1.5f, -4.4f),
+				DebugCameraView.Side => new Vector3(4.4f, 1.5f, 0f),
+				_ => new Vector3(0f, 1.7f, 4.6f),
 			};
-			_debugCam.LookAtFromPosition(ToGlobal(at), ToGlobal(new Vector3(0f, 1.1f, 0f)), Vector3.Up);
+			_debugCam.LookAtFromPosition(ToGlobal(at), ToGlobal(new Vector3(0f, 0.95f, 0f)), Vector3.Up);
 			_debugCam.Current = true;
 		}
 	}

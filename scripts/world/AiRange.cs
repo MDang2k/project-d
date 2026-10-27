@@ -98,51 +98,6 @@ public partial class AiRange : Node3D
 		return body;
 	}
 
-	/// <summary>
-	/// Test course for foot IK, ledges and slopes, east of the spawn (x 14 to 26): stairs up, a landing and
-	/// stairs down, a curb and a ledge, then a gentle and a steep ramp. Walk the line from the spawn, turning right.
-	/// </summary>
-	private void BuildFootIkCourse()
-	{
-		const float x = 20f;
-		var stone = new Color(0.62f, 0.6f, 0.56f);
-		var accent = new Color(0.7f, 0.55f, 0.35f);
-		// stairs: 0.18 m rise, 0.3 m tread (asset pipeline spec), 8 steps up, landing, 8 down
-		const int steps = 8;
-		for (var i = 0; i < steps; i++)
-		{
-			var top = 0.18f * (i + 1);
-			Box(new Vector3(x, top / 2f, -4f - 0.3f * (i + 0.5f)), new Vector3(3f, top, 0.3f), stone);
-			Box(new Vector3(x, top / 2f, -4f - 2.4f - 3f - 0.3f * (i + 0.5f)), new Vector3(3f, 0.18f * (steps - i), 0.3f), stone);
-		}
-		var landingTop = 0.18f * steps;
-		Box(new Vector3(x, landingTop / 2f, -4f - 2.4f - 1.5f), new Vector3(3f, landingTop, 3f), accent);
-		Label("STAIRS 0.18 m rise", new Vector3(x, 2.2f, -4f - 2.4f - 1.5f));
-		// a curb (walk over) and a ledge (mantle or drop off)
-		Box(new Vector3(x, 0.1f, -17f), new Vector3(3f, 0.2f, 0.6f), stone);
-		Label("CURB 0.2 m", new Vector3(x, 1.2f, -17f));
-		Box(new Vector3(x, 0.45f, -21f), new Vector3(3f, 0.9f, 3f), accent);
-		Label("LEDGE 0.9 m", new Vector3(x, 1.8f, -21f));
-		// ramps rising toward -Z: gentle and steep, 8 m long
-		Ramp(new Vector3(x - 2.5f, 0f, -26f), 8f, 2.4f, 15f, stone);
-		Ramp(new Vector3(x + 2.5f, 0f, -26f), 8f, 2.4f, 30f, accent);
-		Label("SLOPES 15 / 30 deg", new Vector3(x, 4.5f, -26f));
-	}
-
-	/// <summary>A slab whose low end sits at <paramref name="low"/> and rises toward -Z at the given angle.</summary>
-	private void Ramp(Vector3 low, float length, float width, float degrees, Color color)
-	{
-		const float thickness = 0.3f;
-		var angle = Mathf.DegToRad(degrees);
-		var rise = new Vector3(0f, Mathf.Sin(angle), -Mathf.Cos(angle));
-		var normal = new Vector3(0f, Mathf.Cos(angle), Mathf.Sin(angle));
-		var body = Box(low + rise * (length / 2f) - normal * (thickness / 2f), new Vector3(width, thickness, length), color);
-		body.RotationDegrees = new Vector3(degrees, 0f, 0f);
-	}
-
-	private void Label(string text, Vector3 position)
-		=> AddChild(new Label3D { Text = text, Position = position, FontSize = 96, PixelSize = 0.004f, Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, NoDepthTest = true });
-
 	private void BuildWorld()
 	{
 		_nav = new NavigationRegion3D
@@ -174,7 +129,8 @@ public partial class AiRange : Node3D
 			Box(new Vector3(6f, 0.45f, z - 5f), new Vector3(4f, 0.9f, 0.5f), cover);
 			Box(new Vector3(12f, 0.6f, z + 3f), new Vector3(0.5f, 1.2f, 4f), cover);
 		}
-		BuildFootIkCourse();
+		// the foot IK course (stairs, curb, ledge, ramps) is authored in the scene; it joins the navigation region to be baked
+		GetNodeOrNull<Node3D>("FootIkCourse")?.Reparent(_nav, false);
 		_nav.BakeNavigationMesh(false);
 		AddChild(new DirectionalLight3D { RotationDegrees = new Vector3(-50f, 30f, 0f), ShadowEnabled = true });
 		AddChild(new WorldEnvironment
@@ -352,7 +308,7 @@ public partial class AiRange : Node3D
 		if (report)
 		{
 			var b = _player.Health.Body;
-			GD.Print($"PLAYER pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Y:0.00},{_player.GlobalPosition.Z:0.00} dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
+			GD.Print($"PLAYER maxCamStep={_player.MaxCameraYStep:0.000} pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Y:0.00},{_player.GlobalPosition.Z:0.00} dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
 				GD.Print($"AI {ai.Preset?.Id} state={ai.Brain.State}/{ai.CombatState} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
 		}

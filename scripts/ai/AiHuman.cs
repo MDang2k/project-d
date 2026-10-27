@@ -314,8 +314,11 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		vel.Z = flatVel.Z;
 		vel.Y = IsOnFloor() ? 0f : vel.Y - _gravity * delta;
 		Velocity = vel;
-		StepUp.Try(this, flatVel, delta, 0.3f);
+		var wasOnFloor = IsOnFloor();
+		var lifted = StepUp.Try(this, flatVel, delta, 0.3f);
 		MoveAndSlide();
+		if (!lifted)
+			StepUp.Down(this, 0.3f, wasOnFloor);
 
 		// Standing around: sweep the view around where the AI was last facing.
 		if (faceYaw is null)
