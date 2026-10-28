@@ -744,3 +744,86 @@ public class ReloadPoseTests
 		Assert.True(Hand(none).DistanceTo(Grip) < 0.001f);
 	}
 }
+
+public class ReloadClipWarpTests
+{
+	private static readonly ActionTuning T = ActionTuning.Default;
+
+	private static (IReadOnlyList<(float, float)> Points, ClipEvents Clip, ReloadSequence Seq) Build(
+		ReloadEntry entry, bool fast, bool rack, IReadOnlyDictionary<ReloadEvent, float>? named = null, float length = 3f)
+	{
+		var seq = new ReloadSequence(T, fast, entry, rack);
+		var clip = ReloadClipWarp.WithNominalDefaults(new ClipEvents(length, named ?? new Dictionary<ReloadEvent, float>()), T, fast, rack);
+		return (ReloadClipWarp.Points(seq.Timeline, seq.Total, entry, fast, clip), clip, seq);
+	}
+
+	[Fact]
+	public void NominalEventsFollowTheLogicProportions()
+	{
+		var clip = ReloadClipWarp.Nominal(T, false, true, 3f);
+		var seq = new ReloadSequence(T, false, ReloadEntry.Full, true);
+		foreach (var (e, t) in seq.Timeline)
+			Assert.Equal(t / seq.Total * 3f, clip.Times[e], 3);
+		Assert.Equal(3f, clip.Times[ReloadEvent.Finished], 3);
+	}
+
+	[Fact]
+	public void EveryEventLandsOnItsMarkWhateverTheLogicTimes()
+	{
+		var named = new Dictionary<ReloadEvent, float>
+		{
+			[ReloadEvent.MagDetached] = 0.5f, [ReloadEvent.MagStowed] = 1.1f, [ReloadEvent.MagFetched] = 1.5f,
+			[ReloadEvent.MagInserted] = 2.2f, [ReloadEvent.BoltRacked] = 2.7f,
+		};
+		var (points, clip, seq) = Build(ReloadEntry.Full, false, true, named);
+		foreach (var (e, logic) in seq.Timeline)
+			Assert.Equal(clip.Times.GetValueOrDefault(e, clip.Length), ReloadClipWarp.ClipTime(points, logic), 3);
+		Assert.Equal(0.5f, ReloadClipWarp.ClipTime(points, seq.Timeline.First(x => x.Event == ReloadEvent.MagDetached).Time), 3);
+		Assert.Equal(3f, ReloadClipWarp.ClipTime(points, seq.Total), 3);
+	}
+
+	[Fact]
+	public void SlowerLogicStillMeetsTheEvents()
+	{
+		var slow = new ReloadSequence(T, false, ReloadEntry.Full, true, 2f);
+		var clip = ReloadClipWarp.Nominal(T, false, true, 3f);
+		var points = ReloadClipWarp.Points(slow.Timeline, slow.Total, ReloadEntry.Full, false, clip);
+		foreach (var (e, logic) in slow.Timeline)
+			Assert.Equal(clip.Times[e], ReloadClipWarp.ClipTime(points, logic), 3);
+	}
+
+	[Fact]
+	public void ClipTimeNeverRunsBackwards()
+	{
+		var named = new Dictionary<ReloadEvent, float> { [ReloadEvent.MagStowed] = 0.2f, [ReloadEvent.MagDetached] = 1f };
+		var (points, _, seq) = Build(ReloadEntry.Full, false, true, named);
+		var previous = -1f;
+		for (var t = 0f; t <= seq.Total; t += 0.02f)
+		{
+			var c = ReloadClipWarp.ClipTime(points, t);
+			Assert.True(c >= previous - 1e-4f);
+			previous = c;
+		}
+	}
+
+	[Fact]
+	public void ResumedReloadsStartTheClipAtTheEventAlreadyPassed()
+	{
+		var clip = ReloadClipWarp.Nominal(T, false, true, 3f);
+		Assert.Equal(0f, ReloadClipWarp.StartTime(ReloadEntry.Full, false, clip));
+		Assert.Equal(clip.Times[ReloadEvent.MagInserted], ReloadClipWarp.StartTime(ReloadEntry.ResumeRack, false, clip));
+		Assert.Equal(clip.Times[ReloadEvent.MagStowed], ReloadClipWarp.StartTime(ReloadEntry.ResumeInsert, false, clip));
+		Assert.Equal(clip.Times[ReloadEvent.MagDetached], ReloadClipWarp.StartTime(ReloadEntry.ResumeEmpty, true, clip));
+		var (points, built, seq) = Build(ReloadEntry.ResumeInsert, false, false);
+		Assert.Equal(built.Times[ReloadEvent.MagStowed], ReloadClipWarp.ClipTime(points, 0f), 2);
+		Assert.Equal(3f, ReloadClipWarp.ClipTime(points, seq.Total), 3);
+	}
+
+	[Fact]
+	public void FastReloadSkipsTheStowMark()
+	{
+		var (points, clip, seq) = Build(ReloadEntry.Full, true, false);
+		Assert.DoesNotContain(seq.Timeline, e => e.Event == ReloadEvent.MagStowed);
+		Assert.Equal(clip.Times[ReloadEvent.MagFetched], ReloadClipWarp.ClipTime(points, seq.Timeline.First(x => x.Event == ReloadEvent.MagFetched).Time), 3);
+	}
+}

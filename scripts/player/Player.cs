@@ -114,6 +114,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private float _reloadTilt;
 	private Vector3 _handPos;
 	private WeaponNode? _actionWeapon;
+	private Vector3 _rightPos;
+	private int _clipReloadId = -1;
+	private System.Collections.Generic.IReadOnlyList<(float Logic, float Clip)>? _clipWarp;
 	private readonly Spring3 _gunRot = new();
 	private readonly SpringDamper _gunBack = new();
 	private readonly Spring3 _camKick = new();
@@ -1024,23 +1027,69 @@ public partial class Player : CharacterBody3D, IPerceivable
 		{
 			_actionWeapon = weapon;
 			_handPos = grip;
+			_rightPos = weapon.GripRight.Position;
 			_reloadTilt = 0f;
+			_clipReloadId = -1;
 		}
 		var phase = c.Phase;
+		var reloading = c.Action is WeaponActionKind.TacticalReload or WeaponActionKind.FastReload;
 		var pose = phase == ReloadPhase.None ? default : ReloadPose.Evaluate(phase, c.PhaseProgress, c.ReloadIsFast, c.ReloadHasRack);
+
+		// an authored clip for this weapon, stretched onto the logic events, overrides whatever tracks it animates
+		ClipSample? clip = null;
+		if (reloading && phase != ReloadPhase.None && weapon.ReloadClip(c.ReloadIsFast) is { } sampler)
+		{
+			if (c.ReloadId != _clipReloadId)
+			{
+				_clipReloadId = c.ReloadId;
+				var events = weapon.ReloadClipEvents(weapon.Data.ToActionTuning(), sampler, c.ReloadIsFast, c.ReloadHasRack);
+				_clipWarp = ReloadClipWarp.Points(c.ReloadTimeline, c.ReloadTotal, c.ReloadEntryKind, c.ReloadIsFast, events);
+			}
+			clip = sampler.Sample(ReloadClipWarp.ClipTime(_clipWarp!, c.ReloadElapsed));
+		}
+
 		_reloadTilt = Mathf.MoveToward(_reloadTilt, phase == ReloadPhase.None ? 0f : pose.Tilt, 6f * delta);
-		var goal = phase == ReloadPhase.None
+		var goal = clip?.LeftPos ?? (phase == ReloadPhase.None
 			? grip
-			: ReloadPose.HandPosition(pose, _reloadPose, grip, weapon.MagWellPoint, weapon.ChargingPoint);
-		_handPos = _handPos.Lerp(goal, 1f - Mathf.Exp(-delta / 0.04f));
+			: ReloadPose.HandPosition(pose, _reloadPose, grip, weapon.MagWellPoint, weapon.ChargingPoint));
+		var k = 1f - Mathf.Exp(-delta / 0.04f);
+		_handPos = _handPos.Lerp(goal, k);
 		if (phase == ReloadPhase.None && _handPos.DistanceTo(grip) < 0.002f)
 			_handPos = grip;
 		weapon.LeftHandAction.Position = _handPos;
-		weapon.LeftHandAction.Rotation = weapon.GripLeft.Rotation;
+		weapon.LeftHandAction.Quaternion = clip?.LeftRot ?? weapon.GripLeft.Quaternion;
+
+		_rightPos = _rightPos.Lerp(clip?.RightPos ?? weapon.GripRight.Position, k);
+		weapon.RightHandAction.Position = _rightPos;
+		weapon.RightHandAction.Quaternion = clip?.RightRot ?? weapon.GripRight.Quaternion;
 		weapon.SetReloadVisual(phase, c.PhaseProgress);
-		if (c.Action is WeaponActionKind.TacticalReload or WeaponActionKind.FastReload || _reloadTilt > 0.001f)
+
+		if (clip is { PivotPos: not null } or { PivotRot: not null })
+		{
+			var rot = clip.Value.PivotRot is { } q ? q.GetEuler() * (180f / Mathf.Pi) : Vector3.Zero;
+			return (clip.Value.PivotPos ?? Vector3.Zero, rot);
+		}
+		if (reloading || _reloadTilt > 0.001f)
 			return (_reloadPose.PivotPos * _reloadTilt, _reloadPose.PivotRotDeg * _reloadTilt);
 		return WeaponPoseModel.Pose(c.Action, c.Progress);
+	}
+
+	/// <summary>Dev: plays a test clip for every reload (hand circles and a weapon roll) to check the authored-clip pipeline.</summary>
+	public void DebugClipDemo()
+	{
+		var clip = new Animation { Length = 2f };
+		var left = clip.AddTrack(Animation.TrackType.Position3D);
+		clip.TrackSetPath(left, new NodePath("LeftHandAction"));
+		var pivot = clip.AddTrack(Animation.TrackType.Rotation3D);
+		clip.TrackSetPath(pivot, new NodePath("WeaponPivot"));
+		for (var i = 0; i <= 8; i++)
+		{
+			var t = i / 8f * 2f;
+			var a = i / 8f * Mathf.Tau;
+			clip.PositionTrackInsertKey(left, t, new Vector3(-0.15f + 0.1f * Mathf.Cos(a), -0.15f + 0.1f * Mathf.Sin(a), -0.3f));
+			clip.RotationTrackInsertKey(pivot, t, new Quaternion(Vector3.Forward, Mathf.DegToRad(30f * Mathf.Sin(a))));
+		}
+		Weapon?.DebugSetReloadClip(clip);
 	}
 
 	/// <summary>Dev: starts a reload (fast or tactical).</summary>

@@ -48,6 +48,23 @@ public sealed class ReloadSequence
 		? 1f
 		: Math.Clamp(_inStep / _steps[_index].Seconds, 0f, 1f);
 
+	/// <summary>Logic time at which each event fires, in order (an authored clip is stretched to meet these).</summary>
+	public IReadOnlyList<(ReloadEvent Event, float Time)> Timeline
+	{
+		get
+		{
+			var list = new List<(ReloadEvent, float)>();
+			var t = 0f;
+			foreach (var step in _steps)
+			{
+				t += step.Seconds;
+				if (step.EndEvent is { } e)
+					list.Add((e, t));
+			}
+			return list;
+		}
+	}
+
 	/// <summary>The sequence includes a bolt rack phase.</summary>
 	public bool HasRack => _steps.Exists(st => st.Phase == ReloadPhase.BoltRack);
 

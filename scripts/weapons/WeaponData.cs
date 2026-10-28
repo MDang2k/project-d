@@ -41,6 +41,10 @@ public partial class WeaponData : Resource
 	/// <summary>Integrated bipod only (MG). Clamp-on bipods are parts and switch the bipod logic on while attached.</summary>
 	[Export] public bool HasBipod { get; set; }
 
+	[ExportGroup("Animation")]
+	/// <summary>Authored reload clips (data/animation/*.tres); none means the procedural choreography.</summary>
+	[Export] public AnimationSetData? AnimSet { get; set; }
+
 	[ExportGroup("Modding")]
 	/// <summary>0-100 before parts; final ergonomics scales ADS time, sway and arm-stamina drain.</summary>
 	[Export] public float Ergonomics { get; set; } = 50f;

@@ -206,6 +206,7 @@ public partial class RaidLevel : Node3D
 
 	private void PrintReport()
 	{
+		GD.Print($"HAND left={Player.Weapon?.LeftHandAction.Position} right={Player.Weapon?.RightHandAction.Position} grip={Player.Weapon?.GripLeft.Position}");
 		GD.Print($"FOOTIK (drop, ankleY L, ankleY R) = {Player.DebugFootIk()}");
 		GD.Print($"GAIT thigh L/R pitch = {Player.DebugThighPitchDeg()} speed={Player.Velocity.Length():0.0}");
 		var polys = GetNodeOrNull<NavigationRegion3D>("Geometry")?.NavigationMesh?.GetPolygonCount() ?? 0;
@@ -223,6 +224,7 @@ public partial class RaidLevel : Node3D
 		string? shot = null;
 		var wait = 0.0;
 		var report = false;
+		var reportDelay = 0.5;
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--shot="))
@@ -246,10 +248,14 @@ public partial class RaidLevel : Node3D
 				Player.DebugSprint = true;
 			else if (arg.StartsWith("--stance=") && System.Enum.TryParse<Stance>(arg["--stance=".Length..], true, out var st))
 				Player.DebugSetStance(st);
+			else if (arg == "--clipdemo")
+				GetTree().CreateTimer(0.3).Timeout += Player.DebugClipDemo;
 			else if (arg is "--reload" or "--reloadfast")
 				GetTree().CreateTimer(0.5).Timeout += () => Player.DebugReload(arg == "--reloadfast");
 			else if (arg == "--ads")
 				Player.DebugForceAds = true;
+			else if (arg.StartsWith("--reportdelay=") && double.TryParse(arg["--reportdelay=".Length..], out var rd))
+				reportDelay = rd;
 			else if (arg == "--report")
 				report = true;
 			else if (arg.StartsWith("--questkill=") && arg["--questkill=".Length..].Split(':') is { Length: 2 } kv
@@ -266,7 +272,7 @@ public partial class RaidLevel : Node3D
 		}
 		if (report)
 		{
-			await ToSignal(GetTree().CreateTimer(0.5), SceneTreeTimer.SignalName.Timeout);
+			await ToSignal(GetTree().CreateTimer(reportDelay), SceneTreeTimer.SignalName.Timeout);
 			PrintReport();
 		}
 		if (shot is null)

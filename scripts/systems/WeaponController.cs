@@ -99,6 +99,12 @@ public sealed class WeaponController
 	public float PhaseProgress => _seq?.PhaseProgress ?? 0f;
 	public bool ReloadHasRack => _seq?.HasRack ?? false;
 	public bool ReloadIsFast => Action == WeaponActionKind.FastReload;
+	/// <summary>Changes whenever a reload starts or turns fast, so the animation knows to restart its time warp.</summary>
+	public int ReloadId { get; private set; }
+	public float ReloadElapsed => _seq?.Elapsed ?? 0f;
+	public ReloadEntry ReloadEntryKind => _seq?.Entry ?? ReloadEntry.Full;
+	public IReadOnlyList<(ReloadEvent Event, float Time)> ReloadTimeline => _seq?.Timeline ?? System.Array.Empty<(ReloadEvent, float)>();
+	public float ReloadTotal => _seq?.Total ?? 0f;
 	/// <summary>True once the Weapon Handling skill gives exact counts (M8).</summary>
 	public bool ExactMagCheck { get; set; }
 
@@ -131,6 +137,7 @@ public sealed class WeaponController
 		_incoming = null;
 		_seq = new ReloadSequence(_t, fast, entry, State.Chamber is null, ReloadTimeMultiplier);
 		Action = fast ? WeaponActionKind.FastReload : WeaponActionKind.TacticalReload;
+		ReloadId++;
 		return true;
 	}
 
@@ -141,6 +148,7 @@ public sealed class WeaponController
 			return false;
 		seq.UpgradeToFast(State.Chamber is null);
 		Action = WeaponActionKind.FastReload;
+		ReloadId++;
 		return true;
 	}
 
