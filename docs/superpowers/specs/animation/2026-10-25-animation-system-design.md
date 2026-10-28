@@ -14,7 +14,8 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 | 1.1 | Granular crouch (C + wheel) | **Done** | already on the branch (`StanceHeightModel`) |
 | 1.1 | Stance transition clips, turn in place, foot sliding fix by real stride, jump/land/mantle/sprint start-stop clips, heavy-load gait set | Not started | |
 | 1.2 | Aim offset | **Partial** | procedural pitch split over spine, chest and head (`AimOffsetSolver`); looking down the torso follows only a little (it would cover the weapon) until the head-anchored correction exists; no 9 authored poses, no lean poses, no yaw split or turn in place (free look turns the head only) |
-| 1.3 | Weapon action layer (upper-body clips, per-hand IK weight curves, `WeaponPivot` curves, `AnimFamily`) | Not started | reloads still use the placeholder pose in `WeaponPoseModel` |
+| 1.3 | Weapon action layer: reload choreography | **Partial** | procedural, not authored clips: `ReloadPose` turns the phase and its progress into the support hand path (grip, magazine well, pouch, charging handle) and a weapon pivot tilt (`WeaponPivot` equivalent), the hand follows `WeaponNode.LeftHandAction`, and the old magazine leaves the well, goes in the hand and the new one is inserted (magazine models when they exist); smoothing keeps interrupts and resumes continuous |
+| 1.3 | Weapon action layer: checks (mag, chamber), fire cycle, inspect, draw/holster, melee, item use, other families (`AnimFamily`, `AnimationSet`), per-hand IK weight curves, right hand on bolt handle | Not started | checks and melee still use the placeholder pose in `WeaponPoseModel`; pouch and anchor numbers are `ReloadPoseTuning.Default`, not data yet; a `Magazine` marker on mag models is not used yet (fixed hold offset) |
 | 1.4 | Additive layers (breathing, limp, arm injury, tremor, flinch, cold) | Not started | |
 | 2.1 | Right hand rooted to `GripRight` | **Done** | existing IK |
 | 2.2 | Support grip resolver (foregrip > handguard > default) and `grip_pose` metadata | **Done** | `SupportGripResolver`, `WeaponNode.GripPose`; the body only has `HandSupport_L`, so named poses fall back to it until `HandSupport_<pose>_L` clips exist |
@@ -40,9 +41,9 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 | 7 | Clip authoring (weapon families, aim and lean poses, finger poses) | Not started | |
 | 8 | `AnimationSet` resource, `AnimationConfig` | Not started | spring fields on `WeaponData` and `EyeReliefM` on `PartData` exist |
 
-Tests done (section 9): `SpringDamper`/`Spring3`, `ViewBob`, `InertiaSway`, `AdsSolve`, `SupportGripResolver`, `ReadyPoseModel`, `ReloadSequence` (interrupt at every moment, resume from every state, no round or magazine duplication), `GaitModel`, `LocomotionParams`, `AimOffsetSolver`. Not yet: `StanceHeight` (covered by the existing stance tests), GUT smoke for the `AnimationTree`.
+Tests done (section 9): `ReloadPose` (continuity across every phase boundary), `SpringDamper`/`Spring3`, `ViewBob`, `InertiaSway`, `AdsSolve`, `SupportGripResolver`, `ReadyPoseModel`, `ReloadSequence` (interrupt at every moment, resume from every state, no round or magazine duplication), `GaitModel`, `LocomotionParams`, `AimOffsetSolver`. Not yet: `StanceHeight` (covered by the existing stance tests), GUT smoke for the `AnimationTree`.
 
-Build order (section 10): step 1 **partly done** (locomotion graph and aim offset; weapon action layer and additive layers not), step 2 done, step 3 partly (logic done, clips and curves not), step 4 done except wrist torque and sprint carry, step 5 done, steps 6 to 8 not started.
+Build order (section 10): step 1 **partly done** (locomotion graph and aim offset; weapon action layer and additive layers not), step 2 done, step 3 partly (logic and procedural reload choreography done, authored clips and curves not), step 4 done except wrist torque and sprint carry, step 5 done, steps 6 to 8 not started.
 
 ## Intent
 

@@ -11,6 +11,7 @@ namespace ProjectD;
 public partial class WeaponNode
 {
 	private Node3D? _model;
+	private Node3D? _magModel;
 	private readonly Dictionary<ItemInstance, Node3D> _partNodes = new();
 	private readonly Dictionary<ItemInstance, string> _partSlotTypes = new();
 	private Vector3 _baseGripLeft;
@@ -151,10 +152,12 @@ public partial class WeaponNode
 	/// <summary>Shows the magazine model at the MagWell while one is inserted.</summary>
 	private void PlaceMagazineModel()
 	{
+		_magModel = null;
 		if (Item?.InsertedMagazine is not { } mag || LoadModel(mag.Spec.Id, "parts") is not { } inst)
 			return;
 		inst.Position = WeaponMarker("MagWell");
 		_partsRoot!.AddChild(inst);
+		_magModel = inst;
 	}
 
 	/// <summary>The integral flash hider of a model hides when a muzzle device is fitted.</summary>

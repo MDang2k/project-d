@@ -110,6 +110,10 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private readonly FieldSwapTimer _swap = new();
 
 	// animation post-pass (animation spec s4): gun and camera springs, inertia, view bob, ready pose
+	private readonly ReloadPoseTuning _reloadPose = ReloadPoseTuning.Default;
+	private float _reloadTilt;
+	private Vector3 _handPos;
+	private WeaponNode? _actionWeapon;
 	private readonly Spring3 _gunRot = new();
 	private readonly SpringDamper _gunBack = new();
 	private readonly Spring3 _camKick = new();
@@ -966,7 +970,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 				weapon.Data.SwayBaseDeg * weapon.Stats.SwayMult * ergo.SwayMult(ergonomics), ctx)
 			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier;
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
-		var (posOffset, rotDeg) = WeaponPoseModel.Pose(weapon.Controller.Action, weapon.Controller.Progress);
+		var (posOffset, rotDeg) = UpdateActionPose(delta, weapon);
 		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y + rotDeg.X), Mathf.DegToRad(sway.X + rotDeg.Y),
 			Mathf.DegToRad(rotDeg.Z));
 
@@ -1007,6 +1011,40 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_scope.SetAmount(zoom > 1f ? t : 0f);
 		weapon.SetAds(t);
 	}
+
+	/// <summary>
+	/// The weapon action layer (animation spec s1.3): during a reload the support hand walks its anchors (magazine
+	/// well, pouch, charging handle) and the weapon tilts; other actions keep the placeholder pose. Returns the weapon pivot offset.
+	/// </summary>
+	private (Vector3 Position, Vector3 RotationDeg) UpdateActionPose(float delta, WeaponNode weapon)
+	{
+		var c = weapon.Controller;
+		var grip = weapon.GripLeft.Position;
+		if (!ReferenceEquals(_actionWeapon, weapon))
+		{
+			_actionWeapon = weapon;
+			_handPos = grip;
+			_reloadTilt = 0f;
+		}
+		var phase = c.Phase;
+		var pose = phase == ReloadPhase.None ? default : ReloadPose.Evaluate(phase, c.PhaseProgress, c.ReloadIsFast, c.ReloadHasRack);
+		_reloadTilt = Mathf.MoveToward(_reloadTilt, phase == ReloadPhase.None ? 0f : pose.Tilt, 6f * delta);
+		var goal = phase == ReloadPhase.None
+			? grip
+			: ReloadPose.HandPosition(pose, _reloadPose, grip, weapon.MagWellPoint, weapon.ChargingPoint);
+		_handPos = _handPos.Lerp(goal, 1f - Mathf.Exp(-delta / 0.04f));
+		if (phase == ReloadPhase.None && _handPos.DistanceTo(grip) < 0.002f)
+			_handPos = grip;
+		weapon.LeftHandAction.Position = _handPos;
+		weapon.LeftHandAction.Rotation = weapon.GripLeft.Rotation;
+		weapon.SetReloadVisual(phase, c.PhaseProgress);
+		if (c.Action is WeaponActionKind.TacticalReload or WeaponActionKind.FastReload || _reloadTilt > 0.001f)
+			return (_reloadPose.PivotPos * _reloadTilt, _reloadPose.PivotRotDeg * _reloadTilt);
+		return WeaponPoseModel.Pose(c.Action, c.Progress);
+	}
+
+	/// <summary>Dev: starts a reload (fast or tactical).</summary>
+	public bool DebugReload(bool fast) => Weapon?.Controller.StartReload(fast) ?? false;
 
 	/// <summary>Springs, inertia and the ready pose on top of the aim pose (animation spec s4).</summary>
 	private void ApplyPostPass(float delta, WeaponNode weapon)

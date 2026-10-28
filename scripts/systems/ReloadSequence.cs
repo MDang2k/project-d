@@ -43,6 +43,14 @@ public sealed class ReloadSequence
 	public float Elapsed { get; private set; }
 	public float Progress => Total > 0f ? Math.Min(Elapsed / Total, 1f) : 1f;
 
+	/// <summary>How far through the current phase (0..1).</summary>
+	public float PhaseProgress => IsDone || _index >= _steps.Count || _steps[_index].Seconds <= 0f
+		? 1f
+		: Math.Clamp(_inStep / _steps[_index].Seconds, 0f, 1f);
+
+	/// <summary>The sequence includes a bolt rack phase.</summary>
+	public bool HasRack => _steps.Exists(st => st.Phase == ReloadPhase.BoltRack);
+
 	/// <param name="needsRack">Chamber was empty when the reload began (full reloads add a rack phase).</param>
 	public ReloadSequence(ActionTuning tuning, bool fast, ReloadEntry entry, bool needsRack, float timeMultiplier = 1f)
 	{

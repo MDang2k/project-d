@@ -665,3 +665,82 @@ public class LegIkTests
 		Assert.Equal(Quaternion.Identity, LegIk.GroundTilt(slope, 30f, 0f));
 	}
 }
+
+public class ReloadPoseTests
+{
+	private static readonly ReloadPoseTuning T = ReloadPoseTuning.Default;
+	private static readonly Vector3 Grip = new(0f, -0.04f, -0.3f);
+	private static readonly Vector3 Well = new(0f, 0.03f, -0.14f);
+	private static readonly Vector3 Charge = new(0f, 0.08f, -0.15f);
+
+	private static Vector3 Hand(ActionPose p) => ReloadPose.HandPosition(p, T, Grip, Well, Charge);
+
+	/// <summary>The phases a reload visits, in order, for a variant.</summary>
+	private static ReloadPhase[] Phases(bool fast, bool rack)
+	{
+		var list = new List<ReloadPhase> { ReloadPhase.Enter, ReloadPhase.MagDetach };
+		if (!fast)
+			list.Add(ReloadPhase.MagStow);
+		list.AddRange(new[] { ReloadPhase.MagFetch, ReloadPhase.MagInsert });
+		if (rack)
+			list.Add(ReloadPhase.BoltRack);
+		list.Add(ReloadPhase.Exit);
+		return list.ToArray();
+	}
+
+	[Theory]
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
+	public void HandAndTiltAreContinuousAcrossPhaseBoundaries(bool fast, bool rack)
+	{
+		var phases = Phases(fast, rack);
+		for (var i = 0; i + 1 < phases.Length; i++)
+		{
+			var end = ReloadPose.Evaluate(phases[i], 1f, fast, rack);
+			var start = ReloadPose.Evaluate(phases[i + 1], 0f, fast, rack);
+			Assert.True(Hand(end).DistanceTo(Hand(start)) < 0.005f, $"{phases[i]} to {phases[i + 1]}");
+			Assert.Equal(end.Tilt, start.Tilt, 2);
+		}
+	}
+
+	[Theory]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	public void StartsAndEndsOnTheGripWithTheWeaponLevel(bool fast, bool rack)
+	{
+		var first = ReloadPose.Evaluate(ReloadPhase.Enter, 0f, fast, rack);
+		var last = ReloadPose.Evaluate(ReloadPhase.Exit, 1f, fast, rack);
+		Assert.Equal(0f, first.Tilt, 3);
+		Assert.True(Hand(first).DistanceTo(Grip) < 0.001f);
+		Assert.Equal(0f, last.Tilt, 3);
+		Assert.True(Hand(last).DistanceTo(Grip) < 0.001f);
+	}
+
+	[Fact]
+	public void TheHandVisitsTheMagWellThePouchAndTheChargingHandle()
+	{
+		Assert.True(Hand(ReloadPose.Evaluate(ReloadPhase.MagDetach, 1f, false, true)).DistanceTo(Well + T.MagHoldOffset) < 0.001f);
+		Assert.True(Hand(ReloadPose.Evaluate(ReloadPhase.MagStow, 1f, false, true)).DistanceTo(T.PouchPos) < 0.001f);
+		Assert.True(Hand(ReloadPose.Evaluate(ReloadPhase.MagInsert, 1f, false, true)).DistanceTo(Well + T.MagHoldOffset) < 0.001f);
+		Assert.True(Hand(ReloadPose.Evaluate(ReloadPhase.BoltRack, 0.5f, false, true)).DistanceTo(Charge) < 0.001f);
+	}
+
+	[Fact]
+	public void FastReloadGoesStraightFromTheWellToThePouch()
+	{
+		var fetchStart = ReloadPose.Evaluate(ReloadPhase.MagFetch, 0f, true, false);
+		var fetchEnd = ReloadPose.Evaluate(ReloadPhase.MagFetch, 1f, true, false);
+		Assert.Equal(HandAnchor.MagWell, fetchStart.From);
+		Assert.True(Hand(fetchEnd).DistanceTo(T.PouchPos) < 0.001f);
+	}
+
+	[Fact]
+	public void NoReloadMeansNoPose()
+	{
+		var none = ReloadPose.Evaluate(ReloadPhase.None, 0.5f, false, false);
+		Assert.Equal(0f, none.Tilt);
+		Assert.True(Hand(none).DistanceTo(Grip) < 0.001f);
+	}
+}

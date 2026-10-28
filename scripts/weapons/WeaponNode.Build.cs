@@ -124,6 +124,7 @@ public partial class WeaponNode
 		}
 		PlaceMagazineModel();
 		ResolveSupportGrip();
+		EnsureHeldMagazine();
 		SyncIntegralParts(Item is not null && WeaponBuild.Slots(Item).Any(s => s.Spec.Type == "muzzle" && s.Part is not null));
 		Muzzle.Position = _baseMuzzle + new Vector3(0f, 0f, -muzzleExtra);
 	}

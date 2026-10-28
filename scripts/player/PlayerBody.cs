@@ -107,9 +107,9 @@ public partial class PlayerBody : Node3D
 		_weaponParent.AddChild(weapon);
 		_ik.Active = true;
 		_ik.SetTargetNode(0, _ik.GetPathTo(WristTarget(weapon.GripRight, _palmR)));
-		_ik.SetTargetNode(1, _ik.GetPathTo(WristTarget(weapon.GripLeft, _palmL)));
+		_ik.SetTargetNode(1, _ik.GetPathTo(WristTarget(weapon.LeftHandAction, _palmL)));
 		_hands.TargetRight = weapon.GripRight;
-		_hands.TargetLeft = weapon.GripLeft;
+		_hands.TargetLeft = weapon.LeftHandAction;
 		_hands.PoseRight = "HandGrip_R";
 		_hands.PoseLeft = "HandSupport_L";
 	}

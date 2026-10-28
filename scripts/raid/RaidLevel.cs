@@ -246,6 +246,8 @@ public partial class RaidLevel : Node3D
 				Player.DebugSprint = true;
 			else if (arg.StartsWith("--stance=") && System.Enum.TryParse<Stance>(arg["--stance=".Length..], true, out var st))
 				Player.DebugSetStance(st);
+			else if (arg is "--reload" or "--reloadfast")
+				GetTree().CreateTimer(0.5).Timeout += () => Player.DebugReload(arg == "--reloadfast");
 			else if (arg == "--ads")
 				Player.DebugForceAds = true;
 			else if (arg == "--report")

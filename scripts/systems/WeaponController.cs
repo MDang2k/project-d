@@ -95,6 +95,10 @@ public sealed class WeaponController
 	public float Progress => _seq is not null ? _seq.Progress : _duration > 0f ? Math.Min(_elapsed / _duration, 1f) : 0f;
 	/// <summary>Current reload phase (None when not reloading); the animation follows it.</summary>
 	public ReloadPhase Phase => _seq?.Phase ?? ReloadPhase.None;
+	/// <summary>Progress inside the current reload phase, 0..1.</summary>
+	public float PhaseProgress => _seq?.PhaseProgress ?? 0f;
+	public bool ReloadHasRack => _seq?.HasRack ?? false;
+	public bool ReloadIsFast => Action == WeaponActionKind.FastReload;
 	/// <summary>True once the Weapon Handling skill gives exact counts (M8).</summary>
 	public bool ExactMagCheck { get; set; }
 
