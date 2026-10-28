@@ -344,6 +344,8 @@ public partial class AiHuman
 		var to = _aimPoint - position;
 		var spread = AiAim.SpreadDeg(_aim, Preset!.Accuracy, to.Length(), PerceivedSpeedFraction, _suppression);
 		var dir = AiAim.Jitter(to, spread, () => (float)_rng.NextDouble());
+		// the gun and ammo themselves, in MOA, on top of the shooter skill spread
+		dir = Dispersion.Apply(dir, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), () => (float)_rng.NextDouble());
 		_projectiles.Spawn(ammo, position, dir, GetRid(), _ownRids);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 	}
