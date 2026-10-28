@@ -121,6 +121,8 @@ public partial class PlayerConfig : Resource
 	[Export] public float BodyBack { get; set; } = 0.1f;
 	/// <summary>Share of the wrist roll the ForearmTwist bones take while holding a weapon (0 = all in the wrist).</summary>
 	[Export] public float ForearmTwistShare { get; set; } = 0.7f;
+	/// <summary>How far the hanging arms (no weapon) tilt out from the body so they clear the torso, degrees.</summary>
+	[Export] public float ArmHangOutDeg { get; set; } = 10f;
 	/// <summary>Held item position relative to the head (camera pitch node).</summary>
 	[Export] public Vector3 HeldItemOffset { get; set; } = new(0.04f, -0.22f, -0.18f);
 	[Export] public Vector3 GripRightOffset { get; set; } = new(0f, -0.04f, 0.12f);

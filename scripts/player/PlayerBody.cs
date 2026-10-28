@@ -122,13 +122,18 @@ public partial class PlayerBody : Node3D
 		return wrist;
 	}
 
-	/// <summary>Upper-arm rotation that points the arm straight down from its rest (T-pose or hanging).</summary>
+	/// <summary>
+	/// Upper-arm rotation that hangs the arm down from its rest (T-pose or hanging), tilted out from the body
+	/// by ArmHangOutDeg so it clears the torso.
+	/// </summary>
 	private Quaternion ArmDown(int upperArm, int forearm)
 	{
 		var rest = _skel.GetBoneRest(upperArm).Basis;
 		var dir = (rest * _skel.GetBoneRest(forearm).Origin).Normalized();
-		// "down" in the parent's frame (a shoulder bone may sit rotated under the chest)
-		var down = (_skel.GetBoneGlobalRest(_skel.GetBoneParent(upperArm)).Basis.Orthonormalized().Inverse() * Vector3.Down).Normalized();
+		var side = Mathf.Sign(_skel.GetBoneGlobalRest(upperArm).Origin.X);
+		var hang = new Quaternion(Vector3.Back, Mathf.DegToRad(_cfg.ArmHangOutDeg) * side) * Vector3.Down;
+		// in the parent's frame (a shoulder bone may sit rotated under the chest)
+		var down = (_skel.GetBoneGlobalRest(_skel.GetBoneParent(upperArm)).Basis.Orthonormalized().Inverse() * hang).Normalized();
 		var axis = dir.Cross(down);
 		var arc = axis.LengthSquared() < 1e-6f ? Quaternion.Identity : new Quaternion(axis.Normalized(), dir.AngleTo(down));
 		return arc * rest.GetRotationQuaternion();
@@ -373,19 +378,21 @@ public partial class PlayerBody : Node3D
 		// not the inside of the chest; moving the hips (not the spine) keeps the waist from shearing.
 		var hipsZ = Mathf.Lerp(_cfg.BodyBack, _cfg.ProneBodyBack, prone);
 		var hipsRest = _skel.GetBoneRest(_hips).Origin;
-		var hipsPos = new Vector3(hipsRest.X, hipsY, hipsRest.Z + hipsZ);
+		// the lean's sideways shift moves the whole body (sliding only the spine sheared the waist)
+		var hipsPos = new Vector3(hipsRest.X + leanShift * 0.5f, hipsY, hipsRest.Z + hipsZ);
 		_skel.SetBonePosePosition(_hips, hipsPos);
 		_footIk.HipsBase = hipsPos;
 		Rotate(_hips, Pitch(-90f * prone));
 
-		_skel.SetBonePosePosition(_spine, _spineRest + new Vector3(leanShift * 0.5f, 0f, 0f));
+		_skel.SetBonePosePosition(_spine, _spineRest);
 		var (spinePitch, chestPitch, headPitch) = AimOffsetSolver.Distribute(_aimOffset, lookPitchDeg, prone);
-		Rotate(_spine, new Quaternion(Vector3.Back, leanRoll) * Pitch(spinePitch));
+		// lean is shared by spine and chest so the body curves instead of kinking at the waist
+		Rotate(_spine, new Quaternion(Vector3.Back, leanRoll * 0.5f) * Pitch(spinePitch));
 
 		// Bladed stance while holding a weapon: chest turns right so the left shoulder comes forward,
 		// head turns back so it keeps facing the camera. Off when prone (the chest lies along -Z).
 		var twist = HeldItem is null ? 0f : _cfg.HoldChestTwistDeg * (1f - prone);
-		Rotate(_chest, Yaw(-twist) * Pitch(chestPitch));
+		Rotate(_chest, Yaw(-twist) * new Quaternion(Vector3.Back, leanRoll * 0.5f) * Pitch(chestPitch));
 		Rotate(_headBone, Yaw(twist + freeLookDeg.X) * Pitch(headPitch + freeLookDeg.Y));
 
 		// No weapon: the IK is off, so the arms hang down instead of staying in the model's T-pose rest.

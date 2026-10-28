@@ -59,6 +59,7 @@ CrouchShinDeg = 100.0
 HoldChestTwistDeg = 25.0
 BodyBack = 0.1
 ForearmTwistShare = 0.7
+ArmHangOutDeg = 10.0
 HeldItemOffset = Vector3(0.04, -0.22, -0.18)
 GripRightOffset = Vector3(0, -0.04, 0.12)
 GripLeftOffset = Vector3(0, -0.03, -0.15)
