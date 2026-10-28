@@ -33,9 +33,10 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 | 4.5 | AI look-at, foot IK for AI (LOD bands) | Not started | |
 | 4.6 | View bob with landing dip, ADS and rest scaling, settings scale | **Done** | `ViewBob`, `PlayerConfig.ViewBobScale`; not in the debug overlay yet |
 | 5.1 to 5.2 | Phased reloads, interrupt and resume | **Done** | `ReloadSequence`, `WeaponController`; sprint, jump, mantle, melee, item use and weapon switch interrupt |
-| 5.1 | Reload phase variants per family (open-bolt, belt-fed) | Not started | |
+| 5.1 | Reload phase variants per family (open-bolt, belt-fed) | **Deferred** | see "Deferred until the post-slice weapons" below |
+| 5.x | Mechanism data (feed type, action type, clip family) and a fire-cycle layer for bolt action and pump (manual cycle after each shot) | **Deferred** | `WeaponState` still auto-feeds after every shot |
 | 5.2 | Phased checks (`Check_Enter`, `Check_Look`, `Check_Exit`) | Not started | checks are still timed actions |
-| 5.3 | Round-by-round loading, stripper clips | Not started | |
+| 5.3 | Round-by-round loading, stripper clips | **Deferred** | needed by bolt actions and tube shotguns |
 | 5.4 | Malfunction phases | Not started | post-slice |
 | 5.5 | Clip events as data, phase fractions in `AnimationSet` | **Done** (reloads) | event times per clip in `AnimationSetData`; missing ones use the usual proportions |
 | 6 | AI uses the same body and graph, AI animation LOD | Not started | |
@@ -45,6 +46,15 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 Tests done (section 9): `ReloadClipWarp` (events land on their marks, resumes, never backwards), `ReloadPose` (continuity across every phase boundary), `SpringDamper`/`Spring3`, `ViewBob`, `InertiaSway`, `AdsSolve`, `SupportGripResolver`, `ReadyPoseModel`, `ReloadSequence` (interrupt at every moment, resume from every state, no round or magazine duplication), `GaitModel`, `LocomotionParams`, `AimOffsetSolver`. Not yet: `StanceHeight` (covered by the existing stance tests), GUT smoke for the `AnimationTree`.
 
 Build order (section 10): step 1 **partly done** (locomotion graph and aim offset; weapon action layer and additive layers not), step 2 done, step 3 partly (logic and procedural reload choreography done, authored clips and curves not), step 4 done except wrist torque and sprint carry, step 5 done, steps 6 to 8 not started.
+
+### Deferred until the post-slice weapons
+
+Decided 2026-10-28: the reload and animation system handles only detachable-magazine, self-cycling closed-bolt weapons (the slice weapons). Bolt-action rifles, pump and tube shotguns, open-bolt SMGs and LMGs, belt-fed MGs and revolvers differ in how they feed (internal magazine, tube, belt, cylinder), in whether the shooter must cycle the action after each shot, and in the order of a reload. They are built when those weapons are scheduled (catalog Post-slice list: bolt DMR and sniper rifles, three shotguns, SMGs, LMGs). Plan:
+
+1. Mechanism data on the weapon (feed type, action type, clip family), next to `AnimationSetData`.
+2. A fire-cycle layer: a timed manual cycle per shot for bolt and pump, with events, interrupts and tests (the authored-clip hook and `ReloadClipWarp` already work on any phase list).
+3. Reload sequence variants by feed: round by round and stripper clips, open-bolt cock-then-insert, belt cover and belt order, revolver cylinder.
+4. A section per family in `docs/art/weapon-action-animation-guide.md`.
 
 ## Intent
 
