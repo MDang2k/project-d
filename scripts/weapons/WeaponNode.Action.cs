@@ -16,7 +16,7 @@ public partial class WeaponNode
 
 	/// <summary>Where the weapon model's magazine well, charging handle and grip are, weapon space.</summary>
 	public Vector3 MagWellPoint => WeaponMarker("MagWell");
-	public Vector3? ChargingPoint => ModelMarker("ChargingHandle");
+	public Vector3 ChargingPoint => WeaponMarker("ChargingHandle");
 
 	private void CreateActionNodes()
 	{

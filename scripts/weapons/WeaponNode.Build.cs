@@ -75,6 +75,9 @@ public partial class WeaponNode
 			"Handguard" => new Vector3(0f, -0.01f, -size.Z * 0.6f + 0.1f),
 			"Light" => new Vector3(0.035f, -size.Y * 0.5f, -size.Z * 0.75f + 0.1f),
 			"BipodMount" => BipodMount.Position,
+			// weapons without a model: below the receiver, and on top of it toward the rear
+			"MagWell" => new Vector3(0f, -size.Y * 0.5f, -size.Z * 0.35f + 0.1f),
+			"ChargingHandle" => new Vector3(0.02f, size.Y * 0.5f, -size.Z * 0.2f + 0.1f),
 			_ => _baseMuzzle,
 		};
 	}
