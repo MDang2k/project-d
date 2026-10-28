@@ -47,6 +47,8 @@ public partial class PartData : Resource
 
 	/// <summary>Optics: eye relief when aiming, metres (0 = player config default).</summary>
 	[Export] public float EyeReliefM { get; set; }
+	/// <summary>Change to the bullet dispersion as a fraction (a barrel: -0.25 is 25% tighter).</summary>
+	[Export] public float MoaPct { get; set; }
 
 	public static System.Collections.Generic.Dictionary<string, int> RailMap(string[] ids, int[] lengths)
 	{
@@ -59,5 +61,5 @@ public partial class PartData : Resource
 	public PartSpec ToSpec() => new(Interfaces.ToList(), AddsSlots.Select(s => s.ToSpec()).ToList(), Blocks.ToList(),
 		VerticalRecoilPts, HorizontalRecoilPts, StabilityPts, HipStabilityPts, ErgonomicsPts, VelocityPct, NoisePct,
 		Zoom, GridWidthAdd, Bipod, Light, Steps, Zones.ToList(), RailMap(RailIds, RailLengths),
-		Swap switch { "Tool-free" => SwapKind.Free, "Never" => SwapKind.Never, _ => SwapKind.Tooled }, EyeReliefM);
+		Swap switch { "Tool-free" => SwapKind.Free, "Never" => SwapKind.Never, _ => SwapKind.Tooled }, EyeReliefM, MoaPct);
 }

@@ -288,6 +288,7 @@ public partial class GunsmithScreen : Control
 		var ammo = (ItemDb.Data(weapon.Spec.Id)?.Payload as WeaponData)?.Ammo;
 		var speed = (ammo?.MuzzleVelocity ?? 0f) * before.VelocityMult;
 		var speedAfter = (ammo?.MuzzleVelocity ?? 0f) * a.VelocityMult;
+		Line($"Accuracy   {before.Moa:0.0} MOA" + Delta(before.Moa, a.Moa, preview, "0.0"));
 		Line($"Velocity   {speed:0} m/s" + Delta(speed, speedAfter, preview, "0"));
 		Line($"Weight   {before.WeightKg:0.00} kg" + Delta(before.WeightKg, a.WeightKg, preview, "0.00"));
 		Line($"Noise   x{before.NoiseMult:0.00}" + Delta(before.NoiseMult, a.NoiseMult, preview, "0.00"));

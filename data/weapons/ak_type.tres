@@ -110,6 +110,7 @@ Ergonomics = 60.0
 VerticalRecoilRating = 45.0
 HorizontalRecoilRating = 50.0
 StabilityRating = 50.0
+DispersionMoa = 5.0
 HipStabilityRating = 45.0
 AnimSet = ExtResource("91")
 Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2"), SubResource("slot3"), SubResource("slot4"), SubResource("slot5"), SubResource("slot6")])

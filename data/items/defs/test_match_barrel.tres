@@ -23,6 +23,7 @@ VelocityPct = 0.08
 VerticalRecoilPts = -3.0
 StabilityPts = 3.0
 ErgonomicsPts = -4.0
+MoaPct = -0.25
 Swap = "Tooled"
 
 [resource]

@@ -46,7 +46,7 @@ public partial class WeaponNode
 	public float SightHeight => (ModelMarker("RearSight") is { } rear ? rear.Y : Data.SightHeight) + (Stats.Zoom > 0f ? 0.035f : 0f);
 
 	private WeaponStats NeutralStats() => new(50f, 50f, 50f, 50f, Data.Ergonomics, 1f, 1f, 0f, Data.WeightKg, 0, 0,
-		Data.HasBipod, false);
+		Data.HasBipod, false, Data.DispersionMoa);
 
 	/// <summary>Recomputes the stats and rebuilds the part meshes when the attached parts changed.</summary>
 	public void RefreshBuild()

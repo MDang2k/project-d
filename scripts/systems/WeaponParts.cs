@@ -42,7 +42,9 @@ public sealed record WeaponBuildSpec(
 	bool IntegratedBipod = false,
 	WeaponRatings? Ratings = null,
 	/// <summary>Rail surfaces of the receiver: id to length in 10 mm steps.</summary>
-	IReadOnlyDictionary<string, int>? Rails = null);
+	IReadOnlyDictionary<string, int>? Rails = null,
+	/// <summary>Bullet dispersion of the bare weapon in MOA (a group of this many minutes of angle).</summary>
+	float BaseMoa = 4f);
 
 /// <summary>What a part is and what it does. Rating points add to the weapon's 0-100 ratings; percent modifiers are fractions.</summary>
 public sealed record PartSpec(
@@ -74,7 +76,9 @@ public sealed record PartSpec(
 	/// <summary>Whether and how the part can be swapped in a raid (weapon modding v2 s7).</summary>
 	SwapKind Swap = SwapKind.Tooled,
 	/// <summary>Optics: eye to sight distance when aiming, metres (0 = the player config default for optics).</summary>
-	float EyeReliefM = 0f);
+	float EyeReliefM = 0f,
+	/// <summary>Change to the dispersion as a fraction (a barrel: -0.25 is 25% tighter).</summary>
+	float MoaPct = 0f);
 
 /// <summary>
 /// Final ratings and handling numbers of a weapon with its parts. Ratings are 0-100; the multipliers come
@@ -93,7 +97,9 @@ public sealed record WeaponStats(
 	int Value,
 	int GridWidth,
 	bool HasBipod,
-	bool HasLight)
+	bool HasLight,
+	/// <summary>Bullet dispersion of the weapon with its parts, MOA (ammo changes it further when fired).</summary>
+	float Moa = 4f)
 {
 	public float VerticalRecoilMult => RatingCurves.RecoilMult(VerticalRecoil);
 	public float HorizontalRecoilMult => RatingCurves.RecoilMult(HorizontalRecoil);

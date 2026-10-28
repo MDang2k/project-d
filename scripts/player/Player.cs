@@ -681,6 +681,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 			: ammo;
 		var cone = HandlingModel.HipSpreadDeg(_cfg.HipSpreadDeg, Weapon?.Stats.DispersionMult ?? 1f, _aim.Amount);
 		direction = AiAim.Jitter(direction, cone, GD.Randf);
+		// the gun itself: bullet dispersion in MOA, tightened or widened by the barrel parts and the ammo
+		direction = Dispersion.Apply(direction, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), GD.Randf);
 		_projectiles?.Spawn(fired, position, direction, GetRid(), _ownRids);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)

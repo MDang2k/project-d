@@ -208,7 +208,8 @@ public static class WeaponBuild
 			TotalValue(weapon),
 			width,
 			(build?.IntegratedBipod ?? false) || parts.Any(p => p.Bipod),
-			parts.Any(p => p.Light));
+			parts.Any(p => p.Light),
+			(build?.BaseMoa ?? 4f) * Math.Max(0.1f, 1f + Sum(p => p.MoaPct)));
 	}
 
 	/// <summary>Weapon weight plus every attached part (magazines and rounds are counted by the item itself).</summary>

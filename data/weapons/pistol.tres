@@ -65,6 +65,7 @@ Ergonomics = 85.0
 VerticalRecoilRating = 45.0
 HorizontalRecoilRating = 55.0
 StabilityRating = 35.0
+DispersionMoa = 6.0
 HipStabilityRating = 60.0
 Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2")])
 DefaultPartSlots = PackedStringArray("barrel", "bolt", "grip")

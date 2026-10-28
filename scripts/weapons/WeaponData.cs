@@ -53,6 +53,8 @@ public partial class WeaponData : Resource
 	[Export] public float HorizontalRecoilRating { get; set; } = 50f;
 	[Export] public float StabilityRating { get; set; } = 50f;
 	[Export] public float HipStabilityRating { get; set; } = 50f;
+	/// <summary>Bullet dispersion of the bare weapon in MOA (placeholder until the catalog has the column).</summary>
+	[Export] public float DispersionMoa { get; set; } = 4f;
 	/// <summary>Rail surfaces of the receiver (parallel arrays): id and length in 10 mm steps.</summary>
 	[Export] public string[] RailIds { get; set; } = System.Array.Empty<string>();
 	[Export] public int[] RailLengths { get; set; } = System.Array.Empty<int>();
@@ -70,7 +72,7 @@ public partial class WeaponData : Resource
 		return new WeaponBuildSpec(System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(Slots, s => s.ToSpec())),
 			defaults, Ergonomics, HasBipod,
 			new WeaponRatings(VerticalRecoilRating, HorizontalRecoilRating, StabilityRating, HipStabilityRating),
-			PartData.RailMap(RailIds, RailLengths));
+			PartData.RailMap(RailIds, RailLengths), DispersionMoa);
 	}
 
 	/// <summary>How far a shot carries (metres) for AI hearing. Suppressors will lower this later.</summary>

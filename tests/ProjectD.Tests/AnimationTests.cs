@@ -827,3 +827,59 @@ public class ReloadClipWarpTests
 		Assert.Equal(clip.Times[ReloadEvent.MagFetched], ReloadClipWarp.ClipTime(points, seq.Timeline.First(x => x.Event == ReloadEvent.MagFetched).Time), 3);
 	}
 }
+
+public class DispersionTests
+{
+	[Fact]
+	public void OneMoaIsOneSixtiethOfADegree()
+		=> Assert.Equal(1f / 60f, Dispersion.MoaToDeg(1f), 5);
+
+	[Fact]
+	public void PartsAndAmmoChangeItByPercentage()
+	{
+		Assert.Equal(4f, Dispersion.FinalMoa(4f, 0f, 0f), 4);
+		Assert.Equal(4.2f, Dispersion.FinalMoa(4f, 0f, 0.05f), 4);      // ammo +5%
+		Assert.Equal(3.2f, Dispersion.FinalMoa(4f, -0.25f, 0.05f), 4);  // barrel -25%, ammo +5%
+		Assert.True(Dispersion.FinalMoa(4f, -5f, 0f) > 0f);              // never collapses to a laser
+	}
+
+	[Fact]
+	public void ShotsStayInsideTheGroupAndSpreadOutWithMoa()
+	{
+		var rng = new Random(7);
+		float Worst(float moa)
+		{
+			var worst = 0f;
+			for (var i = 0; i < 2000; i++)
+			{
+				var dir = Dispersion.Apply(Vector3.Forward, moa, () => (float)rng.NextDouble());
+				worst = Math.Max(worst, Mathf.RadToDeg(Vector3.Forward.AngleTo(dir)));
+			}
+			return worst;
+		}
+		var tight = Worst(1f);
+		var wide = Worst(8f);
+		Assert.True(tight <= Dispersion.MoaToDeg(1f) * 0.5f + 1e-4f);
+		Assert.True(wide <= Dispersion.MoaToDeg(8f) * 0.5f + 1e-4f);
+		Assert.True(wide > tight * 4f);
+	}
+
+	[Fact]
+	public void ZeroMoaIsStraight()
+		=> Assert.True(Dispersion.Apply(Vector3.Forward, 0f, () => 0.7f).IsEqualApprox(Vector3.Forward));
+
+	[Fact]
+	public void BarrelPartsTightenTheWeaponMoa()
+	{
+		var barrel = new ItemSpec("match", "match", ItemCategory.WeaponPart, 3, 1, 1f,
+			Part: new PartSpec(new[] { "rifle.muzzle" }, new List<WeaponSlotSpec>(), new List<string>(), MoaPct: -0.25f));
+		var rifle = ModItems.NewRifle();
+		var bare = WeaponBuild.Stats(rifle).Moa;
+		WeaponBuild.Attach(rifle, "muzzle", ItemInstance.Create(barrel));
+		Assert.Equal(bare * 0.75f, WeaponBuild.Stats(rifle).Moa, 4);
+	}
+
+	[Fact]
+	public void AmmoCarriesItsDispersionFraction()
+		=> Assert.Equal(0.05f, new AmmoType("ap", 24f, 2, 400f, 0.05f).Dispersion);
+}

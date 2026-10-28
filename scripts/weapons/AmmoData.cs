@@ -13,6 +13,8 @@ public partial class AmmoData : Resource
 	[Export] public int PenetrationTier { get; set; } = 2;
 	/// <summary>Muzzle velocity in m/s.</summary>
 	[Export] public float MuzzleVelocity { get; set; } = 700f;
+	/// <summary>Change to the dispersion of the gun as a fraction (catalog column Dispersion): 0.05 is +5%.</summary>
+	[Export] public float Dispersion { get; set; }
 
-	public AmmoType ToType() => new(Id, Damage, PenetrationTier, MuzzleVelocity);
+	public AmmoType ToType() => new(Id, Damage, PenetrationTier, MuzzleVelocity, Dispersion);
 }

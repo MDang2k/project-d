@@ -739,7 +739,8 @@ public partial class InventoryScreen : CanvasLayer
 				sb.Append($"\nDamage {me.Damage:0}  range {me.Range:0.0} m  ignores armor");
 				break;
 			case AmmoData am:
-				sb.Append($"\n{am.Caliber}  damage {am.Damage:0}  penetration {am.PenetrationTier}  {am.MuzzleVelocity:0} m/s");
+				sb.Append($"\n{am.Caliber}  damage {am.Damage:0}  penetration {am.PenetrationTier}  {am.MuzzleVelocity:0} m/s"
+					+ (am.Dispersion != 0f ? $"  dispersion {am.Dispersion * 100f:+0;-0}%" : ""));
 				break;
 		}
 		if (item.Spec.MagazineCapacity > 0)
