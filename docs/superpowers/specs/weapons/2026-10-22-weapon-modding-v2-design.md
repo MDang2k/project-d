@@ -1,6 +1,43 @@
 # Weapon modding v2
 
-Status: approved design, not implemented. **Supersedes `docs/superpowers/specs/weapons/2026-10-19-weapon-modding-design.md`** (which is implemented in code with save v6). Implements GDD §11 attachment slots and full gunsmithing. Item data comes from `docs/design/catalog/weapons.csv` and `weapon_parts.csv`, which need the changes in section 8. Numbers marked **(tune)**.
+Status: approved design, **mostly implemented, see Implementation status**. **Supersedes `docs/superpowers/specs/weapons/2026-10-19-weapon-modding-design.md`** (which is implemented in code with save v6). Implements GDD §11 attachment slots and full gunsmithing. Item data comes from `docs/design/catalog/weapons.csv` and `weapon_parts.csv`, which need the changes in section 8. Numbers marked **(tune)**.
+
+## Implementation status
+
+Updated 2026-10-28. Keep this table current. Legend: **Done**, **Partial** (what is missing is said), **Not started**, **Post-slice** (waits for content).
+
+| Section | Item | Status | Notes |
+|---|---|---|---|
+| 1 | Receiver-outward slot tree, parts add slots | **Done** | `WeaponBuild`, `WeaponSlotSpec`, `PartSpec.AddsSlots`; save v7 keeps the nested parts map |
+| 1 | Vital parts red-flag the weapon (barrel, bolt, gas, grip) | **Done** | slice weapons got their vital parts from the catalog; a red-flagged weapon cannot be equipped or fired |
+| 1 | Class column (vital, functional, structural) | **Partial** | only "vital" is data (`Required`); functional versus structural is derived from the slot type for the UI filter |
+| 1 | Upper and lower receiver halves (M16, Stoner) | Post-slice | no such weapon in the slice |
+| 2 | Real interfaces (threads, NS-67, Planka-70, Klemmschiene, native) | **Done** (slice) | as tags in the part data; catalog slice rows only |
+| 2 | Adapters installed explicitly | **Done** | a mount adds a rail slot with its own interface, nothing converts automatically |
+| 2 | Adapter, Klemmschiene and QD parts beyond the slice | Post-slice | the QD chain exists as test parts only |
+| 3 | Clearance by rail steps and named zones | **Done** | tested; zones on vital parts are dropped (the catalog gives barrel and gas block the same zone, which would refuse each other) |
+| 4 | Positive 0-100 ratings, curves, 25% recoil floor | **Done** | `RatingCurves`, `WeaponStats` |
+| 4 | Barrel length to muzzle velocity | **Partial** | velocity multiplier from parts is done; no barrel length stat |
+| 4 | Effective range in metres shown | Not started | muzzle velocity is shown in m/s in the workshop |
+| 4 | Ammo recoil and dispersion modifiers on top | Not started | the ammo columns exist in the catalog; no consumer yet |
+| 4 | Recoil Control skill adds up to 10 rating points | **Partial** | `WeaponBuild.Stats(weapon, recoilSkillPts)` supports it; waits for M8a skills |
+| 4 | Hip-fire stability drives the spread cone | **Done** | `HandlingModel.HipSpreadDeg`, `PlayerConfig.HipSpreadDeg` |
+| 4 | Ergonomics drives ADS time, sway, stamina drain | **Done** | `ErgonomicsTuning` |
+| 5 | No in-burst recoil recovery, 30% settle, player drags the rest | **Done** | `RecoilModel` with `Pull` |
+| 6 | Hub workshop with a 3D weapon and parts at their markers | **Done** | gunsmith board with slot boxes and a rotating 3D view; placeholder boxes until a part has a model |
+| 6 | Preset sandbox with examined parts, saved named presets | **Done** | `WeaponWorkshop`, saved in save v7 |
+| 6 | Manual sourcing, missing-parts list, nothing bought automatically | **Done** | trader offers shown in the flyout, no purchase |
+| 6 | Detaching needs stash space | **Done** | refused when the stash is full |
+| 6 | Black-market board | Post-slice | |
+| 7 | In-raid swaps: tool-free, tooled with the field armorer's kit, never | **Done** | `FieldStrip`, panel behind "Modify weapon" in the inventory |
+| 7 | Swap times, cancelled by damage or sprinting, weapon unusable meanwhile | **Done** | `FieldSwapTimer`; times are placeholder tuning |
+| 8 | Catalog columns and new parts | **Done** (slice) | generated from the slice rows by script; the field armorer's kit has no catalog row yet |
+| 8 | Asset pipeline markers for rail surfaces and zones per weapon model | Not started | |
+| 8 | Parts that no longer fit detach into the stash on load | **Done** | |
+| 9 | Drag and drop in the workshop | Not started | the board uses click flyouts instead |
+| 9 | Part models for the slice parts | **Partial** | FAL handguard, stock and magazine have models; the rest are boxes |
+
+Tests (section Units): ratings and curves, clearance (rail overlap and overflow, zones), vital red flag, skill points, recoil model, sandbox and presets, field strip and its timer, save round trip, hip spread. Not covered: the gunsmith screen itself (checked with screenshots).
 
 ## Intent
 
