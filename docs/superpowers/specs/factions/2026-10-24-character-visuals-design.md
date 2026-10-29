@@ -1,6 +1,6 @@
 # Character visuals: player, traders, story characters, mission NPCs
 
-Status: approved design, not implemented. Proposed by Claude at the designer's request ("just propose the whole set") and approved as written, plus the wristwatch raid time (section 1). Part 3 of the factions/characters content pass. Builds on the factions and bosses spec (`2026-10-23-factions-bosses-design.md`), the story characters and names specs (`docs/superpowers/specs/story/`), the asset pipeline spec (`docs/superpowers/specs/art/2026-10-21-asset-pipeline-art-direction-design.md`) and GDD §4 (menu hub) and §19 (art). Spoilers (Weiss, Albrecht). Numbers marked **(tune)**.
+Status: approved design; section 1 (the player) implemented 2026-10-29 with the changes recorded there and in decisions 9-11; sections 2-5 not implemented. Proposed by Claude at the designer's request ("just propose the whole set") and approved as written, plus the wristwatch raid time (section 1). Part 3 of the factions/characters content pass. Builds on the factions and bosses spec (`2026-10-23-factions-bosses-design.md`), the story characters and names specs (`docs/superpowers/specs/story/`), the asset pipeline spec (`docs/superpowers/specs/art/2026-10-21-asset-pipeline-art-direction-design.md`) and GDD §4 (menu hub) and §19 (art). Spoilers (Weiss, Albrecht). Numbers marked **(tune)**.
 
 ## Intent
 
@@ -19,15 +19,22 @@ The silent contractor (story part 3). No face or body customisation; the side ch
 | Jacket | olive M65-pattern field jacket, sleeves rolled once | olive-brown M69-pattern field jacket ("afghanka" cut), sleeves down |
 | Trousers | olive OG-107-style, bloused into boots | olive-brown field trousers, tucked |
 | Boots | black leather lace-up combat boots | brown lace-up boots |
-| Hands | olive leather-palm gloves, cuffs at the wrist; field watch on an olive canvas strap over the left glove cuff | bare hands; steel field watch on the left wrist |
+| Hands | olive mitten gloves (leather palm, knuckle band), sleeve meets the glove directly | bare hands (skin mitten), sleeve ends at the wrist |
 | Side marker | **pale blue armband**, left upper arm | **red armband**, left upper arm |
-| Head (hidden locally) | short hair, stubble, field cap when no helmet | short hair, stubble, pilotka-style cap when no helmet |
+| Head (hidden locally) | short hair, stubble, bare-headed | short hair, stubble, bare-headed |
 
 - Same armband as the AI PMCs of that side (factions spec), so the player is a commission contractor like them.
 - The arms and sleeves are on screen all the time in first person, so sleeve colour, cuff and glove shape get the most care. The armband sits high enough on the left arm to show when the weapon is raised and the player looks slightly left, a quiet reminder of the side.
 - The Allied gloves and the Soviet bare hand make the two sides feel different in first person even without armor.
+- **As built (2026-10-29):**
+  - Hands are BattleBit-style mitten blocks (one box per hand, no fingers or finger rig); a finger rig was tried and dropped because it never looked right.
+  - No cap on either outfit: headgear comes from separate items (decision 10).
+  - No glove cuffs and no wristwatch: both were rigid pieces that did not bend with the hand (decision 11).
+  - Files: `assets/models/characters/player_body.glb` (body + head, both sides), `player_outfit_allied.glb`, `player_outfit_soviet.glb`; source `assets/source/characters/player_body.blend` (the designer's mesh is the source of truth for body and outfits).
 
 ### Wristwatch (raid time)
+
+**Superseded (decision 11):** the watch was removed from the player model. How the player reads raid time is an open item (see Open items); the rules below are kept as the reference design until the designer picks a replacement.
 
 The only way to know the raid time in a raid; there is no timer on screen (no-HUD rule).
 
@@ -166,7 +173,7 @@ Full looks are in the Bosses sheet (`Look` column). The one hook each boss is re
 
 ## 6. Production
 
-- **Rig:** every 3D character uses the shared game rig (pipeline section 4 bone names); outfits are swappable meshes (pipeline budget 6,000-10,000 triangles for body + outfit).
+- **Rig:** every 3D character uses the shared game rig: 20 oriented bones (Blender's along-the-bone orientation) `Hips`, `Spine`, `Chest`, `Head`, `Shoulder_L/R`, `Arm_L/R`, `Forearm_L/R`, `ForearmTwist_L/R` (child of Forearm, wrist half of the forearm), `Hand_L/R`, `Thigh_L/R`, `Shin_L/R`, `Foot_L/R`; T-pose rest. Game code poses bones relative to their rest, so bone orientation may change in Blender without breaking it. `Palm_L/R` empties on the hand bones mark where a grip sits (grip convention, pipeline spec). Outfits are swappable meshes skinned to the same rig and loaded by side (`player_outfit_<side>.glb`); pipeline budget 6,000-10,000 triangles for body + outfit (the player is about 1,000).
 - **Order (Claude's call):** player body with both base outfits (seen every raid), then the six trader portraits (needed by the hub now), then boss models in map order, then Rauch, Albrecht and the mission characters.
 - **Data:**
   - `TraderData`: `Portrait` (`Texture2D`), optional `RevealedPortrait` and `RevealFlag` (the story or quest id that swaps them; Weiss: mission 4 complete).
@@ -183,8 +190,14 @@ Full looks are in the Bosses sheet (`Look` column). The one hook each boss is re
 6. Survey team in bright orange parkas; the hollowed survivor's eyes track the player.
 7. Raid time only from an analog wristwatch both sides wear; raids start at a fixed clock time and the deploy screen states the deadline.
 8. (2026-10-24) Character style is BattleBit Remastered-like: cuboid, flat-shaded, stiff-limbed bodies with small pixel-art textures per outfit (nearest filtering), simple visible box-head faces. This overrides "no hand-painted textures" for characters only (pipeline spec section 1).
+9. (2026-10-29) Hands are mitten blocks with no finger bones; the hand turns to the grip marker and the forearm twist bone takes part of the roll.
+10. (2026-10-29) Outfits carry no cap; headgear (caps, helmets) are separate items worn on the head.
+11. (2026-10-29) The wristwatch is removed from the player model (it did not bend with the hand); the raid-time readout needs a new answer (open item).
 
 ## Open items
+
+- How the player reads raid time now that the wristwatch is gone (decision 11). The GDD (§ raid timer) still names the analog wristwatch.
+- Headgear items (caps per side, helmets) on the head bone, hidden locally like the head.
 
 - 3D character preview in the hub loadout screen.
 - Check-watch key binding (designer).
