@@ -12,6 +12,10 @@ if git diff --cached --name-only | grep -qx "docs/design/item_catalog.xlsx"; the
 		echo "pre-commit: commit stopped so the CSVs do not go stale. Use --no-verify to skip." >&2
 		exit 1
 	fi
-	git add docs/design/catalog/*.csv
+	if ! "$PY" tools/export_actors.py; then
+		echo "pre-commit: actors export failed (see errors above)" >&2
+		exit 1
+	fi
+	git add docs/design/catalog/*.csv data/actors/actors.json
 fi
 exit 0

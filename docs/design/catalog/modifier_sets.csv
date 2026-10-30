@@ -1,0 +1,6 @@
+Set,Stat,Op,Value,Notes
+veteran,aim.accuracy,Add,0.1,"Example, tune: steadier shot."
+veteran,awareness.notice_s,Pct,-0.15,"Example, tune: notices 15% faster."
+veteran,aim.moving_mult,Pct,-0.1,"Example, tune: less spread while moving."
+rookie,aim.accuracy,Add,-0.1,"Example, tune."
+rookie,awareness.notice_s,Pct,0.2,"Example, tune: notices 20% slower."

@@ -1,0 +1,240 @@
+{
+ "actors": [
+  {
+   "id": "human_base",
+   "parent": "",
+   "name": "Human base",
+   "kind": "template",
+   "faction": "",
+   "tags": [],
+   "sets": [],
+   "props": {
+    "loots_corpses": "FALSE"
+   },
+   "stats": {
+    "perception.view_distance": 80.0,
+    "perception.fov_deg": 110.0,
+    "perception.peripheral_deg": 200.0,
+    "perception.peripheral_distance": 8.0,
+    "perception.crouch_visibility": 0.65,
+    "perception.prone_visibility": 0.4,
+    "perception.still_visibility": 0.8,
+    "perception.moving_visibility": 1.25,
+    "awareness.hearing_mult": 1.0,
+    "awareness.notice_s": 1.2,
+    "awareness.suspicion_threshold": 0.35,
+    "awareness.hold_s": 3.0,
+    "awareness.decay_per_s": 0.15,
+    "move.walk_speed": 1.6,
+    "move.run_speed": 3.4,
+    "brain.arrival_radius": 1.2,
+    "brain.look_around_s": 3.0,
+    "brain.lost_target_s": 4.0,
+    "brain.search_s": 10.0,
+    "brain.patrol_wait_s": 2.0,
+    "aim.accuracy": 0.5,
+    "aim.max_spread_deg": 3.0,
+    "aim.min_spread_deg": 0.15,
+    "aim.distance_spread_per_100m": 1.5,
+    "aim.moving_mult": 1.8,
+    "aim.suppressed_mult": 2.5,
+    "fire.burst_min": 2.0,
+    "fire.burst_max": 5.0,
+    "fire.burst_pause_min_s": 0.5,
+    "fire.burst_pause_max_s": 1.4,
+    "fire.reaction_s": 0.6,
+    "tactics.courage": 0.5,
+    "tactics.aggression": 0.5,
+    "tactics.engage_distance": 25.0,
+    "tactics.bursts_before_cover": 3.0,
+    "scavenge.loot_radius": 35.0,
+    "carry.backpack_chance": 0.5,
+    "carry.spare_magazines": 2.0,
+    "loadout.armor_chance": 1.0,
+    "health.head": 35.0,
+    "health.thorax": 85.0,
+    "health.stomach": 70.0,
+    "health.arm": 60.0,
+    "health.leg": 65.0
+   },
+   "links": {},
+   "notes": "Template: every stat at its default. Actors fill only the cells that differ; blank cells inherit."
+  },
+  {
+   "id": "looter",
+   "parent": "human_base",
+   "name": "Looter",
+   "kind": "actor",
+   "faction": "Looters",
+   "tags": [
+    "faction.looters"
+   ],
+   "sets": [],
+   "props": {
+    "weapon": "pistol",
+    "weapon_choices": [
+     "pistol",
+     "ak_type"
+    ],
+    "backpack": "satchel",
+    "pocket_table": "body_scav",
+    "loots_corpses": "TRUE",
+    "body_color": "0.5,0.42,0.3"
+   },
+   "stats": {
+    "perception.view_distance": 60.0,
+    "perception.fov_deg": 100.0,
+    "awareness.hearing_mult": 0.9,
+    "awareness.notice_s": 1.6,
+    "aim.accuracy": 0.25,
+    "tactics.courage": 0.2,
+    "tactics.aggression": 0.3,
+    "carry.backpack_chance": 0.3,
+    "carry.spare_magazines": 1.0,
+    "loadout.armor_chance": 0.35
+   },
+   "links": {},
+   "notes": "Migrated from data/ai/looter.tres."
+  },
+  {
+   "id": "bandit",
+   "parent": "human_base",
+   "name": "Bandit",
+   "kind": "actor",
+   "faction": "Bandits",
+   "tags": [
+    "faction.bandits"
+   ],
+   "sets": [],
+   "props": {
+    "weapon": "ak_type",
+    "weapon_choices": [
+     "ak_type",
+     "pistol"
+    ],
+    "armor": [
+     "flak_vest_t1",
+     "steel_helmet_t1"
+    ],
+    "heal_item": "bandage",
+    "rig": "light_rig",
+    "backpack": "field_pack",
+    "pocket_table": "body_scav",
+    "loots_corpses": "TRUE",
+    "body_color": "0.55,0.3,0.25"
+   },
+   "stats": {
+    "aim.accuracy": 0.45,
+    "tactics.aggression": 0.6,
+    "carry.backpack_chance": 0.4,
+    "loadout.armor_chance": 0.8
+   },
+   "links": {},
+   "notes": "Migrated from data/ai/bandit.tres."
+  },
+  {
+   "id": "allied_pmc",
+   "parent": "human_base",
+   "name": "Allied PMC",
+   "kind": "actor",
+   "faction": "Allied PMC",
+   "tags": [
+    "faction.allied_pmc"
+   ],
+   "sets": [],
+   "props": {
+    "weapon": "fal_type",
+    "armor": [
+     "flak_vest_t2",
+     "steel_helmet_t2"
+    ],
+    "heal_item": "bandage",
+    "rig": "field_rig",
+    "backpack": "field_pack",
+    "pocket_table": "body_scav",
+    "loots_corpses": "FALSE",
+    "body_color": "0.3,0.4,0.55"
+   },
+   "stats": {
+    "perception.view_distance": 110.0,
+    "perception.fov_deg": 120.0,
+    "awareness.hearing_mult": 1.2,
+    "awareness.notice_s": 0.9,
+    "aim.accuracy": 0.75,
+    "tactics.courage": 0.7,
+    "tactics.aggression": 0.6,
+    "carry.backpack_chance": 1.0,
+    "carry.spare_magazines": 3.0
+   },
+   "links": {},
+   "notes": "Migrated from data/ai/allied_pmc.tres."
+  },
+  {
+   "id": "soviet_pmc",
+   "parent": "human_base",
+   "name": "Soviet PMC",
+   "kind": "actor",
+   "faction": "Soviet PMC",
+   "tags": [
+    "faction.soviet_pmc"
+   ],
+   "sets": [],
+   "props": {
+    "weapon": "ak_type",
+    "armor": [
+     "flak_vest_t2",
+     "steel_helmet_t1"
+    ],
+    "heal_item": "bandage",
+    "rig": "light_rig",
+    "backpack": "satchel",
+    "pocket_table": "body_scav",
+    "loots_corpses": "FALSE",
+    "body_color": "0.45,0.5,0.3"
+   },
+   "stats": {
+    "perception.view_distance": 100.0,
+    "perception.fov_deg": 115.0,
+    "awareness.hearing_mult": 1.1,
+    "awareness.notice_s": 1.0,
+    "aim.accuracy": 0.6,
+    "tactics.courage": 0.6,
+    "tactics.aggression": 0.7,
+    "carry.backpack_chance": 0.6
+   },
+   "links": {},
+   "notes": "Migrated from data/ai/soviet_pmc.tres."
+  }
+ ],
+ "modifier_sets": {
+  "veteran": [
+   {
+    "stat": "aim.accuracy",
+    "op": "Add",
+    "value": 0.1
+   },
+   {
+    "stat": "awareness.notice_s",
+    "op": "Pct",
+    "value": -0.15
+   },
+   {
+    "stat": "aim.moving_mult",
+    "op": "Pct",
+    "value": -0.1
+   }
+  ],
+  "rookie": [
+   {
+    "stat": "aim.accuracy",
+    "op": "Add",
+    "value": -0.1
+   },
+   {
+    "stat": "awareness.notice_s",
+    "op": "Pct",
+    "value": 0.2
+   }
+  ]
+ }
+}

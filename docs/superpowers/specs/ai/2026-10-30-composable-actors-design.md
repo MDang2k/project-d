@@ -183,7 +183,7 @@ Updated 2026-10-30. Keep this table current.
 |---|---|---|
 | Spec written, decisions recorded | **Done** | this file |
 | Phase 1 stats and modifiers core | **Done** | `Stats` registry (44 stats), `StatModifier`, `StatResolver` (order of operations, additive percentages, explain), `StatSet` (cache, replace by source, timed expiry, changed event) in `scripts/systems/actors/`, with 27 xUnit tests; `ActorRuntime` (tags, properties) comes with phase 2 |
-| Phase 2 sheets, generator, catalog | Not started | the designer adds the Actors and Modifier sets sheets (or approves the generated ones) |
+| Phase 2 sheets, generator, catalog | **Done** | `Actors` (human_base template + looter, bandit, allied_pmc, soviet_pmc) and `Modifier Sets` (veteran, rookie: example numbers, tune) sheets spliced into the xlsx by `tools/migrate_ai_presets_to_sheet.py` (no openpyxl save, so cached formulas survive); `tools/export_actors.py` validates and writes `data/actors/actors.json` (pre-commit hook runs it); `ActorCatalog` (inheritance, `Create` builds a `StatSet` with the sets applied) with 6 xUnit tests incl. the real file and item-id references |
 | Phase 3 migrate the AI | Not started | |
 | Phase 4 modifier sources, inspector | Not started | |
 | Phase 5 catalog loadouts | Not started | needs the factions spec loadout work |
