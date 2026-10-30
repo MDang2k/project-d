@@ -15,7 +15,14 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private const float RespawnS = 8f;
 	private const float TurnSpeedDegS = 140f;
 
-	[Export] public AiPreset? Preset { get; set; }
+	/// <summary>The actor this AI plays (stats, tags, item ids); set before the node enters the tree.</summary>
+	public ActorInstance? Actor { get; set; }
+
+	public string ActorId => Actor?.Def.Id ?? "";
+
+	private float S(string stat) => Actor!.Stats.Get(stat);
+	private int SInt(string stat) => Actor!.Stats.GetInt(stat);
+	private ActorDef Def => Actor!.Def;
 
 	/// <summary>Dev: dead AI come back after a few seconds. Off lets bodies stay and be looted.</summary>
 	public static bool AutoRespawn { get; set; } = true;
@@ -61,7 +68,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	// --- IPerceivable ----------------------------------------------------------------------
 
-	public Faction Faction => Preset?.Faction ?? Faction.Looters;
+	public Faction Faction => Actor is null ? Faction.Looters : ActorTuning.ParseFaction(Actor.Def.Faction);
 	public bool IsAlive => !Health.IsDead;
 	public Stance PerceivedStance => IsCrouching ? Stance.Crouch : Stance.Stand;
 	public float PerceivedSpeedFraction
@@ -78,10 +85,10 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	public override void _Ready()
 	{
-		Preset ??= new AiPreset();
-		_tuning = Preset.ToPerceptionTuning();
+		Actor ??= ActorDb.Create("looter");
+		_tuning = ActorTuning.Perception(Actor.Stats);
 		Perception = new PerceptionModel(_tuning);
-		Brain = new AiBrain(Preset.ToBrainTuning());
+		Brain = new AiBrain(ActorTuning.Brain(Actor.Stats));
 		Brain.SetPatrol(PatrolPoints);
 		_gravity = ProjectSettings.GetSetting("physics/3d/default_gravity", 9.8f).AsSingle();
 		CollisionLayer = 1u << 3;
@@ -91,7 +98,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		_agent = new NavigationAgent3D
 		{
 			PathDesiredDistance = 0.6f,
-			TargetDesiredDistance = Preset.ArrivalRadius,
+			TargetDesiredDistance = S(Stats.Brain.ArrivalRadius),
 			Radius = 0.4f,
 			Height = 1.8f,
 		};
@@ -103,7 +110,11 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			Position = new Vector3(0f, 0.9f, 0f),
 		});
 
-		Health = new HealthComponent { Name = "Health", Config = Preset.Health };
+		Health = new HealthComponent { Name = "Health", Config = new HealthConfig
+		{
+			HeadHp = S(Stats.Health.Head), ThoraxHp = S(Stats.Health.Thorax), StomachHp = S(Stats.Health.Stomach),
+			ArmHp = S(Stats.Health.Arm), LegHp = S(Stats.Health.Leg),
+		} };
 		AddChild(Health);
 		RollLoadout();
 		BuildGear();
@@ -126,7 +137,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	private void BuildBody()
 	{
-		var mat = new StandardMaterial3D { AlbedoColor = Preset!.BodyColor };
+		var mat = new StandardMaterial3D { AlbedoColor = BodyColor() };
 		_bodyMesh = new MeshInstance3D
 		{
 			Mesh = new CapsuleMesh { Radius = 0.24f, Height = 1.45f },
@@ -258,7 +269,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private void Move(float delta)
 	{
 		Vector3? destination = Brain.Destination;
-		var speed = Brain.State == AiState.Patrol ? Preset!.WalkSpeed : Preset!.RunSpeed * 0.75f;
+		var speed = Brain.State == AiState.Patrol ? S(Stats.Move.WalkSpeed) : S(Stats.Move.RunSpeed) * 0.75f;
 		float? faceYaw = null;
 
 		var crouch = false;
@@ -289,7 +300,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 				_agent.TargetPosition = dest;
 			}
 			var flat = new Vector2(dest.X - GlobalPosition.X, dest.Z - GlobalPosition.Z);
-			if (flat.Length() <= Preset.ArrivalRadius || _agent.IsNavigationFinished())
+			if (flat.Length() <= S(Stats.Brain.ArrivalRadius) || _agent.IsNavigationFinished())
 			{
 				_arrived = true;
 			}
@@ -334,6 +345,10 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Rotation = new Vector3(0f, yaw, 0f);
 	}
 
+	/// <summary>Body colour from the actor sheet (red, green, blue), a drab default when missing.</summary>
+	private Color BodyColor()
+		=> ActorTuning.ParseColor(Def.List("body_color")) is { } c ? new Color(c.R, c.G, c.B) : new Color(0.45f, 0.4f, 0.3f);
+
 	private WeaponData? _weaponData;
 	private readonly List<string> _wornIds = new();
 	private LootContainer? _lootTarget;
@@ -343,12 +358,12 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private void RollLoadout()
 	{
 		var rng = new System.Random();
-		var choices = Preset!.WeaponChoices;
-		_weaponData = choices.Count > 0 ? choices[rng.Next(choices.Count)] : Preset.Weapon;
+		var choices = Def.List("weapon_choices");
+		_weaponData = ActorDb.Weapon(choices.Count > 0 ? choices[rng.Next(choices.Count)] : Def.Text("weapon"));
 		_wornIds.Clear();
-		foreach (var a in Preset.Armor)
+		foreach (var armorId in Def.List("armor"))
 		{
-			if (rng.NextDouble() > Preset.ArmorChance)
+			if (rng.NextDouble() > S(Stats.Loadout.ArmorChance) || ActorDb.Armor(armorId) is not { } a)
 				continue;
 			Health.Equip(a);
 			_wornIds.Add(a.Id);
@@ -368,7 +383,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	/// <summary>Nearest untouched body within reach, when this AI scavenges.</summary>
 	private Vector3? FindLootPoint(float delta)
 	{
-		if (!Preset!.LootsCorpses)
+		if (!Def.Flag("loots_corpses"))
 			return null;
 		if (_lootTarget is { } t && (!IsInstanceValid(t) || t.Taken))
 			_lootTarget = null;
@@ -376,7 +391,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		if (_lootTarget is null && _lootScanS <= 0f && Brain.State is AiState.Idle or AiState.Patrol)
 		{
 			_lootScanS = 1f;
-			var best = Preset.LootRadius;
+			var best = S(Stats.Scavenge.LootRadius);
 			foreach (var node in GetTree().GetNodesInGroup("loot_containers"))
 			{
 				if (node is not LootContainer c || !c.IsCorpse || c.Taken)
@@ -497,12 +512,12 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			return;
 		if (Health.IsDead)
 		{
-			_label.Text = $"{Preset!.Id}\nDEAD";
+			_label.Text = $"{ActorId}\nDEAD";
 			return;
 		}
 		var seeing = Perception.SeesTarget ? "  SEES" : "";
 		var tactic = Brain.State == AiState.Combat ? $"/{_tactics.State}" : "";
-		_label.Text = $"{Preset!.Id}  [{Brain.State}{tactic}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
+		_label.Text = $"{ActorId}  [{Brain.State}{tactic}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
 		_label.Modulate = Perception.Level switch
 		{
 			AwarenessLevel.Alert => new Color(1f, 0.3f, 0.25f),

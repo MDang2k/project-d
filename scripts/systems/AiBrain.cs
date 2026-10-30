@@ -4,7 +4,7 @@ using Godot;
 
 namespace ProjectD;
 
-/// <summary>Timing numbers for the AI state machine (GDD s16). Filled from an <c>AiPreset</c>.</summary>
+/// <summary>Timing numbers for the AI state machine (GDD s16). Filled from the actor stats (<c>ActorTuning</c>).</summary>
 public sealed record BrainTuning(
 	/// <summary>Distance at which a destination counts as reached, metres.</summary>
 	float ArrivalRadius,

@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "docs" / "design" / "catalog"
 OUT = ROOT / "data" / "actors" / "actors.json"
 
-LISTS = {"Tags", "Modifier sets", "Weapon choices", "Armor"}
+LISTS = {"Tags", "Modifier sets", "Weapon choices", "Armor", "Body color"}
 PROPS = {"Weapon": "weapon", "Weapon choices": "weapon_choices", "Armor": "armor", "Heal item": "heal_item",
          "Rig": "rig", "Backpack": "backpack", "Pocket table": "pocket_table", "Loots corpses": "loots_corpses",
          "Body color": "body_color"}

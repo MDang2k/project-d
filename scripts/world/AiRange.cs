@@ -74,7 +74,7 @@ public partial class AiRange : Node3D
 		var ai = new AiHuman
 		{
 			Name = presetId + suffix,
-			Preset = GD.Load<AiPreset>($"res://data/ai/{presetId}.tres"),
+			Actor = ActorDb.Create(presetId),
 			Position = position,
 			RotationDegrees = new Vector3(0f, yawDeg, 0f),
 			PatrolPoints = patrol,
@@ -190,7 +190,7 @@ public partial class AiRange : Node3D
 				if (_trace.TryGetValue(ai, out var old) && old == now)
 					continue;
 				_trace[ai] = now;
-				GD.Print($"TRACE {Time.GetTicksMsec() / 1000.0:0.0}s {ai.Preset?.Id} {now}");
+				GD.Print($"TRACE {Time.GetTicksMsec() / 1000.0:0.0}s {ai.ActorId} {now}");
 			}
 		}
 		var sb = new StringBuilder();
@@ -200,7 +200,7 @@ public partial class AiRange : Node3D
 		foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
 		{
 			var d = ai.GlobalPosition.DistanceTo(_player.GlobalPosition);
-			sb.AppendLine($"{ai.Preset?.Id,-11} {d,5:0} m  {ai.Perception.Level,-10} {ai.Perception.Awareness * 100f,3:0}%  {ai.LastCue}");
+			sb.AppendLine($"{ai.ActorId,-11} {d,5:0} m  {ai.Perception.Level,-10} {ai.Perception.Awareness * 100f,3:0}%  {ai.LastCue}");
 		}
 		if (_raid is { IsRunning: true } r)
 			sb.AppendLine($"raid {r.Session.RemainingS:0}s left  extract {r.Session.ExtractProgress * 100f:0}%");
@@ -310,7 +310,7 @@ public partial class AiRange : Node3D
 			var b = _player.Health.Body;
 			GD.Print($"PLAYER maxCamStep={_player.MaxCameraYStep:0.000} pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Y:0.00},{_player.GlobalPosition.Z:0.00} dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
-				GD.Print($"AI {ai.Preset?.Id} state={ai.Brain.State}/{ai.CombatState} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
+				GD.Print($"AI {ai.ActorId} state={ai.Brain.State}/{ai.CombatState} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
 		}
 		if (shot is null)
 		{

@@ -121,7 +121,7 @@ public static class Stats
 	private static StatDef I(string id, float def, float min, float max, string unit = "", bool higherIsBetter = true)
 		=> new(id, def, min, max, unit, higherIsBetter, Integer: true);
 
-	/// <summary>Every stat, defaults taken from the former AiPreset and the code defaults of AimTuning and the body.</summary>
+	/// <summary>Every stat, defaults taken from the former AiPreset (removed in phase 3) and the code defaults of AimTuning and the body.</summary>
 	public static IReadOnlyList<StatDef> All { get; } = new[]
 	{
 		F(Perception.ViewDistance, 80f, 0f, 400f, "m"),

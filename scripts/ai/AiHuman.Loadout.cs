@@ -24,9 +24,9 @@ public partial class AiHuman
 			var slot = worn.Spec.Category == ItemCategory.Helmet ? EquipSlot.Head : EquipSlot.Vest;
 			inv.TryEquip(worn, slot);
 		}
-		if (Preset!.RigId != "" && ItemDb.Create(Preset.RigId) is { } rig)
+		if (Def.Text("rig") != "" && ItemDb.Create(Def.Text("rig")) is { } rig)
 			inv.TryEquip(rig, EquipSlot.Rig);
-		if (Preset.BackpackId != "" && _rng.NextDouble() <= Preset.BackpackChance && ItemDb.Create(Preset.BackpackId) is { } pack)
+		if (Def.Text("backpack") != "" && _rng.NextDouble() <= S(Stats.Carry.BackpackChance) && ItemDb.Create(Def.Text("backpack")) is { } pack)
 			inv.TryEquip(pack, EquipSlot.Backpack);
 		if (_rng.NextDouble() < 0.5 && ItemDb.Create("combat_knife") is { } knife)
 			inv.TryEquip(knife, EquipSlot.Melee);
@@ -38,7 +38,7 @@ public partial class AiHuman
 			var caliber = data.Ammo?.Caliber ?? "";
 			if (ItemDb.MagazineFor(caliber) is { } magData && data.Ammo is { } ammo)
 			{
-				for (var i = 0; i < Preset.SpareMagazines; i++)
+				for (var i = 0; i < SInt(Stats.Carry.SpareMagazines); i++)
 				{
 					if (InventoryComponent.MakeMagazine(magData.Id, ammo.Id, magData.MagazineCapacity) is { } spare)
 						inv.TryAutoStore(spare);
@@ -46,7 +46,7 @@ public partial class AiHuman
 			}
 		}
 
-		if (Preset.PocketTable is { } table)
+		if (ActorDb.Pockets(Def.Text("pocket_table")) is { } table)
 		{
 			var rolls = _rng.Next(table.MinRolls, System.Math.Max(table.MinRolls, table.MaxRolls) + 1);
 			foreach (var (id, count) in LootRoller.Roll(table.ToEntries(), rolls, _rng.NextDouble))

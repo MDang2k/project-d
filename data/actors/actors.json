@@ -79,7 +79,11 @@
     "backpack": "satchel",
     "pocket_table": "body_scav",
     "loots_corpses": "TRUE",
-    "body_color": "0.5,0.42,0.3"
+    "body_color": [
+     "0.5",
+     "0.42",
+     "0.3"
+    ]
    },
    "stats": {
     "perception.view_distance": 60.0,
@@ -121,7 +125,11 @@
     "backpack": "field_pack",
     "pocket_table": "body_scav",
     "loots_corpses": "TRUE",
-    "body_color": "0.55,0.3,0.25"
+    "body_color": [
+     "0.55",
+     "0.3",
+     "0.25"
+    ]
    },
    "stats": {
     "aim.accuracy": 0.45,
@@ -153,7 +161,11 @@
     "backpack": "field_pack",
     "pocket_table": "body_scav",
     "loots_corpses": "FALSE",
-    "body_color": "0.3,0.4,0.55"
+    "body_color": [
+     "0.3",
+     "0.4",
+     "0.55"
+    ]
    },
    "stats": {
     "perception.view_distance": 110.0,
@@ -190,7 +202,11 @@
     "backpack": "satchel",
     "pocket_table": "body_scav",
     "loots_corpses": "FALSE",
-    "body_color": "0.45,0.5,0.3"
+    "body_color": [
+     "0.45",
+     "0.5",
+     "0.3"
+    ]
    },
    "stats": {
     "perception.view_distance": 100.0,

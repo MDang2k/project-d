@@ -3,7 +3,7 @@ using Godot;
 
 namespace ProjectD;
 
-/// <summary>Vision and hearing numbers for one AI (GDD s16). Filled from an <c>AiPreset</c>.</summary>
+/// <summary>Vision and hearing numbers for one AI (GDD s16). Filled from the actor stats (<c>ActorTuning</c>).</summary>
 public sealed record PerceptionTuning(
 	/// <summary>Sight range in metres on a standing, moderately moving, fully lit target.</summary>
 	float ViewDistance,

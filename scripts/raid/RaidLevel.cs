@@ -144,9 +144,11 @@ public partial class RaidLevel : Node3D
 		var n = 0;
 		foreach (var point in points)
 		{
-			var preset = GD.Load<AiPreset>($"res://data/ai/{point.PresetId}.tres");
-			if (preset is null)
+			if (!ActorDb.Catalog.Has(point.PresetId))
+			{
+				GD.PushWarning($"[Raid] spawn point uses unknown actor '{point.PresetId}'");
 				continue;
+			}
 			var centre = Snap(map, point.GlobalPosition);
 			var loop = new Vector3[4];
 			for (var i = 0; i < loop.Length; i++)
@@ -158,7 +160,7 @@ public partial class RaidLevel : Node3D
 			var ai = new AiHuman
 			{
 				Name = $"{point.PresetId}_{++n}",
-				Preset = preset,
+				Actor = ActorDb.Create(point.PresetId),
 				PatrolPoints = loop,
 				Position = centre + Vector3.Up * 0.1f,
 				Rotation = new Vector3(0f, GD.Randf() * Mathf.Tau, 0f),
@@ -215,7 +217,7 @@ public partial class RaidLevel : Node3D
 			$"loot={GetTree().GetNodesInGroup("loot_containers").Count} navpolys={polys} raid={Raid.IsRunning} " +
 			$"bots={GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Count()} " +
 			string.Join(" ", GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Select(b => $"[{b.GlobalPosition.X:0},{b.GlobalPosition.Z:0}]")) + " " +
-			string.Join(",", GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Select(a => $"{a.Preset?.Id}:{a.Brain.State}")) + " " +
+			string.Join(",", GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Select(a => $"{a.ActorId}:{a.Brain.State}")) + " " +
 			$"player={Player.GlobalPosition.X:0},{Player.GlobalPosition.Z:0}");
 	}
 

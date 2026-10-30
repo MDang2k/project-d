@@ -17,6 +17,7 @@ public partial class AiHuman
 	private CombatTactics _tactics = null!;
 	private AiBurstFire _burst = null!;
 	private AimTuning _aim = AimTuning.Default;
+	private MedicalData? _healItem;
 	private readonly Random _rng = new();
 	private ProjectileManager? _projectiles;
 	private readonly Array<Rid> _ownRids = new();
@@ -42,10 +43,12 @@ public partial class AiHuman
 
 	private void InitCombat()
 	{
-		_tactics = new CombatTactics(Preset!.ToTacticsTuning(), _rng);
-		var rpm = Preset.Weapon?.RoundsPerMinute ?? 600f;
-		_burst = new AiBurstFire(rpm, Preset.BurstMin, Preset.BurstMax, Preset.BurstPauseMinS,
-			Preset.BurstPauseMaxS, Preset.ReactionS, _rng);
+		_tactics = new CombatTactics(ActorTuning.Tactics(Actor!.Stats), _rng);
+		_healItem = ActorDb.Medical(Def.Text("heal_item"));
+		_aim = ActorTuning.Aim(Actor.Stats);
+		var rpm = ActorDb.Weapon(Def.Text("weapon"))?.RoundsPerMinute ?? 600f;
+		_burst = new AiBurstFire(rpm, SInt(Stats.Fire.BurstMin), SInt(Stats.Fire.BurstMax), S(Stats.Fire.BurstPauseMinS),
+			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS), _rng);
 		_burst.BurstFinished += () => _tactics.OnBurstFinished();
 		Brain.StateChanged += (_, next) =>
 		{
@@ -124,7 +127,7 @@ public partial class AiHuman
 		}
 
 		var situation = new CombatSituation(sees, distance, Perception.SecondsSinceCue, Injury(), _suppression,
-			_coverPoint is not null, _arrived, Preset!.HealItem is not null, _healed,
+			_coverPoint is not null, _arrived, _healItem is not null, _healed,
 			PartnerIsEngaged(), _flankPoint is not null);
 		_tactics.Update(delta, situation);
 		if (_tactics.State != _lastTactic)
@@ -133,13 +136,13 @@ public partial class AiHuman
 			_lastTactic = _tactics.State;
 		}
 
-		var plan = new CombatPlan(null, Preset.RunSpeed, faceTarget, false);
+		var plan = new CombatPlan(null, S(Stats.Move.RunSpeed), faceTarget, false);
 		_wantsFire = false;
 		switch (_tactics.State)
 		{
 			case TacticState.Advance:
 				plan = plan with { Destination = target, FaceYaw = null };
-				_wantsFire = sees && distance <= Preset.EngageDistance * 1.2f;
+				_wantsFire = sees && distance <= S(Stats.Tactics.EngageDistance) * 1.2f;
 				break;
 			case TacticState.Shoot:
 				_wantsFire = sees;
@@ -151,10 +154,10 @@ public partial class AiHuman
 				plan = plan with { Destination = _coverPoint, FaceYaw = null };
 				break;
 			case TacticState.Hide:
-				plan = plan with { Destination = _coverPoint, Crouch = true, Speed = Preset.WalkSpeed };
+				plan = plan with { Destination = _coverPoint, Crouch = true, Speed = S(Stats.Move.WalkSpeed) };
 				break;
 			case TacticState.Peek:
-				plan = plan with { Destination = _peekPoint ?? _coverPoint, Speed = Preset.WalkSpeed };
+				plan = plan with { Destination = _peekPoint ?? _coverPoint, Speed = S(Stats.Move.WalkSpeed) };
 				_wantsFire = sees;
 				break;
 			case TacticState.Suppress:
@@ -188,7 +191,7 @@ public partial class AiHuman
 			_healed = false;
 			_coverRefresh = 0f;
 		}
-		if (state == TacticState.Heal && !_healStarted && Preset!.HealItem is { } item)
+		if (state == TacticState.Heal && !_healStarted && _healItem is { } item)
 		{
 			_healStarted = Health.UseMedical(item);
 			if (!_healStarted)
@@ -294,7 +297,7 @@ public partial class AiHuman
 		var distance = away.Length();
 		if (distance < 1f)
 			return null;
-		var radius = Mathf.Clamp(distance * 0.8f, 10f, Preset!.EngageDistance);
+		var radius = Mathf.Clamp(distance * 0.8f, 10f, S(Stats.Tactics.EngageDistance));
 		var dir = away.Normalized();
 		foreach (var sign in new[] { 1f, -1f })
 		{
@@ -342,7 +345,7 @@ public partial class AiHuman
 		if (_projectiles is null)
 			return;
 		var to = _aimPoint - position;
-		var spread = AiAim.SpreadDeg(_aim, Preset!.Accuracy, to.Length(), PerceivedSpeedFraction, _suppression);
+		var spread = AiAim.SpreadDeg(_aim, S(Stats.Aim.Accuracy), to.Length(), PerceivedSpeedFraction, _suppression);
 		var dir = AiAim.Jitter(to, spread, () => (float)_rng.NextDouble());
 		// the gun and ammo themselves, in MOA, on top of the shooter skill spread
 		dir = Dispersion.Apply(dir, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), () => (float)_rng.NextDouble());
