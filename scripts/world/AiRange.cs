@@ -203,6 +203,7 @@ public partial class AiRange : Node3D
 			var d = ai.GlobalPosition.DistanceTo(_player.GlobalPosition);
 			sb.AppendLine($"{ai.ActorId,-11} {d,5:0} m  {ai.Perception.Level,-10} {ai.Perception.Awareness * 100f,3:0}%  {ai.LastCue}");
 		}
+		sb.AppendLine(PerfLine());
 		if (_raid is { IsRunning: true } r)
 			sb.AppendLine($"raid {r.Session.RemainingS:0}s left  extract {r.Session.ExtractProgress * 100f:0}%");
 		else if (_raid is not null)
@@ -225,6 +226,28 @@ public partial class AiRange : Node3D
 		_raid.Start(_player);
 	}
 
+	/// <summary>One line of AI cost: bots per band, rays per frame, AI milliseconds per frame, sweeps per frame.</summary>
+	private string PerfLine()
+	{
+		var bots = GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Where(a => a.IsAlive).ToList();
+		int Count(AiBand b) => bots.Count(a => a.Band == b);
+		return $"AI cost: {bots.Count} bots (combat {Count(AiBand.Combat)} / aware {Count(AiBand.Awareness)} / dormant {Count(AiBand.Dormant)})  "
+			+ $"rays {AiPerf.RaysAverage:0}/frame  sweeps {AiPerf.SweepsLastFrame}  AI {AiPerf.MsAverage:0.00} ms/frame";
+	}
+
+	/// <summary>Dev (--crowd=N): N more AI on the navmesh spread over the range, mixed factions, to measure the cost.</summary>
+	private void SpawnCrowd(int count)
+	{
+		var rng = new System.Random(42);
+		for (var i = 0; i < count; i++)
+		{
+			var at = new Vector3((float)(rng.NextDouble() * 160.0 - 80.0), 0.1f, (float)(-rng.NextDouble() * 200.0));
+			var snapped = NavigationServer3D.MapGetClosestPoint(_nav.GetNavigationMap(), at);
+			var patrol = new[] { snapped, snapped + new Vector3(8f, 0f, 0f), snapped + new Vector3(8f, 0f, -8f) };
+			SpawnAi(PresetIds[i % PresetIds.Length], snapped + Vector3.Up * 0.1f, (float)(rng.NextDouble() * 360.0), patrol, "_c" + i);
+		}
+	}
+
 	/// <summary>Dev: three foliage volumes in a row across the line of sight, to test sight through bushes.</summary>
 	private void AddBushRow(Vector3 at)
 	{
@@ -242,6 +265,7 @@ public partial class AiRange : Node3D
 		var wait = 0.0;
 		var fire = 0.0;
 		var report = false;
+		var crowdCount = 0;
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--shot="))
@@ -261,6 +285,8 @@ public partial class AiRange : Node3D
 				CorpseSpawner.Spawn(this, new Vector3(cx, 0f, cz), new[] { "flak_vest_t1" });
 			else if (arg.StartsWith("--raid=") && float.TryParse(arg["--raid=".Length..], out var raidSeconds))
 				StartTestRaid(raidSeconds);
+			else if (arg.StartsWith("--crowd=") && int.TryParse(arg["--crowd=".Length..], out var crowd))
+				crowdCount = crowd;
 			else if (arg == "--dark")
 				AddChild(new LightZone { Level = LightLevel.Dark, Size = new Vector3(400f, 30f, 400f) });
 			else if (arg.StartsWith("--bushes=") && arg["--bushes=".Length..].Split(',') is { Length: 2 } bp
@@ -320,6 +346,13 @@ public partial class AiRange : Node3D
 				}
 			}
 		}
+		if (crowdCount > 0)
+		{
+			// the navmesh joins the navigation map after a few physics frames
+			for (var i = 0; i < 10; i++)
+				await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+			SpawnCrowd(crowdCount);
+		}
 		if (wait > 0.0)
 			await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
 		if (report)
@@ -327,8 +360,10 @@ public partial class AiRange : Node3D
 			var b = _player.Health.Body;
 			GD.Print($"PLAYER maxCamStep={_player.MaxCameraYStep:0.000} pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Y:0.00},{_player.GlobalPosition.Z:0.00} dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
-				GD.Print($"AI {ai.ActorId}/{ai.Archetype}/{ai.Action} state={ai.Brain.State}/{ai.CombatState} squad={ai.SquadLabel} underfire={ai.UnderFirePhase} cover={ai.CoverKind} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
+				GD.Print($"AI {ai.ActorId}/{ai.Archetype}/{ai.Action} band={ai.Band} state={ai.Brain.State}/{ai.CombatState} squad={ai.SquadLabel} underfire={ai.UnderFirePhase} cover={ai.CoverKind} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
 		}
+		if (report)
+			GD.Print($"PERF {PerfLine()} peakRays={AiPerf.PeakRays}");
 		if (shot is null)
 		{
 			if (report)

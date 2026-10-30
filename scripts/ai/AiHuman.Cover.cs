@@ -9,7 +9,6 @@ namespace ProjectD;
 /// </summary>
 public partial class AiHuman
 {
-	private const int SweepRays = 32;
 
 	private CoverClass _coverClass = CoverClass.Standing;
 	private float _lean;
@@ -36,7 +35,7 @@ public partial class AiHuman
 	{
 		var above = hit + dir * 0.15f + Vector3.Up * 2.5f;
 		var q = PhysicsRayQueryParameters3D.Create(above, above + Vector3.Down * 3f, 1u);
-		var r = GetWorld3D().DirectSpaceState.IntersectRay(q);
+		var r = Cast(q);
 		return r.Count > 0 ? ((Vector3)r["position"]).Y - floorY : 2.5f;
 	}
 
@@ -62,7 +61,7 @@ public partial class AiHuman
 		var threatEye = new Vector3(threat.X, Mathf.Max(threat.Y, me.Y + 1.4f), threat.Z);
 		var myThreatDist = me.DistanceTo(threat);
 		var radius = S(Stats.Cover.SearchM);
-		var space = GetWorld3D().DirectSpaceState;
+		var rays = System.Math.Max(8, AiTickBands.CoverRays(BandTuning, _band));
 		Vector3? best = null;
 		var bestClass = CoverClass.Standing;
 		var bestScore = float.MaxValue;
@@ -94,12 +93,12 @@ public partial class AiHuman
 		}
 
 		Consider(me, CoverClass.None); // standing where it is may already hide it
-		for (var i = 0; i < SweepRays; i++)
+		for (var i = 0; i < rays; i++)
 		{
-			var a = Mathf.Tau * i / SweepRays;
+			var a = Mathf.Tau * i / rays;
 			var dir = new Vector3(Mathf.Sin(a), 0f, Mathf.Cos(a));
 			var from = me + Vector3.Up * CoverRules.ProneMinHeight;
-			var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(from, from + dir * radius, 1u));
+			var hit = Cast(PhysicsRayQueryParameters3D.Create(from, from + dir * radius, 1u));
 			if (hit.Count == 0)
 				continue;
 			var point = (Vector3)hit["position"];
@@ -158,6 +157,13 @@ public partial class AiHuman
 		_hitboxRoot.Position = new Vector3(offset, _hitboxRoot.Position.Y, _hitboxRoot.Position.Z);
 		if (_bodyMesh is not null)
 			_bodyMesh.Position = new Vector3(offset, _bodyMesh.Position.Y, _bodyMesh.Position.Z);
+		PlaceWeapon();
+	}
+
+	private void PlaceWeapon()
+	{
+		if (Weapon is { } w)
+			w.Position = new Vector3(0.18f + LeanOffset, 1.2f * _crouchScale, -0.2f);
 	}
 
 	private float LeanOffset => _lean * S(Stats.Cover.LeanM);

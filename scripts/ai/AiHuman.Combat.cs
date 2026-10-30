@@ -192,8 +192,14 @@ public partial class AiHuman
 		_coverRefresh -= delta;
 		if (_coverRefresh <= 0f)
 		{
-			_coverRefresh = CoverRefreshS;
-			RefreshPoints(target, retreat: _tactics.State is TacticState.Retreat);
+			// the budget caps sweeps across all AI in a frame; a bot that is refused tries again next frame
+			if (AiPerf.TryBeginSweep(Frame, BandTuning))
+			{
+				_coverRefresh = CoverRefreshS;
+				RefreshPoints(target, retreat: _tactics.State is TacticState.Retreat);
+			}
+			else
+				_coverRefresh = 0.02f;
 		}
 
 		var situation = new CombatSituation(sees, distance, Perception.SecondsSinceCue, Injury(), _suppression,
@@ -374,9 +380,9 @@ public partial class AiHuman
 
 	private bool PartnerIsEngaged()
 	{
-		foreach (var node in GetTree().GetNodesInGroup("perceivables"))
+		foreach (var node in Perceivables())
 		{
-			if (node is AiHuman other && !ReferenceEquals(other, this) && other.Faction == Faction
+			if (IsInstanceValid(node) && node is AiHuman other && !ReferenceEquals(other, this) && other.Faction == Faction
 				&& other.IsAlive && other.GlobalPosition.DistanceTo(GlobalPosition) < 35f
 				&& other.CombatState is TacticState.Shoot or TacticState.Suppress or TacticState.Peek
 					or TacticState.Hide)
@@ -398,8 +404,7 @@ public partial class AiHuman
 
 	private bool Blocked(Vector3 from, Vector3 to)
 	{
-		var q = PhysicsRayQueryParameters3D.Create(from, to, 1u);
-		return GetWorld3D().DirectSpaceState.IntersectRay(q).Count > 0;
+		return Cast(PhysicsRayQueryParameters3D.Create(from, to, 1u)).Count > 0;
 	}
 
 	/// <summary>A spot about 70 degrees around the target with a clear line to it.</summary>
@@ -505,13 +510,14 @@ public partial class AiHuman
 	{
 		var target = prone ? 0.35f : crouch ? 0.65f : 1f;
 		var next = Mathf.MoveToward(_crouchScale, target, 3f * delta);
+		if (next == _crouchScale)
+			return; // nothing to move: the hitbox walk below is not free
 		_crouchScale = next;
 		HitboxRig.SetHeightScale(_hitboxRoot, next);
 		if (_bodyMesh is not null)
 			_bodyMesh.Scale = new Vector3(1f, next, 1f);
 		_crouching = next < 0.85f;
 		_prone = next < 0.5f;
-		if (Weapon is { } w)
-			w.Position = new Vector3(0.18f + LeanOffset, 1.2f * next, -0.2f);
+		PlaceWeapon();
 	}
 }

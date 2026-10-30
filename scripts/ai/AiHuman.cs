@@ -131,6 +131,8 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		NoiseBus.Noise += OnNoise;
 		InitCombat();
 		JoinSquad();
+		StaggerTicks();
+		Health.HitTaken += _ => Wake();
 	}
 
 	public override void _ExitTree()
@@ -224,7 +226,11 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		// Ignore own noise, including the search of the body being looted right now.
 		if (!ReferenceEquals(e.Source, this) && !ReferenceEquals(e.Source, _lootTarget)
 			&& Health is { IsDead: false })
+		{
 			_noises.Add(e);
+			if (e.Position.DistanceTo(GlobalPosition) <= e.Radius)
+				Wake();
+		}
 	}
 
 	public override void _PhysicsProcess(double deltaD)
@@ -254,8 +260,19 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			return;
 		}
 
+		UpdateBand(delta);
+		_thinkAccS += delta;
+		if (_thinkAccS < AiTickBands.ThinkIntervalS(BandTuning, _band))
+		{
+			Coast(delta);
+			return;
+		}
+		delta = _thinkAccS;
+		_thinkAccS = 0f;
+		var started = System.Diagnostics.Stopwatch.GetTimestamp();
+
 		_tickAcc += delta;
-		if (_tickAcc >= TickS)
+		if (_tickAcc >= AiTickBands.SenseIntervalS(BandTuning, _band))
 		{
 			PerceiveTick(_tickAcc);
 			_tickAcc = 0f;
@@ -266,6 +283,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Move(delta);
 		UpdateLooting();
 		UpdateLabel();
+		AiPerf.AddMs(Frame, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
 	}
 
 	private bool _arrived;
@@ -473,7 +491,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var skip = new Godot.Collections.Array<Rid>();
 		for (var i = 0; i < 6; i++)
 		{
-			var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, FoliageVolume.Layer, skip));
+			var hit = Cast(PhysicsRayQueryParameters3D.Create(from, to, FoliageVolume.Layer, skip));
 			if (hit.Count == 0)
 				break;
 			found.Add(hit["collider"].AsGodotObject() is FoliageVolume f ? f.Opacity : PerceptionEnvironment.DefaultFoliageOpacity);
@@ -489,7 +507,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var skip = new Godot.Collections.Array<Rid> { GetRid() };
 		for (var i = 0; i < 6; i++)
 		{
-			var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, 1u, skip));
+			var hit = Cast(PhysicsRayQueryParameters3D.Create(from, to, 1u, skip));
 			if (hit.Count == 0)
 				break;
 			var body = hit["collider"].AsGodotObject();
@@ -512,12 +530,15 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var bestName = "";
 		var space = GetWorld3D().DirectSpaceState;
 		var hasFoliage = GetTree().GetNodeCountInGroup("foliage") > 0;
-		foreach (var node in GetTree().GetNodesInGroup("perceivables"))
+		var visionPoints = AiTickBands.VisionPoints(_band);
+		foreach (var node in visionPoints == 0 ? System.Array.Empty<Node>() : Perceivables())
 		{
-			if (node is not IPerceivable other || ReferenceEquals(node, this) || !other.IsAlive
+			if (!IsInstanceValid(node) || node is not IPerceivable other || ReferenceEquals(node, this) || !other.IsAlive
 				|| !FactionRelations.IsHostile(Faction, other.Faction))
 				continue;
-			var points = other.BodyPoints();
+			if (node is Node3D far && far.GlobalPosition.DistanceTo(GlobalPosition) > _tuning.ViewDistance * 1.5f)
+				continue; // cheap cull before any array or ray
+			var points = other.BodyPoints()[..visionPoints];
 			var center = points[1];
 			var to = center - eye;
 			var distance = to.Length();
@@ -527,18 +548,27 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			var angle = flat.LengthSquared() < 0.0001f
 				? 0f
 				: Mathf.RadToDeg(forward.AngleTo(flat.Normalized()));
-			var visible = 0f;
-			foreach (var p in points)
-			{
-				var q = PhysicsRayQueryParameters3D.Create(eye, p, 1u,
-					new Godot.Collections.Array<Rid> { GetRid(), other.BodyRid });
-				if (space.IntersectRay(q).Count == 0)
-					visible += hasFoliage ? PerceptionEnvironment.FoliageVisibility(FoliageOpacities(space, eye, p)) : 1f;
-			}
 			var light = PerceptionEnvironment.LightFactor(LightZone.At(GetTree(), center));
-			var strength = PerceptionModel.VisionStrength(_tuning, distance, angle,
-				new TargetProfile(other.PerceivedStance, other.PerceivedSpeedFraction),
-				visible / points.Length, light);
+			var profile = new TargetProfile(other.PerceivedStance, other.PerceivedSpeedFraction);
+			// the best a fully visible target could be seen; nothing to ray-cast when even that is nothing
+			if (PerceptionModel.VisionStrength(_tuning, distance, angle, profile, 1f, light) <= 0f)
+				continue;
+			var ignore = new Godot.Collections.Array<Rid> { GetRid(), other.BodyRid };
+			var visible = 0f;
+			var centerSeen = false;
+			for (var i = 0; i < points.Length; i++)
+			{
+				// centre mass first: with no line to it, a mid-range AI does not bother with the other points
+				var p = points[(i + 1) % points.Length];
+				if (i == 1 && !centerSeen && _band != AiBand.Combat)
+					break;
+				if (Cast(PhysicsRayQueryParameters3D.Create(eye, p, 1u, ignore)).Count != 0)
+					continue;
+				visible += hasFoliage ? PerceptionEnvironment.FoliageVisibility(FoliageOpacities(space, eye, p)) : 1f;
+				if (i == 0)
+					centerSeen = true;
+			}
+			var strength = PerceptionModel.VisionStrength(_tuning, distance, angle, profile, visible / points.Length, light);
 			if (strength > best)
 			{
 				best = strength;

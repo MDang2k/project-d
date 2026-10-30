@@ -30,6 +30,8 @@ public partial class LightZone : Node3D
 	/// <summary>Light a point is in: the smallest zone around it, lit when none.</summary>
 	public static LightLevel At(SceneTree tree, Vector3 world)
 	{
+		if (tree.GetNodeCountInGroup("light_zones") == 0)
+			return LightLevel.Lit;
 		LightZone? best = null;
 		foreach (var node in tree.GetNodesInGroup("light_zones"))
 		{

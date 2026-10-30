@@ -31,16 +31,23 @@ public static class ActorDb
 	public static MedicalData? Medical(string id) => Find<MedicalData>("items", id);
 	public static LootTable? Pockets(string id) => Find<LootTable>("loot", id);
 
+	// Held for the life of the game: when nothing referenced a loaded resource its C# wrapper could be finalized just
+	// as the next spawn loaded the same file again, which aborts in Godot's script bridge.
+	private static readonly System.Collections.Generic.Dictionary<string, Resource?> Loaded = new();
+
 	private static T? Find<T>(string folder, string id) where T : Resource
 	{
 		if (id == "")
 			return null;
 		var path = $"res://data/{folder}/{id}.tres";
-		if (!ResourceLoader.Exists(path))
-		{
+		if (Loaded.TryGetValue(path, out var cached))
+			return cached as T;
+		Resource? found = null;
+		if (ResourceLoader.Exists(path))
+			found = GD.Load<T>(path);
+		else
 			GD.PushWarning($"[ActorDb] {path} not found");
-			return null;
-		}
-		return GD.Load<T>(path);
+		Loaded[path] = found;
+		return found as T;
 	}
 }
