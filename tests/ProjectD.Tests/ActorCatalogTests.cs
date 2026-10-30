@@ -166,3 +166,84 @@ public class ActorPhase4Tests
 		Assert.Equal(before, inst.Stats.Get(Stats.Awareness.NoticeS));
 	}
 }
+
+public class LoadoutTests
+{
+	private const string Json = """
+	{"actors":[
+	 {"id":"grunt","parent":"","name":"g","kind":"actor","faction":"Bandits","tags":[],"sets":[],"props":{},"stats":{},"links":{"loadout_faction":"Bandits","loadout_tier":"2"},"notes":""},
+	 {"id":"fixed","parent":"","name":"f","kind":"actor","faction":"Bandits","tags":[],"sets":[],"props":{"weapon":["pistol"],"armor":["steel_helmet_t1"],"rig":["light_rig"]},"stats":{},"links":{"loadout_faction":"Bandits","loadout_tier":"2"},"notes":""},
+	 {"id":"bare","parent":"","name":"b","kind":"actor","faction":"Looters","tags":[],"sets":[],"props":{},"stats":{},"links":{},"notes":""}],
+	 "modifier_sets":{},
+	 "loadouts":{"Bandits":{"1":{"Primary":[{"item":"ak_type","weight":1}],"Vest":[{"item":"flak_vest_t1","weight":1}]},
+	                         "2":{"Primary":[{"item":"fal_type","weight":1}],"Rig":[{"item":"field_rig","weight":1}]}}}}
+	""";
+
+	private static readonly ActorCatalog Catalog = ActorCatalog.Parse(Json);
+
+	[Fact]
+	public void BlankSlotsAreRolledFromTheTierTable()
+	{
+		var l = Catalog.Loadouts.Resolve(Catalog.Get("grunt"), null, new Random(1));
+		Assert.Equal(new[] { "fal_type" }, l.Weapons);
+		Assert.Equal("field_rig", l.Rig);
+	}
+
+	[Fact]
+	public void MissingSlotAtATierFallsBackToTheNearestLowerTier()
+	{
+		var l = Catalog.Loadouts.Resolve(Catalog.Get("grunt"), null, new Random(1));
+		Assert.Equal(new[] { "flak_vest_t1" }, l.Armor); // no Vest row at tier 2, tier 1 has one
+	}
+
+	[Fact]
+	public void SpawnerTierOverridesTheActorsOwn()
+	{
+		var l = Catalog.Loadouts.Resolve(Catalog.Get("grunt"), 1, new Random(1));
+		Assert.Equal(new[] { "ak_type" }, l.Weapons);
+		Assert.Equal("", l.Rig);
+	}
+
+	[Fact]
+	public void CellsFilledOnTheActorWin()
+	{
+		var l = Catalog.Loadouts.Resolve(Catalog.Get("fixed"), null, new Random(1));
+		Assert.Equal(new[] { "pistol" }, l.Weapons);
+		Assert.Equal(new[] { "steel_helmet_t1" }, l.Armor);
+		Assert.Equal("light_rig", l.Rig);
+	}
+
+	[Fact]
+	public void ActorWithoutALoadoutFactionRollsNothing()
+	{
+		var l = Catalog.Loadouts.Resolve(Catalog.Get("bare"), 3, new Random(1));
+		Assert.Empty(l.Weapons);
+		Assert.Empty(l.Armor);
+	}
+
+	[Fact]
+	public void WeightsDecideThePick()
+	{
+		var json = Json.Replace("\"Primary\":[{\"item\":\"fal_type\",\"weight\":1}]", "\"Primary\":[{\"item\":\"fal_type\",\"weight\":1},{\"item\":\"ak_type\",\"weight\":3}]");
+		var table = ActorCatalog.Parse(json).Loadouts;
+		var rng = new Random(7);
+		var ak = Enumerable.Range(0, 1000).Count(_ => table.Pick("Bandits", 2, "Primary", rng) == "ak_type");
+		Assert.InRange(ak, 700, 800);
+	}
+
+	[Fact]
+	public void TheExportedTablesOnlyNameGameResources()
+	{
+		var dir = AppContext.BaseDirectory;
+		while (dir != null && !File.Exists(Path.Combine(dir, "Project D.csproj")))
+			dir = Path.GetDirectoryName(dir);
+		var have = Directory.GetFiles(Path.Combine(dir!, "data"), "*.tres", SearchOption.AllDirectories)
+			.Select(Path.GetFileNameWithoutExtension).ToHashSet();
+		var real = ActorCatalog.Parse(File.ReadAllText(Path.Combine(dir!, "data/actors/actors.json"))).Loadouts;
+		foreach (var faction in new[] { "Bandits", "Allied PMC", "Soviet PMC" })
+			foreach (var slot in new[] { "Primary", "Vest", "Helmet" })
+				foreach (var row in real.Rows(faction, 3, slot))
+					Assert.Contains(row.Item, have);
+		Assert.NotEmpty(real.Rows("Bandits", 2, "Primary"));
+	}
+}

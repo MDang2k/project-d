@@ -208,6 +208,6 @@ Total for the foundation (phases 0 to 4): about 6 to 7 working days, mostly pure
 | 2 Sheets, generator, catalog | **Done** (2026-10-30) |
 | 3 Migrate the AI, no behaviour change | Done (2026-10-30) except deleting AiPreset and data/ai, kept as the golden-test oracle until playtest |
 | 4 Modifier sources and debug view | Done (2026-10-30) except suppression and injury as modifiers (need designer numbers) |
-| 5 Catalog integration | Not started |
+| 5 Catalog integration | Done (2026-10-30) |
 | 6 AI combat v2 on top | Not started (separate plan) |
 | 7 Player skills and player stats | Not started (with M8a) |

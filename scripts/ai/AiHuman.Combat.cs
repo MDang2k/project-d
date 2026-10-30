@@ -46,7 +46,7 @@ public partial class AiHuman
 		_tactics = new CombatTactics(ActorTuning.Tactics(Actor!.Stats), _rng);
 		_healItem = ActorDb.Medical(Def.Text("heal_item"));
 		_aim = ActorTuning.Aim(Actor.Stats);
-		var rpm = ActorDb.Weapon(Def.Text("weapon"))?.RoundsPerMinute ?? 600f;
+		var rpm = _weaponData?.RoundsPerMinute ?? 600f;
 		_burst = new AiBurstFire(rpm, SInt(Stats.Fire.BurstMin), SInt(Stats.Fire.BurstMax), S(Stats.Fire.BurstPauseMinS),
 			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS), _rng);
 		_burst.BurstFinished += () => _tactics.OnBurstFinished();

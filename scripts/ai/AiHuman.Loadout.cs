@@ -24,9 +24,9 @@ public partial class AiHuman
 			var slot = worn.Spec.Category == ItemCategory.Helmet ? EquipSlot.Head : EquipSlot.Vest;
 			inv.TryEquip(worn, slot);
 		}
-		if (Def.Text("rig") != "" && ItemDb.Create(Def.Text("rig")) is { } rig)
+		if (_loadout.Rig != "" && ItemDb.Create(_loadout.Rig) is { } rig)
 			inv.TryEquip(rig, EquipSlot.Rig);
-		if (Def.Text("backpack") != "" && _rng.NextDouble() <= S(Stats.Carry.BackpackChance) && ItemDb.Create(Def.Text("backpack")) is { } pack)
+		if (_loadout.Backpack != "" && _rng.NextDouble() <= S(Stats.Carry.BackpackChance) && ItemDb.Create(_loadout.Backpack) is { } pack)
 			inv.TryEquip(pack, EquipSlot.Backpack);
 		if (_rng.NextDouble() < 0.5 && ItemDb.Create("combat_knife") is { } knife)
 			inv.TryEquip(knife, EquipSlot.Melee);

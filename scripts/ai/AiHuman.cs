@@ -349,6 +349,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private Color BodyColor()
 		=> ActorTuning.ParseColor(Def.List("body_color")) is { } c ? new Color(c.R, c.G, c.B) : new Color(0.45f, 0.4f, 0.3f);
 
+	private ResolvedLoadout _loadout = new(System.Array.Empty<string>(), System.Array.Empty<string>(), "", "");
 	private WeaponData? _weaponData;
 	private readonly List<string> _wornIds = new();
 	private LootContainer? _lootTarget;
@@ -358,10 +359,11 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private void RollLoadout()
 	{
 		var rng = new System.Random();
-		var choices = Def.List("weapon_choices");
-		_weaponData = ActorDb.Weapon(choices.Count > 0 ? choices[rng.Next(choices.Count)] : Def.Text("weapon"));
+		_loadout = ActorDb.Catalog.Loadouts.Resolve(Def, Actor!.Tier, rng);
+		var choices = _loadout.Weapons;
+		_weaponData = choices.Count > 0 ? ActorDb.Weapon(choices[rng.Next(choices.Count)]) : null;
 		_wornIds.Clear();
-		foreach (var armorId in Def.List("armor"))
+		foreach (var armorId in _loadout.Armor)
 		{
 			if (rng.NextDouble() > S(Stats.Loadout.ArmorChance) || ActorDb.Armor(armorId) is not { } a)
 				continue;

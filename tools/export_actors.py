@@ -6,7 +6,9 @@ Rows are written as authored (only filled cells); inheritance from Parent is res
 Fails on unknown parents, cycles, unknown stat ids, bad ops and unparseable numbers so mistakes stop at commit time.
 """
 import csv
+import glob
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -27,6 +29,43 @@ OPS = {"add", "pct", "min", "max", "set"}
 
 def split(text):
     return [p.strip() for p in text.replace(",", ";").split(";") if p.strip()]
+
+
+SLOTS = {"Primary", "Pistol", "Vest", "Helmet", "Rig", "Backpack"}
+
+
+def game_ids():
+    """Ids that have a resource under data/ (items/defs holds the item definitions, the rest the typed data)."""
+    return {Path(f).stem for f in glob.glob(str(ROOT / "data" / "**" / "*.tres"), recursive=True)}
+
+
+def build_loadouts():
+    """Faction Loadouts rows the game can use today: Slice items with a resource, by catalog id or the
+    'Exists as' alias in the item's Notes (akm -> ak_type). Result: {faction: {tier: {slot: [{item, weight}]}}}."""
+    info = {}
+    for f in glob.glob(str(CATALOG / "*.csv")):
+        if Path(f).name in ("faction_loadouts.csv", "actors.csv", "modifier_sets.csv", "bosses.csv"):
+            continue
+        for r in csv.DictReader(open(f, newline="", encoding="utf-8")):
+            if r.get("Id"):
+                info[r["Id"]] = r
+    have = game_ids()
+    out, skipped = {}, 0
+    with open(CATALOG / "faction_loadouts.csv", newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r["Slot"] not in SLOTS:
+                continue
+            row = info.get(r["Item id"])
+            game = None
+            if row and row.get("Phase") == "Slice":
+                alias = re.search(r"Exists as '(\w+)'", row.get("Notes", ""))
+                game = alias.group(1) if alias else r["Item id"]
+            if game not in have:
+                skipped += 1
+                continue
+            out.setdefault(r["Faction"], {}).setdefault(r["Tier"], {}).setdefault(r["Slot"], []).append(
+                {"item": game, "weight": float(r["Weight"] or 1)})
+    return out, skipped
 
 
 def main():
@@ -105,12 +144,15 @@ def main():
             if s not in sets:
                 errors.append(f"{a['id']}: unknown modifier set {s!r}")
 
+    loadouts, skipped = build_loadouts()
+
     if errors:
         print("\n".join(errors), file=sys.stderr)
         sys.exit(1)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({"actors": actors, "modifier_sets": sets}, indent=1) + "\n", encoding="utf-8")
-    print(f"wrote {len(actors)} actors, {len(sets)} modifier sets to {OUT.relative_to(ROOT)}")
+    OUT.write_text(json.dumps({"actors": actors, "modifier_sets": sets, "loadouts": loadouts}, indent=1) + "\n", encoding="utf-8")
+    rows = sum(len(items) for tiers in loadouts.values() for slots in tiers.values() for items in slots.values())
+    print(f"wrote {len(actors)} actors, {len(sets)} modifier sets, {rows} loadout rows ({skipped} skipped: not Slice or no game resource) to {OUT.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

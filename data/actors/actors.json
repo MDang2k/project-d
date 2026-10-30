@@ -549,5 +549,255 @@
     "value": 0.1
    }
   ]
+ },
+ "loadouts": {
+  "Bandits": {
+   "1": {
+    "Primary": [
+     {
+      "item": "ak_type",
+      "weight": 4.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t1",
+      "weight": 1.0
+     }
+    ]
+   },
+   "2": {
+    "Primary": [
+     {
+      "item": "ak_type",
+      "weight": 5.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t1",
+      "weight": 2.0
+     }
+    ]
+   },
+   "3": {
+    "Primary": [
+     {
+      "item": "ak_type",
+      "weight": 6.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t1",
+      "weight": 3.0
+     }
+    ]
+   }
+  },
+  "Allied PMC": {
+   "1": {
+    "Primary": [
+     {
+      "item": "fal_type",
+      "weight": 4.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t1",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t1",
+      "weight": 3.0
+     }
+    ]
+   },
+   "2": {
+    "Primary": [
+     {
+      "item": "fal_type",
+      "weight": 4.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t2",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t1",
+      "weight": 3.0
+     }
+    ]
+   },
+   "3": {
+    "Primary": [
+     {
+      "item": "fal_type",
+      "weight": 4.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t2",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t1",
+      "weight": 3.0
+     }
+    ]
+   }
+  },
+  "Soviet PMC": {
+   "1": {
+    "Primary": [
+     {
+      "item": "ak_type",
+      "weight": 5.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t2",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t2",
+      "weight": 3.0
+     }
+    ]
+   },
+   "2": {
+    "Primary": [
+     {
+      "item": "ak_type",
+      "weight": 5.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t2",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t2",
+      "weight": 3.0
+     }
+    ]
+   },
+   "3": {
+    "Primary": [
+     {
+      "item": "ak_type",
+      "weight": 5.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t2",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t2",
+      "weight": 3.0
+     }
+    ]
+   }
+  },
+  "Garrison holdouts": {
+   "1": {
+    "Vest": [
+     {
+      "item": "flak_vest_t1",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t1",
+      "weight": 3.0
+     }
+    ]
+   },
+   "2": {
+    "Primary": [
+     {
+      "item": "mg_type",
+      "weight": 1.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t2",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t1",
+      "weight": 3.0
+     }
+    ]
+   },
+   "3": {
+    "Primary": [
+     {
+      "item": "mg_type",
+      "weight": 1.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "flak_vest_t2",
+      "weight": 3.0
+     }
+    ],
+    "Helmet": [
+     {
+      "item": "steel_helmet_t1",
+      "weight": 3.0
+     }
+    ]
+   }
+  },
+  "Abteilung Ewig": {
+   "2": {
+    "Vest": [
+     {
+      "item": "prototype_vest_t4",
+      "weight": 3.0
+     }
+    ]
+   },
+   "3": {
+    "Primary": [
+     {
+      "item": "mg_type",
+      "weight": 1.0
+     }
+    ],
+    "Vest": [
+     {
+      "item": "prototype_vest_t4",
+      "weight": 3.0
+     }
+    ]
+   }
+  }
  }
 }

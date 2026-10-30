@@ -22,7 +22,7 @@ public sealed record ActorDef(
 }
 
 /// <summary>A live actor: its resolved definition and its stats with the modifier sets already applied.</summary>
-public sealed record ActorInstance(ActorDef Def, StatSet Stats);
+public sealed record ActorInstance(ActorDef Def, StatSet Stats, int? Tier = null);
 
 /// <summary>
 /// The actors exported from the catalog sheets (data/actors/actors.json). Pure logic: parse, resolve parents,
@@ -32,6 +32,8 @@ public sealed class ActorCatalog
 {
 	private readonly Dictionary<string, ActorDef> _actors = new();
 	private readonly Dictionary<string, List<StatModifier>> _sets = new();
+
+	public LoadoutTable Loadouts { get; private set; } = new();
 
 	public IEnumerable<ActorDef> Actors => _actors.Values;
 	public IReadOnlyCollection<string> SetNames => _sets.Keys;
@@ -64,7 +66,7 @@ public sealed class ActorCatalog
 			extra.Add($"tier_{t}");
 		if (act is { } a && _sets.ContainsKey($"act_{a}"))
 			extra.Add($"act_{a}");
-		return Create(id, extra);
+		return Create(id, extra) with { Tier = tier };
 	}
 
 	public static ActorCatalog Parse(string json)
@@ -81,6 +83,9 @@ public sealed class ActorCatalog
 					m.GetProperty("value").GetSingle(),
 					set.Name))
 				.ToList();
+
+		if (root.TryGetProperty("loadouts", out var loadouts))
+			catalog.Loadouts = LoadoutTable.Parse(loadouts);
 
 		var raw = root.GetProperty("actors").EnumerateArray().ToDictionary(a => a.GetProperty("id").GetString()!);
 		foreach (var (id, el) in raw)
