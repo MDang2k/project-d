@@ -637,7 +637,14 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_ => false,
 		};
 		if (started)
+		{
 			_pendingUse = item;
+			if (ItemDb.Data(item.Spec.Id)?.Payload is MedicalData med)
+			{
+				var cue = med.Kind == MedicalKind.SurgeryKit ? "surgery_start" : "heal";
+				NoiseBus.Emit(GlobalPosition, PerceptionEnvironment.CueRadius(cue), cue, this);
+			}
+		}
 		else
 			WeaponMessage?.Invoke(GameText.Get("msg.use.cannot"));
 		return started;
@@ -664,7 +671,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 			weapon.Controller.Store = new InventoryMagazineStore(Inventory.Inventory, data.Ammo?.Caliber,
 				Inventory.NotifyChanged, DropItemToWorld);
 		weapon.ShotFired += OnShotFired;
-		weapon.DryFired += () => WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
+		weapon.DryFired += () =>
+		{
+			WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
+			NoiseBus.Emit(weapon.GlobalPosition, PerceptionEnvironment.CueRadius("dry_click"), "dry_click", this);
+		};
 		weapon.Controller.MagChecked += r => WeaponMessage?.Invoke(GameText.ForMagCheck(r));
 		weapon.Controller.ChamberChecked += loaded =>
 			WeaponMessage?.Invoke(GameText.Get(loaded ? "msg.chamber.loaded" : "msg.chamber.empty"));
@@ -1142,8 +1153,14 @@ public partial class Player : CharacterBody3D, IPerceivable
 			// Second tap shortly after the first upgrades the tactical reload to a fast one.
 			if (c.IsBusy)
 				c.UpgradeToFast();
-			else if (!c.StartReload(fast: false))
-				WeaponMessage?.Invoke(GameText.Get("msg.reload.no_spare"));
+			else
+			{
+				var wasEmpty = c.State.RoundsAvailable == 0;
+				if (!c.StartReload(fast: false))
+					WeaponMessage?.Invoke(GameText.Get("msg.reload.no_spare"));
+				else if (wasEmpty)
+					NoiseBus.Emit(GlobalPosition, PerceptionEnvironment.CueRadius("reload_empty"), "reload_empty", this);
+			}
 		}
 		else if (Input.IsActionJustPressed("chamber_check", exactMatch: true))
 		{

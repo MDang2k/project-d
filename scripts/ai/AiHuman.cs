@@ -454,6 +454,39 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Brain.Update(0f, new AiSenses(AwarenessLevel.Unaware, false, null, 99f), false, false);
 	}
 
+	/// <summary>Opacity of each foliage volume a sight line crosses, up to six.</summary>
+	private System.Collections.Generic.List<float> FoliageOpacities(PhysicsDirectSpaceState3D space, Vector3 from, Vector3 to)
+	{
+		var found = new System.Collections.Generic.List<float>();
+		var skip = new Godot.Collections.Array<Rid>();
+		for (var i = 0; i < 6; i++)
+		{
+			var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, FoliageVolume.Layer, skip));
+			if (hit.Count == 0)
+				break;
+			found.Add(hit["collider"].AsGodotObject() is FoliageVolume f ? f.Opacity : PerceptionEnvironment.DefaultFoliageOpacity);
+			skip.Add((Rid)hit["rid"]);
+		}
+		return found;
+	}
+
+	/// <summary>Material tag of each wall between a noise and the listener (metadata "material", concrete when missing).</summary>
+	private System.Collections.Generic.List<string?> WallMaterials(PhysicsDirectSpaceState3D space, Vector3 from, Vector3 to)
+	{
+		var walls = new System.Collections.Generic.List<string?>();
+		var skip = new Godot.Collections.Array<Rid> { GetRid() };
+		for (var i = 0; i < 6; i++)
+		{
+			var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, 1u, skip));
+			if (hit.Count == 0)
+				break;
+			var body = hit["collider"].AsGodotObject();
+			walls.Add(body is Node node && node.HasMeta("material") ? node.GetMeta("material").AsString() : null);
+			skip.Add((Rid)hit["rid"]);
+		}
+		return walls;
+	}
+
 	private void PerceiveTick(float dt)
 	{
 		var eye = GlobalPosition + Vector3.Up * EyeHeight;
@@ -466,6 +499,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var bestPoint = Vector3.Zero;
 		var bestName = "";
 		var space = GetWorld3D().DirectSpaceState;
+		var hasFoliage = GetTree().GetNodeCountInGroup("foliage") > 0;
 		foreach (var node in GetTree().GetNodesInGroup("perceivables"))
 		{
 			if (node is not IPerceivable other || ReferenceEquals(node, this) || !other.IsAlive
@@ -481,17 +515,18 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			var angle = flat.LengthSquared() < 0.0001f
 				? 0f
 				: Mathf.RadToDeg(forward.AngleTo(flat.Normalized()));
-			var visible = 0;
+			var visible = 0f;
 			foreach (var p in points)
 			{
 				var q = PhysicsRayQueryParameters3D.Create(eye, p, 1u,
 					new Godot.Collections.Array<Rid> { GetRid(), other.BodyRid });
 				if (space.IntersectRay(q).Count == 0)
-					visible++;
+					visible += hasFoliage ? PerceptionEnvironment.FoliageVisibility(FoliageOpacities(space, eye, p)) : 1f;
 			}
+			var light = PerceptionEnvironment.LightFactor(LightZone.At(GetTree(), center));
 			var strength = PerceptionModel.VisionStrength(_tuning, distance, angle,
 				new TargetProfile(other.PerceivedStance, other.PerceivedSpeedFraction),
-				visible / (float)points.Length);
+				visible / points.Length, light);
 			if (strength > best)
 			{
 				best = strength;
@@ -508,7 +543,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		// Hearing: every noise since the last tick, loudest wins inside the model.
 		foreach (var n in _noises)
 		{
-			var loudness = PerceptionModel.Loudness(_tuning, eye.DistanceTo(n.Position), n.Radius);
+			var radius = PerceptionEnvironment.EffectiveRadius(n.Radius, WallMaterials(space, n.Position, eye));
+			var loudness = PerceptionModel.Loudness(_tuning, eye.DistanceTo(n.Position), radius)
+				* PerceptionEnvironment.CueMultiplier(n.Kind, S(Stats.Tactics.Aggression));
 			if (loudness > 0f)
 			{
 				Perception.Hear(loudness, n.Position);

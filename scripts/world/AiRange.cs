@@ -225,6 +225,17 @@ public partial class AiRange : Node3D
 		_raid.Start(_player);
 	}
 
+	/// <summary>Dev: three foliage volumes in a row across the line of sight, to test sight through bushes.</summary>
+	private void AddBushRow(Vector3 at)
+	{
+		for (var i = 0; i < 3; i++)
+		{
+			var bush = new FoliageVolume { Position = at + new Vector3(0f, 0f, i * 2f) };
+			bush.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(8f, 3f, 2f) }, Position = new Vector3(0f, 1.5f, 0f) });
+			AddChild(bush);
+		}
+	}
+
 	private async void ApplyDevArgs()
 	{
 		string? shot = null;
@@ -250,6 +261,11 @@ public partial class AiRange : Node3D
 				CorpseSpawner.Spawn(this, new Vector3(cx, 0f, cz), new[] { "flak_vest_t1" });
 			else if (arg.StartsWith("--raid=") && float.TryParse(arg["--raid=".Length..], out var raidSeconds))
 				StartTestRaid(raidSeconds);
+			else if (arg == "--dark")
+				AddChild(new LightZone { Level = LightLevel.Dark, Size = new Vector3(400f, 30f, 400f) });
+			else if (arg.StartsWith("--bushes=") && arg["--bushes=".Length..].Split(',') is { Length: 2 } bp
+				&& float.TryParse(bp[0], out var bx) && float.TryParse(bp[1], out var bz))
+				AddBushRow(new Vector3(bx, 0f, bz));
 			else if (arg == "--menu")
 				ToggleMenu();
 			else if (arg == "--norespawn")

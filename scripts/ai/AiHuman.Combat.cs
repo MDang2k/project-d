@@ -352,6 +352,8 @@ public partial class AiHuman
 		if (state == TacticState.Heal && !_healStarted && _healItem is { } item)
 		{
 			_healStarted = Health.UseMedical(item);
+			if (_healStarted)
+				NoiseBus.Emit(GlobalPosition, PerceptionEnvironment.CueRadius("heal"), "heal", this);
 			if (!_healStarted)
 				_healed = true;
 		}
