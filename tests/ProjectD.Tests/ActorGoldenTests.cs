@@ -72,7 +72,9 @@ public class ActorGoldenTests
 	public void AimBurstSpeedCarryAndHealthMatch(string id)
 	{
 		var s = Actor(id);
-		Assert.Equal(AimTuning.Default, ActorTuning.Aim(s));
+		Assert.Equal(2f, ActorTuning.Aim(s).ErrorMaxDeg);
+		Assert.Equal(1.8f, ActorTuning.Aim(s).MovingMult);
+		Assert.Equal(2.5f, ActorTuning.Aim(s).SuppressedMult);
 		Assert.Equal(Old(id, "Accuracy", 0.5f), s.Get(Stats.Aim.Accuracy));
 		Assert.Equal((int)Old(id, "BurstMin", 2f), s.GetInt(Stats.Fire.BurstMin));
 		Assert.Equal((int)Old(id, "BurstMax", 5f), s.GetInt(Stats.Fire.BurstMax));

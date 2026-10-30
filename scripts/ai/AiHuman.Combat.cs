@@ -16,7 +16,11 @@ public partial class AiHuman
 
 	private CombatTactics _tactics = null!;
 	private AiBurstFire _burst = null!;
-	private AimTuning _aim = AimTuning.Default;
+	private AiAimMotor _motor = null!;
+	private static readonly HandlingTuning Handling = HandlingTuning.Default;
+	private Vector3 _lastTargetPos;
+	private Vector3 _targetVelocity;
+	private bool _hadTarget;
 	private MedicalData? _healItem;
 	private AiUnderFire _underFire = null!;
 	private bool _prone;
@@ -51,7 +55,7 @@ public partial class AiHuman
 	{
 		_tactics = new CombatTactics(ActorTuning.Tactics(Actor!.Stats), _rng);
 		_healItem = ActorDb.Medical(Def.Text("heal_item"));
-		_aim = ActorTuning.Aim(Actor.Stats);
+		_motor = new AiAimMotor(ActorTuning.Aim(Actor.Stats), _rng);
 		var rpm = _weaponData?.RoundsPerMinute ?? 600f;
 		_burst = new AiBurstFire(rpm, SInt(Stats.Fire.BurstMin), SInt(Stats.Fire.BurstMax), S(Stats.Fire.BurstPauseMinS),
 			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS), _rng);
@@ -106,7 +110,7 @@ public partial class AiHuman
 		Perception.Tuning = _tuning;
 		Brain.Tuning = ActorTuning.Brain(stats);
 		_tactics.Tuning = ActorTuning.Tactics(stats);
-		_aim = ActorTuning.Aim(stats);
+		_motor.Tuning = ActorTuning.Aim(stats);
 		_burst.Retune(SInt(Stats.Fire.BurstMin), SInt(Stats.Fire.BurstMax), S(Stats.Fire.BurstPauseMinS),
 			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS));
 		_agent.TargetDesiredDistance = S(Stats.Brain.ArrivalRadius);
@@ -253,7 +257,14 @@ public partial class AiHuman
 			if (error > Mathf.DegToRad(25f))
 				_wantsFire = false;
 		}
-		_aimPoint = sees ? target : target + Vector3.Up * 1.1f;
+		TrackTarget(target, sees, delta);
+		var point = sees ? target : target + Vector3.Up * 1.1f;
+		if (sees && Weapon is { } gun)
+		{
+			var muzzle = gun.State.Chamber?.MuzzleVelocity ?? 700f;
+			point = AiAimMotor.LeadPoint(gun.GlobalPosition, point, _targetVelocity, muzzle, _gravity, S(Stats.Aim.Accuracy));
+		}
+		_aimPoint = point;
 		return plan;
 	}
 
@@ -391,6 +402,7 @@ public partial class AiHuman
 		_burst.Update(delta, inCombat && _wantsFire);
 		if (Weapon is not { } w)
 			return;
+		UpdateMotor(delta, w);
 		w.CanFire = true;
 		w.TriggerHeld = _burst.Firing;
 		w.TriggerPressed = _burst.Firing;
@@ -409,6 +421,36 @@ public partial class AiHuman
 		}
 	}
 
+	/// <summary>Target speed from its successive positions, smoothed; zero when it is not seen.</summary>
+	private void TrackTarget(Vector3 target, bool sees, float delta)
+	{
+		if (!sees)
+		{
+			_hadTarget = false;
+			_targetVelocity = Vector3.Zero;
+			return;
+		}
+		if (_hadTarget && delta > 0.0001f)
+		{
+			var raw = (target - _lastTargetPos) / delta;
+			_targetVelocity = _targetVelocity.Lerp(raw, Mathf.Clamp(delta * 6f, 0f, 1f));
+		}
+		else
+			_motor.Disturb(); // a target just came into view: the aim starts rough
+		_hadTarget = true;
+		_lastTargetPos = target;
+	}
+
+	private void UpdateMotor(float delta, WeaponNode w)
+	{
+		var distance = GlobalPosition.DistanceTo(_aimPoint);
+		var ads = distance > 10f ? 1f : 0f; // hip fire only up close
+		var ctx = new HandlingContext(PerceivedStance, w.Stats.WeightKg, 1f, PerceivedSpeedFraction, ads, false);
+		var sway = HandlingModel.SwayAmplitude(Handling, w.Data.SwayBaseDeg * w.Stats.SwayMult, ctx);
+		_motor.Update(delta, new AimContext(distance, PerceivedSpeedFraction, _targetVelocity.Length() / 5.2f, _suppression,
+			sway, HandlingModel.RecoilMultiplier(Handling, PerceivedStance, ads)), w.RecoilTuning);
+	}
+
 	/// <summary>Rounds this AI has fired (dev reporting).</summary>
 	public int ShotsFired { get; private set; }
 
@@ -418,10 +460,13 @@ public partial class AiHuman
 		_projectiles ??= GetTree().GetFirstNodeInGroup("projectiles") as ProjectileManager;
 		if (_projectiles is null)
 			return;
-		var to = _aimPoint - position;
-		var spread = AiAim.SpreadDeg(_aim, S(Stats.Aim.Accuracy), to.Length(), PerceivedSpeedFraction, _suppression);
-		var dir = AiAim.Jitter(to, spread, () => (float)_rng.NextDouble());
-		// the gun and ammo themselves, in MOA, on top of the shooter skill spread
+		if (Weapon is { } gun)
+		{
+			var ads = position.DistanceTo(_aimPoint) > 10f ? 1f : 0f;
+			_motor.Shot(gun.RecoilTuning, HandlingModel.RecoilMultiplier(Handling, PerceivedStance, ads));
+		}
+		var dir = _motor.Direction(position, _aimPoint);
+		// the gun and ammo themselves, in MOA, on top of the shooter's aim
 		dir = Dispersion.Apply(dir, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), () => (float)_rng.NextDouble());
 		_projectiles.Spawn(ammo, position, dir, GetRid(), _ownRids);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);

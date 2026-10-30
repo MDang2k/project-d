@@ -6,21 +6,6 @@ namespace ProjectD.Tests;
 
 public class AiAimTests
 {
-	private static readonly AimTuning T = AimTuning.Default;
-
-	[Fact]
-	public void BetterAccuracyMeansTighterSpread()
-		=> Assert.True(AiAim.SpreadDeg(T, 0.9f, 50f, 0f, 0f) < AiAim.SpreadDeg(T, 0.2f, 50f, 0f, 0f));
-
-	[Fact]
-	public void SpreadGrowsWithDistanceMovementAndSuppression()
-	{
-		var baseline = AiAim.SpreadDeg(T, 0.5f, 20f, 0f, 0f);
-		Assert.True(AiAim.SpreadDeg(T, 0.5f, 120f, 0f, 0f) > baseline);
-		Assert.True(AiAim.SpreadDeg(T, 0.5f, 20f, 1f, 0f) > baseline);
-		Assert.True(AiAim.SpreadDeg(T, 0.5f, 20f, 0f, 1f) > baseline);
-	}
-
 	[Fact]
 	public void JitterStaysInsideCone()
 	{

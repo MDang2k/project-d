@@ -5,35 +5,9 @@ namespace ProjectD;
 
 // --- aiming ---------------------------------------------------------------------------------
 
-/// <summary>How inaccurate an AI is (GDD s16: accuracy is a faction preset value).</summary>
-public sealed record AimTuning(
-	/// <summary>Cone half-angle in degrees for accuracy 0 at point-blank.</summary>
-	float MaxSpreadDeg,
-	/// <summary>Cone half-angle in degrees for accuracy 1 at point-blank.</summary>
-	float MinSpreadDeg,
-	/// <summary>Extra spread per 100 m of distance (at accuracy 0).</summary>
-	float DistanceSpreadDegPer100M,
-	/// <summary>Spread multiplier while sprinting speed (scaled by speed fraction).</summary>
-	float MovingMult,
-	/// <summary>Spread multiplier at full suppression.</summary>
-	float SuppressedMult)
-{
-	public static AimTuning Default => new(3f, 0.15f, 1.5f, 1.8f, 2.5f);
-}
-
+/// <summary>Random cone jitter, used for gun and ammo dispersion. AI shooters aim through <see cref="AiAimMotor"/>.</summary>
 public static class AiAim
 {
-	/// <summary>Spread cone half-angle in degrees. accuracy and suppression are 0..1.</summary>
-	public static float SpreadDeg(AimTuning t, float accuracy, float distance, float speedFraction, float suppression)
-	{
-		accuracy = Math.Clamp(accuracy, 0f, 1f);
-		var spread = Mathf.Lerp(t.MaxSpreadDeg, t.MinSpreadDeg, accuracy)
-			+ distance * 0.01f * t.DistanceSpreadDegPer100M * (1f - accuracy * 0.6f);
-		spread *= 1f + (t.MovingMult - 1f) * Math.Clamp(speedFraction, 0f, 1f);
-		spread *= 1f + (t.SuppressedMult - 1f) * Math.Clamp(suppression, 0f, 1f);
-		return spread;
-	}
-
 	/// <summary>Rotates a direction by a random angle inside a cone of the given half-angle.</summary>
 	public static Vector3 Jitter(Vector3 direction, float spreadDeg, Func<float> random01)
 	{

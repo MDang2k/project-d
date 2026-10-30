@@ -46,7 +46,7 @@ public class StatRegistryTests
 		Assert.Equal(80f, Stats.Get(Stats.Perception.ViewDistance).Default);
 		Assert.Equal(1.2f, Stats.Get(Stats.Awareness.NoticeS).Default);
 		Assert.Equal(25f, Stats.Get(Stats.Tactics.EngageDistance).Default);
-		Assert.Equal(3f, Stats.Get(Stats.Aim.MaxSpreadDeg).Default);
+		Assert.Equal(2f, Stats.Get(Stats.Aim.ErrorMaxDeg).Default);
 		Assert.Equal(35f, Stats.Get(Stats.Health.Head).Default);
 		Assert.True(Stats.Get(Stats.Fire.BurstMax).Integer);
 	}
@@ -168,14 +168,14 @@ public class StatSetTests
 	public void TheSameSourceOnTheSameStatAndOpReplacesInsteadOfStacking()
 	{
 		var set = new StatSet();
-		set.Add(new StatModifier(Stats.Aim.MaxSpreadDeg, ModOp.Pct, 0.5f, "suppressed"));
-		set.Add(new StatModifier(Stats.Aim.MaxSpreadDeg, ModOp.Pct, 0.5f, "suppressed"));
-		set.Add(new StatModifier(Stats.Aim.MaxSpreadDeg, ModOp.Pct, 0.8f, "suppressed"));
-		Assert.Single(set.Modifiers(Stats.Aim.MaxSpreadDeg));
-		Assert.Equal(3f * 1.8f, set.Get(Stats.Aim.MaxSpreadDeg), 3);
+		set.Add(new StatModifier(Stats.Aim.ErrorMaxDeg, ModOp.Pct, 0.5f, "suppressed"));
+		set.Add(new StatModifier(Stats.Aim.ErrorMaxDeg, ModOp.Pct, 0.5f, "suppressed"));
+		set.Add(new StatModifier(Stats.Aim.ErrorMaxDeg, ModOp.Pct, 0.8f, "suppressed"));
+		Assert.Single(set.Modifiers(Stats.Aim.ErrorMaxDeg));
+		Assert.Equal(2f * 1.8f, set.Get(Stats.Aim.ErrorMaxDeg), 3);
 		// a different op from the same source is a separate entry
-		set.Add(new StatModifier(Stats.Aim.MaxSpreadDeg, ModOp.Add, 1f, "suppressed"));
-		Assert.Equal(2, set.Modifiers(Stats.Aim.MaxSpreadDeg).Count);
+		set.Add(new StatModifier(Stats.Aim.ErrorMaxDeg, ModOp.Add, 1f, "suppressed"));
+		Assert.Equal(2, set.Modifiers(Stats.Aim.ErrorMaxDeg).Count);
 	}
 
 	[Fact]

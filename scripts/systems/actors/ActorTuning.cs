@@ -28,9 +28,11 @@ public static class ActorTuning
 		BurstsBeforeCover = s.GetInt(Stats.Tactics.BurstsBeforeCover),
 	};
 
-	public static AimTuning Aim(StatSet s) => new(
-		s.Get(Stats.Aim.MaxSpreadDeg), s.Get(Stats.Aim.MinSpreadDeg), s.Get(Stats.Aim.DistanceSpreadPer100M),
-		s.Get(Stats.Aim.MovingMult), s.Get(Stats.Aim.SuppressedMult));
+	public static AimMotorTuning Aim(StatSet s) => new(
+		s.Get(Stats.Aim.Accuracy), s.Get(Stats.Aim.ErrorMaxDeg), s.Get(Stats.Aim.ErrorMinDeg),
+		s.Get(Stats.Aim.ErrorPer100MDeg), s.Get(Stats.Aim.MovingMult), s.Get(Stats.Aim.SuppressedMult),
+		s.Get(Stats.Aim.SettleS), s.Get(Stats.Aim.SettleFloor), s.Get(Stats.Aim.RecoilControl),
+		s.Get(Stats.Aim.WanderHz), s.Get(Stats.Aim.ShakeDeg));
 
 	public static UnderFireTuning UnderFire(StatSet s) => new(
 		s.Get(Stats.React.DelayMinS), s.Get(Stats.React.DelayMaxS), s.Get(Stats.React.CoverMaxM),

@@ -84,9 +84,14 @@ public static class Stats
 	public static class Aim
 	{
 		public const string Accuracy = "aim.accuracy";
-		public const string MaxSpreadDeg = "aim.max_spread_deg";
-		public const string MinSpreadDeg = "aim.min_spread_deg";
-		public const string DistanceSpreadPer100M = "aim.distance_spread_per_100m";
+		public const string ErrorMaxDeg = "aim.error_max_deg";
+		public const string ErrorMinDeg = "aim.error_min_deg";
+		public const string ErrorPer100MDeg = "aim.error_per_100m_deg";
+		public const string SettleS = "aim.settle_s";
+		public const string SettleFloor = "aim.settle_floor";
+		public const string RecoilControl = "aim.recoil_control";
+		public const string WanderHz = "aim.wander_hz";
+		public const string ShakeDeg = "aim.shake_deg";
 		public const string MovingMult = "aim.moving_mult";
 		public const string SuppressedMult = "aim.suppressed_mult";
 	}
@@ -181,9 +186,14 @@ public static class Stats
 		F(Brain.PatrolWaitS, 2f, 0f, 60f, "s"),
 
 		F(Aim.Accuracy, 0.5f, 0f, 1f),
-		F(Aim.MaxSpreadDeg, 3f, 0f, 30f, "deg", false),
-		F(Aim.MinSpreadDeg, 0.15f, 0f, 30f, "deg", false),
-		F(Aim.DistanceSpreadPer100M, 1.5f, 0f, 30f, "deg", false),
+		F(Aim.ErrorMaxDeg, 2f, 0f, 30f, "deg", false),
+		F(Aim.ErrorMinDeg, 0.1f, 0f, 30f, "deg", false),
+		F(Aim.ErrorPer100MDeg, 1f, 0f, 30f, "deg", false),
+		F(Aim.SettleS, 1.2f, 0.1f, 10f, "s", false),
+		F(Aim.SettleFloor, 0.3f, 0f, 1f, "x", false),
+		F(Aim.RecoilControl, 0.45f, 0f, 1f),
+		F(Aim.WanderHz, 0.8f, 0.1f, 5f, "Hz"),
+		F(Aim.ShakeDeg, 1.5f, 0f, 10f, "deg", false),
 		F(Aim.MovingMult, 1.8f, 1f, 10f, "x", false),
 		F(Aim.SuppressedMult, 2.5f, 1f, 10f, "x", false),
 
