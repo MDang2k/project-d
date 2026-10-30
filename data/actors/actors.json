@@ -251,6 +251,303 @@
     "op": "Pct",
     "value": 0.2
    }
+  ],
+  "boss_hp_vogt": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.35
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.35
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.35
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.35
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.35
+   }
+  ],
+  "boss_hp_old_mattes": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.15
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.15
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.15
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.15
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.15
+   }
+  ],
+  "boss_hp_die_jaegerin": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.1
+   }
+  ],
+  "boss_hp_harker": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.3
+   }
+  ],
+  "boss_hp_kral": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.4
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.4
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.4
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.4
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.4
+   }
+  ],
+  "boss_hp_haig": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.25
+   }
+  ],
+  "boss_hp_kolb": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.25
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.25
+   }
+  ],
+  "boss_hp_rauch": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.5
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.5
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.5
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.5
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.5
+   }
+  ],
+  "boss_hp_troika_wolf": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.3
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.3
+   }
+  ],
+  "boss_hp_troika_baer": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.6
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.6
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.6
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.6
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.6
+   }
+  ],
+  "boss_hp_troika_fuchs": [
+   {
+    "stat": "health.head",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.thorax",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.stomach",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.arm",
+    "op": "Pct",
+    "value": 0.1
+   },
+   {
+    "stat": "health.leg",
+    "op": "Pct",
+    "value": 0.1
+   }
   ]
  }
 }

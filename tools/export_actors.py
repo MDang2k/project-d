@@ -88,6 +88,18 @@ def main():
                 errors.append(f"modifier_sets row {n}: Value is not a number: {row['Value']!r}")
                 continue
             sets.setdefault(row["Set"], []).append({"stat": row["Stat"], "op": row["Op"].capitalize(), "value": value})
+    # Bosses sheet: HP multiplier becomes boss_hp_<id>, a Pct modifier on the five limb HP stats (1.35 is +35%)
+    with open(CATALOG / "bosses.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            try:
+                mult = float(row["HP multiplier"])
+            except (KeyError, ValueError):
+                continue
+            if mult != 1.0 and row["Boss id"].strip():
+                sets["boss_hp_" + row["Boss id"].strip()] = [
+                    {"stat": "health." + part, "op": "Pct", "value": round(mult - 1.0, 6)}
+                    for part in ("head", "thorax", "stomach", "arm", "leg")]
+
     for a in actors:
         for s in a["sets"]:
             if s not in sets:

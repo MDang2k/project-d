@@ -22,7 +22,7 @@ public static class ActorDb
 		return ActorCatalog.Parse(file.GetAsText());
 	}
 
-	public static ActorInstance Create(string id) => Catalog.Create(id);
+	public static ActorInstance Create(string id, int? tier = null, int? act = null) => Catalog.Create(id, tier, act);
 
 	public static WeaponData? Weapon(string id) => Find<WeaponData>("weapons", id);
 	public static ArmorData? Armor(string id) => Find<ArmorData>("armor", id);

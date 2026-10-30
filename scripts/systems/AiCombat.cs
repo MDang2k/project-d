@@ -59,8 +59,8 @@ public sealed class AiBurstFire
 	private enum Phase { Idle, Reacting, Burst, Pause }
 
 	private readonly float _interval;
-	private readonly int _minRounds, _maxRounds;
-	private readonly float _pauseMin, _pauseMax, _reaction;
+	private int _minRounds, _maxRounds;
+	private float _pauseMin, _pauseMax, _reaction;
 	private readonly Random _rng;
 	private Phase _phase = Phase.Idle;
 	private float _timer;
@@ -69,12 +69,18 @@ public sealed class AiBurstFire
 		float reactionS, Random rng)
 	{
 		_interval = 60f / Math.Max(1f, roundsPerMinute);
+		_rng = rng;
+		Retune(minRounds, maxRounds, pauseMinS, pauseMaxS, reactionS);
+	}
+
+	/// <summary>New burst numbers (the actor's stats changed); a burst or pause under way finishes as it was.</summary>
+	public void Retune(int minRounds, int maxRounds, float pauseMinS, float pauseMaxS, float reactionS)
+	{
 		_minRounds = Math.Max(1, minRounds);
 		_maxRounds = Math.Max(_minRounds, maxRounds);
 		_pauseMin = pauseMinS;
 		_pauseMax = Math.Max(pauseMinS, pauseMaxS);
 		_reaction = reactionS;
-		_rng = rng;
 	}
 
 	/// <summary>Trigger down this frame (feeds both pressed and held; the weapon applies its fire mode).</summary>
@@ -177,12 +183,15 @@ public readonly record struct CombatSituation(
 /// </summary>
 public sealed class CombatTactics
 {
-	private readonly TacticsTuning _t;
+	private TacticsTuning _t;
 	private readonly Random _rng;
 	private float _hideFor;
 	private int _bursts;
 	private float _flankCooldown;
 	private float _retreatLock;
+
+	/// <summary>Replaced when the actor's stats change.</summary>
+	public TacticsTuning Tuning { get => _t; set => _t = value; }
 
 	public CombatTactics(TacticsTuning tuning, Random rng)
 	{

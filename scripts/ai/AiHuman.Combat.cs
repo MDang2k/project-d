@@ -50,6 +50,7 @@ public partial class AiHuman
 		_burst = new AiBurstFire(rpm, SInt(Stats.Fire.BurstMin), SInt(Stats.Fire.BurstMax), S(Stats.Fire.BurstPauseMinS),
 			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS), _rng);
 		_burst.BurstFinished += () => _tactics.OnBurstFinished();
+		Actor.Stats.Changed += OnStatsChanged;
 		Brain.StateChanged += (_, next) =>
 		{
 			if (next == AiState.Combat)
@@ -77,8 +78,24 @@ public partial class AiHuman
 
 	private void ExitCombat()
 	{
+		if (Actor is not null)
+			Actor.Stats.Changed -= OnStatsChanged;
 		if (_projectiles is not null)
 			_projectiles.Passed -= OnBulletPassed;
+	}
+
+	/// <summary>A modifier came or went (veteran, tier, injury...): hand the new numbers to every model.</summary>
+	private void OnStatsChanged(System.Collections.Generic.IReadOnlyCollection<string> _)
+	{
+		var stats = Actor!.Stats;
+		_tuning = ActorTuning.Perception(stats);
+		Perception.Tuning = _tuning;
+		Brain.Tuning = ActorTuning.Brain(stats);
+		_tactics.Tuning = ActorTuning.Tactics(stats);
+		_aim = ActorTuning.Aim(stats);
+		_burst.Retune(SInt(Stats.Fire.BurstMin), SInt(Stats.Fire.BurstMax), S(Stats.Fire.BurstPauseMinS),
+			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS));
+		_agent.TargetDesiredDistance = S(Stats.Brain.ArrivalRadius);
 	}
 
 	/// <summary>Bullets that whip past make the AI keep its head down.</summary>

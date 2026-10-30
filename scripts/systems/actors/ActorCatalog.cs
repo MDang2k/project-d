@@ -53,6 +53,20 @@ public sealed class ActorCatalog
 		return new ActorInstance(def, stats);
 	}
 
+	/// <summary>
+	/// Create with the modifier sets a spawner picks by tier and act: <c>tier_N</c> and <c>act_N</c> are added
+	/// when the sheet defines them, so an unused tier or act costs nothing.
+	/// </summary>
+	public ActorInstance Create(string id, int? tier, int? act)
+	{
+		var extra = new List<string>();
+		if (tier is { } t && _sets.ContainsKey($"tier_{t}"))
+			extra.Add($"tier_{t}");
+		if (act is { } a && _sets.ContainsKey($"act_{a}"))
+			extra.Add($"act_{a}");
+		return Create(id, extra);
+	}
+
 	public static ActorCatalog Parse(string json)
 	{
 		var catalog = new ActorCatalog();

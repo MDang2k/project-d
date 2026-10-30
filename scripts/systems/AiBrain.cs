@@ -34,13 +34,16 @@ public readonly record struct AiSenses(AwarenessLevel Level, bool SeesTarget, Ve
 /// </summary>
 public sealed class AiBrain
 {
-	private readonly BrainTuning _t;
+	private BrainTuning _t;
 	private readonly List<Vector3> _patrol = new();
 	private int _patrolIndex;
 	private float _waitTimer;
 	private float _lootCooldown;
 
 	public AiBrain(BrainTuning tuning) => _t = tuning;
+
+	/// <summary>Replaced when the actor's stats change.</summary>
+	public BrainTuning Tuning { get => _t; set => _t = value; }
 
 	public AiState State { get; private set; } = AiState.Idle;
 

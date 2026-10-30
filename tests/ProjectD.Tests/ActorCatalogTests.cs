@@ -89,3 +89,80 @@ public class ActorCatalogTests
 					Assert.True(known.Contains(item), $"{a.Id}.{prop}: {item} has no resource");
 	}
 }
+
+public class ActorPhase4Tests
+{
+	private static ActorCatalog Real()
+	{
+		var dir = AppContext.BaseDirectory;
+		while (dir != null && !File.Exists(Path.Combine(dir, "Project D.csproj")))
+			dir = Path.GetDirectoryName(dir);
+		return ActorCatalog.Parse(File.ReadAllText(Path.Combine(dir!, "data/actors/actors.json")));
+	}
+
+	[Fact]
+	public void BossHpSetsMatchTheBossesSheetColumns()
+	{
+		var dir = AppContext.BaseDirectory;
+		while (dir != null && !File.Exists(Path.Combine(dir, "Project D.csproj")))
+			dir = Path.GetDirectoryName(dir);
+		var lines = File.ReadAllLines(Path.Combine(dir!, "docs/design/catalog/bosses.csv"));
+		var header = lines[0].Split(',');
+		var catalog = Real();
+		var checkedRows = 0;
+		foreach (var line in lines.Skip(1))
+		{
+			// the notes columns hold commas inside quotes; the HP columns are the last seven plain numbers
+			var cells = System.Text.RegularExpressions.Regex.Matches(line, "(\"([^\"]|\"\")*\"|[^,]*)(,|$)")
+				.Select(m => m.Value.TrimEnd(',').Trim('"')).ToArray();
+			var id = cells[0];
+			if (id == "" || !catalog.SetNames.Contains("boss_hp_" + id))
+				continue;
+			var hp = new StatSet();
+			hp.AddRange(catalog.Set("boss_hp_" + id));
+			var n = header.Length;
+			Assert.Equal(float.Parse(cells[n - 6], System.Globalization.CultureInfo.InvariantCulture), hp.Get(Stats.Health.Head));
+			Assert.Equal(float.Parse(cells[n - 5], System.Globalization.CultureInfo.InvariantCulture), hp.Get(Stats.Health.Thorax));
+			Assert.Equal(float.Parse(cells[n - 4], System.Globalization.CultureInfo.InvariantCulture), hp.Get(Stats.Health.Stomach));
+			Assert.Equal(float.Parse(cells[n - 3], System.Globalization.CultureInfo.InvariantCulture), hp.Get(Stats.Health.Arm));
+			Assert.Equal(float.Parse(cells[n - 2], System.Globalization.CultureInfo.InvariantCulture), hp.Get(Stats.Health.Leg));
+			checkedRows++;
+		}
+		Assert.True(checkedRows >= 3);
+	}
+
+	[Fact]
+	public void TierAndActSetsAreAddedOnlyWhenTheSheetDefinesThem()
+	{
+		var json = """{"actors":[{"id":"a","parent":"","name":"a","kind":"actor","faction":"","tags":[],"sets":[],"props":{},"stats":{},"links":{},"notes":""}],"modifier_sets":{"tier_2":[{"stat":"aim.accuracy","op":"Add","value":0.1}]}}""";
+		var c = ActorCatalog.Parse(json);
+		Assert.Equal(0.6f, c.Create("a", 2, 5).Stats.Get(Stats.Aim.Accuracy), 3);
+		Assert.Equal(0.5f, c.Create("a", 1, null).Stats.Get(Stats.Aim.Accuracy), 3);
+	}
+
+	[Fact]
+	public void InspectorShowsFinalValueBaseAndSource()
+	{
+		var inst = Real().Create("bandit", extraSets: new[] { "veteran" });
+		var text = string.Join("\n", ActorInspectorText.Lines(inst));
+		Assert.Contains("bandit", text);
+		Assert.Contains("[perception]", text);
+		Assert.Contains("veteran", text);
+		var only = ActorInspectorText.Lines(inst, onlyChanged: true);
+		Assert.All(only.Where(l => l.StartsWith("  ")), l => Assert.Contains("veteran", l));
+	}
+
+	[Fact]
+	public void StatsChangedFiresWhenAModifierSetIsAddedLive()
+	{
+		var inst = Real().Create("looter");
+		var seen = 0;
+		inst.Stats.Changed += _ => seen++;
+		var before = inst.Stats.Get(Stats.Awareness.NoticeS);
+		inst.Stats.AddRange(Real().Set("rookie"));
+		Assert.Equal(1, seen);
+		Assert.True(inst.Stats.Get(Stats.Awareness.NoticeS) > before);
+		inst.Stats.Remove("rookie");
+		Assert.Equal(before, inst.Stats.Get(Stats.Awareness.NoticeS));
+	}
+}

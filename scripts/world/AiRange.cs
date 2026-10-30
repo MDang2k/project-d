@@ -65,6 +65,7 @@ public partial class AiRange : Node3D
 		_label = new Label { Position = new Vector2(12f, 12f) };
 		layer.AddChild(_label);
 		AddChild(layer);
+		AddChild(GD.Load<PackedScene>("res://scenes/ui/actor_inspector.tscn").Instantiate());
 		BuildMenu(layer);
 		ApplyDevArgs();
 	}

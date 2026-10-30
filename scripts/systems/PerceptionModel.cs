@@ -46,11 +46,14 @@ public readonly record struct TargetProfile(Stance Stance, float SpeedFraction);
 /// </summary>
 public sealed class PerceptionModel
 {
-	private readonly PerceptionTuning _t;
+	private PerceptionTuning _t;
 	private bool _cueThisTick;
 	private bool _alert;
 
 	public PerceptionModel(PerceptionTuning tuning) => _t = tuning;
+
+	/// <summary>Replaced when the actor's stats change; awareness already built up is kept.</summary>
+	public PerceptionTuning Tuning { get => _t; set => _t = value; }
 
 	/// <summary>0 unaware .. 1 fully aware of where the cue came from.</summary>
 	public float Awareness { get; private set; }

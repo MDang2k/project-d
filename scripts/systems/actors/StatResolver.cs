@@ -38,7 +38,7 @@ public static class StatResolver
 
 		value = Math.Clamp(value, def.Min, def.Max);
 		if (def.Integer)
-			value = MathF.Round(value, MidpointRounding.AwayFromZero);
+			value = MathF.Round(MathF.Round(value, 3), MidpointRounding.AwayFromZero); // 110.49999 from float error is 110.5, as the sheet rounds
 
 		var forced = mods.Where(m => m.Op == ModOp.Set)
 			.Select((m, order) => (m, order))

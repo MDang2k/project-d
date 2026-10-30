@@ -23,6 +23,8 @@ public partial class RaidLevel : Node3D
 	{
 		BakeNavigation();
 		AddEnvironment();
+		if (OS.IsDebugBuild())
+			AddChild(GD.Load<PackedScene>("res://scenes/ui/actor_inspector.tscn").Instantiate());
 		Projectiles = new ProjectileManager { Name = "Projectiles" };
 		AddChild(Projectiles);
 
