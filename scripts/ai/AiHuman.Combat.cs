@@ -18,6 +18,9 @@ public partial class AiHuman
 	private AiBurstFire _burst = null!;
 	private AiAimMotor _motor = null!;
 	private bool _blindFiring;
+	private TacticAction _action;
+	private float _decideS;
+	private Vector3? _fleePoint;
 	private bool _leaning;
 	private static readonly HandlingTuning Handling = HandlingTuning.Default;
 	private Vector3 _lastTargetPos;
@@ -52,10 +55,12 @@ public partial class AiHuman
 	public TacticState? CombatState => Brain.State == AiState.Combat ? _tactics.State : null;
 	public bool IsCrouching => _crouching;
 	public UnderFirePhase UnderFirePhase => _underFire.Phase;
+	public TacticAction Action => _action;
 
 	private void InitCombat()
 	{
-		_tactics = new CombatTactics(ActorTuning.Tactics(Actor!.Stats), _rng);
+		_tactics = new CombatTactics(ActorTuning.Tactics(Actor!.Stats), _rng) { UtilityControlled = true };
+		_action = TacticAction.Push;
 		_healItem = ActorDb.Medical(Def.Text("heal_item"));
 		_motor = new AiAimMotor(ActorTuning.Aim(Actor.Stats), _rng);
 		var rpm = _weaponData?.RoundsPerMinute ?? 600f;
@@ -194,6 +199,7 @@ public partial class AiHuman
 			_coverPoint is not null, _arrived, _healItem is not null, _healed,
 			PartnerIsEngaged(), _flankPoint is not null);
 		_tactics.Update(delta, situation);
+		Decide(delta, situation);
 		if (_tactics.State != _lastTactic)
 		{
 			OnTacticEntered(_tactics.State);
@@ -251,6 +257,9 @@ public partial class AiHuman
 			case TacticState.Heal:
 				plan = plan with { Crouch = true, Destination = null };
 				break;
+			case TacticState.Flee:
+				plan = plan with { Destination = _fleePoint, FaceYaw = null, Speed = S(Stats.Move.SprintSpeed) };
+				break;
 		}
 
 		switch (_underFire.Phase)
@@ -287,8 +296,53 @@ public partial class AiHuman
 		return plan;
 	}
 
+	private Temperament Temperament => new(S(Stats.Tactics.Aggression), 1f - S(Stats.Tactics.Courage), S(Stats.Temper.Panic));
+
+	/// <summary>
+	/// The utility layer: every 0.25 s, or at once when a state ends, score the actions and, if the best one is not
+	/// served by the state the AI is in, switch to the state that starts it (AI combat v2 spec s7).
+	/// </summary>
+	private void Decide(float delta, in CombatSituation s)
+	{
+		_decideS -= delta;
+		if (_decideS > 0f && !_tactics.NeedsDecision)
+			return;
+		_decideS = 0.25f;
+		_tactics.NeedsDecision = false;
+		var facts = new UtilityFacts(s.SeesTarget, s.TargetDistance, S(Stats.Tactics.EngageDistance), s.SecondsSinceSeen,
+			s.Injury, s.Suppression, s.CoverAvailable, s.HealItemAvailable, s.Healed, s.PartnerEngaged, s.FlankPointAvailable,
+			_tactics.BurstsInState);
+		_action = AiUtility.Choose(facts, Temperament, _action, () => (float)_rng.NextDouble() - 0.5f);
+		if (AiUtility.Serves(_tactics.State, _action))
+			return;
+		_tactics.Force(AiUtility.EntryState(_action, s.CoverAvailable));
+		_tactics.NeedsDecision = false; // the forced entry should not trigger another score straight away
+	}
+
+	/// <summary>Where a fleeing AI runs: the reachable spot farthest from the threat that the threat cannot see.</summary>
+	private Vector3? FindFleePoint(Vector3 threat)
+	{
+		var me = GlobalPosition;
+		Vector3? best = null;
+		var bestScore = float.MinValue;
+		for (var i = 0; i < 16; i++)
+		{
+			var a = Mathf.Tau * i / 16f;
+			var spot = SnapToNav(me + new Vector3(Mathf.Sin(a), 0f, Mathf.Cos(a)) * 25f);
+			var score = spot.DistanceTo(threat) + (Blocked(threat + Vector3.Up * 1.4f, spot + Vector3.Up * 1.4f) ? 20f : 0f);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				best = spot;
+			}
+		}
+		return best;
+	}
+
 	private void OnTacticEntered(TacticState state)
 	{
+		if (state == TacticState.Flee)
+			_fleePoint = FindFleePoint(Perception.InterestPoint ?? GlobalPosition - GlobalBasis.Z * 10f);
 		if (state == TacticState.Retreat)
 		{
 			_healStarted = false;
@@ -428,7 +482,7 @@ public partial class AiHuman
 			var ads = position.DistanceTo(_aimPoint) > 10f ? 1f : 0f;
 			_motor.Shot(gun.RecoilTuning, HandlingModel.RecoilMultiplier(Handling, PerceivedStance, ads));
 		}
-		_motor.ErrorScale = _blindFiring ? S(Stats.Cover.BlindErrorMult) : 1f;
+		_motor.ErrorScale = (_blindFiring ? S(Stats.Cover.BlindErrorMult) : 1f) * (1f + 0.7f - S(Stats.Aim.Consistency));
 		var dir = _motor.Direction(position, _aimPoint);
 		// the gun and ammo themselves, in MOA, on top of the shooter's aim
 		dir = Dispersion.Apply(dir, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), () => (float)_rng.NextDouble());

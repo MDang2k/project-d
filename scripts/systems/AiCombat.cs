@@ -131,7 +131,7 @@ public sealed record TacticsTuning(
 	public static TacticsTuning Default => new(0.5f, 0.5f, 25f, 1.5f, 3.5f, 2.5f, 3f, 8f, 3, 12f, 20f);
 }
 
-public enum TacticState { Advance, Shoot, SeekCover, Hide, Peek, Suppress, Flank, Retreat, Heal }
+public enum TacticState { Advance, Shoot, SeekCover, Hide, Peek, Suppress, Flank, Retreat, Heal, Flee }
 
 /// <summary>Facts the combat state machine reacts to, gathered by the AI node each frame.</summary>
 public readonly record struct CombatSituation(
@@ -152,8 +152,10 @@ public readonly record struct CombatSituation(
 	bool FlankPointAvailable);
 
 /// <summary>
-/// Combat behaviors: advance, shoot, take cover, peek, suppress, flank, retreat, heal. Pure logic
-/// layered under <see cref="AiBrain"/>'s Combat state; the node executes the chosen state.
+/// Combat behaviors: advance, shoot, take cover, peek, suppress, flank, retreat, heal, flee. Pure logic
+/// layered under <see cref="AiBrain"/>'s Combat state; the node executes the chosen state. With
+/// <see cref="UtilityControlled"/> the choice between actions belongs to <see cref="AiUtility"/> and the states
+/// only sequence themselves (hide, peek, arrive, finish); without it the older built-in rules decide.
 /// </summary>
 public sealed class CombatTactics
 {
@@ -173,14 +175,26 @@ public sealed class CombatTactics
 		_rng = rng;
 	}
 
+	/// <summary>The utility layer picks actions; the built-in cross-action rules are off.</summary>
+	public bool UtilityControlled { get; set; }
+
+	/// <summary>A state ended or changed, so the utility layer should score again now instead of at its next tick.</summary>
+	public bool NeedsDecision { get; set; }
+
 	public TacticState State { get; private set; } = TacticState.Advance;
 	public float StateTimeS { get; private set; }
 
 	/// <summary>Called by the shooter each time a burst ends.</summary>
 	public void OnBurstFinished() => _bursts++;
 
+	/// <summary>Bursts fired in this state (for the utility scorer).</summary>
+	public int BurstsInState => _bursts;
+
 	/// <summary>Combat starts or restarts (target spotted anew).</summary>
 	public void Begin() => Enter(TacticState.Advance);
+
+	/// <summary>The utility layer chose an action this state does not serve.</summary>
+	public void Force(TacticState next) => Enter(next);
 
 	private void Enter(TacticState next)
 	{
@@ -190,6 +204,7 @@ public sealed class CombatTactics
 		State = next;
 		StateTimeS = 0f;
 		_bursts = 0;
+		NeedsDecision = true;
 		if (next == TacticState.Hide)
 			_hideFor = Mathf.Lerp(_t.HideMinS, _t.HideMaxS, (float)_rng.NextDouble());
 	}
@@ -204,7 +219,7 @@ public sealed class CombatTactics
 		_retreatLock = Math.Max(0f, _retreatLock - delta);
 
 		// Badly hurt: pull back to cover and patch up, whatever else is going on.
-		if (s.Injury >= RetreatInjury && State is not (TacticState.Retreat or TacticState.Heal) && s.CoverAvailable
+		if (!UtilityControlled && s.Injury >= RetreatInjury && State is not (TacticState.Retreat or TacticState.Heal) && s.CoverAvailable
 			&& _retreatLock <= 0f)
 		{
 			Enter(TacticState.Retreat);
@@ -228,14 +243,19 @@ public sealed class CombatTactics
 				break;
 
 			case TacticState.Advance:
-				if (s.Suppression > CoverSuppression && s.CoverAvailable)
+				if (!UtilityControlled && s.Suppression > CoverSuppression && s.CoverAvailable)
 					Enter(TacticState.SeekCover);
 				else if (s.SeesTarget && s.TargetDistance <= _t.EngageDistance)
 					Enter(TacticState.Shoot);
 				break;
 
 			case TacticState.Shoot:
-				if (s.Suppression > CoverSuppression && s.CoverAvailable
+				if (UtilityControlled)
+				{
+					if (s.SeesTarget && s.TargetDistance > _t.EngageDistance * 1.25f)
+						Enter(TacticState.Advance);
+				}
+				else if (s.Suppression > CoverSuppression && s.CoverAvailable
 					|| _bursts >= _t.BurstsBeforeCover && s.CoverAvailable && _t.Courage < 0.9f)
 					Enter(TacticState.SeekCover);
 				else if (TryFlank(s))
@@ -270,6 +290,8 @@ public sealed class CombatTactics
 			case TacticState.Suppress:
 				if (s.SeesTarget)
 					Enter(TacticState.Shoot);
+				else if (StateTimeS >= _t.SuppressS && UtilityControlled)
+					Enter(TacticState.Hide);
 				else if (StateTimeS >= _t.SuppressS)
 					Enter(TryFlank(s) ? TacticState.Flank
 						: _t.Aggression > 0.5f ? TacticState.Advance : TacticState.Hide);

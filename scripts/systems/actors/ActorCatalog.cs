@@ -22,7 +22,7 @@ public sealed record ActorDef(
 }
 
 /// <summary>A live actor: its resolved definition and its stats with the modifier sets already applied.</summary>
-public sealed record ActorInstance(ActorDef Def, StatSet Stats, int? Tier = null);
+public sealed record ActorInstance(ActorDef Def, StatSet Stats, int? Tier = null, string? Archetype = null);
 
 /// <summary>
 /// The actors exported from the catalog sheets (data/actors/actors.json). Pure logic: parse, resolve parents,
@@ -59,14 +59,40 @@ public sealed class ActorCatalog
 	/// Create with the modifier sets a spawner picks by tier and act: <c>tier_N</c> and <c>act_N</c> are added
 	/// when the sheet defines them, so an unused tier or act costs nothing.
 	/// </summary>
-	public ActorInstance Create(string id, int? tier, int? act)
+	public ActorInstance Create(string id, int? tier, int? act, Random? rng = null)
 	{
 		var extra = new List<string>();
 		if (tier is { } t && _sets.ContainsKey($"tier_{t}"))
 			extra.Add($"tier_{t}");
 		if (act is { } a && _sets.ContainsKey($"act_{a}"))
 			extra.Add($"act_{a}");
-		return Create(id, extra) with { Tier = tier };
+		var archetype = rng is null ? null : RollArchetype(Get(id), rng);
+		if (archetype is not null)
+			extra.Add("archetype_" + archetype);
+		return Create(id, extra) with { Tier = tier, Archetype = archetype };
+	}
+
+	/// <summary>
+	/// Picks one of the actor's <c>archetypes</c> cells (<c>name:weight</c>) by weight. The archetype's temperament
+	/// is the modifier set <c>archetype_name</c>; null when the actor lists none or the set is missing.
+	/// </summary>
+	public string? RollArchetype(ActorDef def, Random rng)
+	{
+		var entries = def.List("archetypes")
+			.Select(e => e.Split(':'))
+			.Where(p => p[0] != "" && _sets.ContainsKey("archetype_" + p[0]))
+			.Select(p => (Name: p[0], Weight: p.Length > 1 && float.TryParse(p[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var w) ? w : 1f))
+			.ToList();
+		if (entries.Count == 0)
+			return null;
+		var roll = rng.NextDouble() * entries.Sum(e => e.Weight);
+		foreach (var e in entries)
+		{
+			roll -= e.Weight;
+			if (roll < 0)
+				return e.Name;
+		}
+		return entries[^1].Name;
 	}
 
 	public static ActorCatalog Parse(string json)

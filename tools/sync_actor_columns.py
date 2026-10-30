@@ -15,7 +15,7 @@ from openpyxl import load_workbook
 from migrate_ai_presets_to_sheet import XLSX, splice, stat_registry
 
 FIRST = ["Id", "Parent", "Name", "Kind", "Faction", "Tags", "Modifier sets", "Weapon", "Weapon choices", "Armor",
-         "Heal item", "Rig", "Backpack", "Pocket table", "Loots corpses", "Body color"]
+         "Heal item", "Rig", "Backpack", "Pocket table", "Loots corpses", "Body color", "Archetypes"]
 LAST = ["Boss row", "Loadout faction", "Loadout tier", "Notes"]
 
 

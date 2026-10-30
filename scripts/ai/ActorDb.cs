@@ -22,7 +22,9 @@ public static class ActorDb
 		return ActorCatalog.Parse(file.GetAsText());
 	}
 
-	public static ActorInstance Create(string id, int? tier = null, int? act = null) => Catalog.Create(id, tier, act);
+	/// <summary>A live actor for a spawn: tier and act sets added and an archetype rolled from the sheet's weights.</summary>
+	public static ActorInstance Create(string id, int? tier = null, int? act = null)
+		=> Catalog.Create(id, tier, act, new System.Random());
 
 	public static WeaponData? Weapon(string id) => Find<WeaponData>("weapons", id);
 	public static ArmorData? Armor(string id) => Find<ArmorData>("armor", id);

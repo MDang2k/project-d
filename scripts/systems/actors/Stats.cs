@@ -101,6 +101,7 @@ public static class Stats
 		public const string RecoilControl = "aim.recoil_control";
 		public const string WanderHz = "aim.wander_hz";
 		public const string ShakeDeg = "aim.shake_deg";
+		public const string Consistency = "aim.consistency";
 		public const string MovingMult = "aim.moving_mult";
 		public const string SuppressedMult = "aim.suppressed_mult";
 	}
@@ -112,6 +113,12 @@ public static class Stats
 		public const string BurstPauseMinS = "fire.burst_pause_min_s";
 		public const string BurstPauseMaxS = "fire.burst_pause_max_s";
 		public const string ReactionS = "fire.reaction_s";
+	}
+
+	/// <summary>Temperament beside aggression and courage (those are in Tactics): how easily the nerve breaks.</summary>
+	public static class Temper
+	{
+		public const string Panic = "temper.panic";
 	}
 
 	public static class Tactics
@@ -208,6 +215,7 @@ public static class Stats
 		F(Aim.RecoilControl, 0.45f, 0f, 1f),
 		F(Aim.WanderHz, 0.8f, 0.1f, 5f, "Hz"),
 		F(Aim.ShakeDeg, 1.5f, 0f, 10f, "deg", false),
+		F(Aim.Consistency, 0.7f, 0f, 1f),
 		F(Aim.MovingMult, 1.8f, 1f, 10f, "x", false),
 		F(Aim.SuppressedMult, 2.5f, 1f, 10f, "x", false),
 
@@ -216,6 +224,8 @@ public static class Stats
 		F(Fire.BurstPauseMinS, 0.5f, 0f, 30f, "s", false),
 		F(Fire.BurstPauseMaxS, 1.4f, 0f, 30f, "s", false),
 		F(Fire.ReactionS, 0.6f, 0f, 10f, "s", false),
+
+		F(Temper.Panic, 0.3f, 0f, 1f),
 
 		F(Tactics.Courage, 0.5f, 0f, 1f),
 		F(Tactics.Aggression, 0.5f, 0f, 1f),

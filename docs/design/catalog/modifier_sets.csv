@@ -4,3 +4,19 @@ veteran,awareness.notice_s,Pct,-0.15,"Example, tune: notices 15% faster."
 veteran,aim.moving_mult,Pct,-0.1,"Example, tune: less spread while moving."
 rookie,aim.accuracy,Add,-0.1,"Example, tune."
 rookie,awareness.notice_s,Pct,0.2,"Example, tune: notices 20% slower."
+archetype_infiltrator,tactics.aggression,Set,0.9,"Temperament, tune: jump-peeks, pushes cues"
+archetype_infiltrator,tactics.courage,Set,0.8,
+archetype_infiltrator,temper.panic,Set,0.2,
+archetype_infiltrator,aim.consistency,Set,0.7,
+archetype_rat,tactics.aggression,Set,0.1,"Temperament, tune: holds dark angles, stays alive"
+archetype_rat,tactics.courage,Set,0.05,
+archetype_rat,temper.panic,Set,0.3,
+archetype_rat,aim.consistency,Set,0.8,
+archetype_operator,tactics.aggression,Set,0.6,"Temperament, tune: disciplined, retreats to heal"
+archetype_operator,tactics.courage,Set,0.3,
+archetype_operator,temper.panic,Set,0.3,
+archetype_operator,aim.consistency,Set,0.8,
+archetype_conscript,tactics.aggression,Set,0.4,"Temperament, tune: panics, erratic aim"
+archetype_conscript,tactics.courage,Set,0.5,
+archetype_conscript,temper.panic,Set,0.8,
+archetype_conscript,aim.consistency,Set,0.4,

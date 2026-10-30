@@ -19,6 +19,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	public string ActorId => Actor?.Def.Id ?? "";
 
+	/// <summary>Temperament rolled at spawn (infiltrator, rat, operator, conscript), or empty.</summary>
+	public string Archetype => Actor?.Archetype ?? "";
+
 	private float S(string stat) => Actor!.Stats.Get(stat);
 	private int SInt(string stat) => Actor!.Stats.GetInt(stat);
 	private ActorDef Def => Actor!.Def;
@@ -527,7 +530,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		}
 		var seeing = Perception.SeesTarget ? "  SEES" : "";
 		var tactic = Brain.State == AiState.Combat ? $"/{_tactics.State}" + (_underFire.Phase == UnderFirePhase.None ? "" : $" !{_underFire.Phase}") : "";
-		_label.Text = $"{ActorId}  [{Brain.State}{tactic}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
+		_label.Text = $"{ActorId}/{Archetype}  [{Brain.State}{tactic}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
 		_label.Modulate = Perception.Level switch
 		{
 			AwarenessLevel.Alert => new Color(1f, 0.3f, 0.25f),

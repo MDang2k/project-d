@@ -311,7 +311,7 @@ public partial class AiRange : Node3D
 			var b = _player.Health.Body;
 			GD.Print($"PLAYER maxCamStep={_player.MaxCameraYStep:0.000} pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Y:0.00},{_player.GlobalPosition.Z:0.00} dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
-				GD.Print($"AI {ai.ActorId} state={ai.Brain.State}/{ai.CombatState} underfire={ai.UnderFirePhase} cover={ai.CoverKind} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
+				GD.Print($"AI {ai.ActorId}/{ai.Archetype}/{ai.Action} state={ai.Brain.State}/{ai.CombatState} underfire={ai.UnderFirePhase} cover={ai.CoverKind} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
 		}
 		if (shot is null)
 		{
