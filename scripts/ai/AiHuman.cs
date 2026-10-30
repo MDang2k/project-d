@@ -77,7 +77,8 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	public Vector3[] BodyPoints()
 	{
 		var p = GlobalPosition;
-		return new[] { p + Vector3.Up * 1.65f, p + Vector3.Up * 1.25f, p + Vector3.Up * 0.4f };
+		var lean = GlobalBasis.X * LeanOffset;
+		return new[] { p + lean + Vector3.Up * 1.65f, p + lean + Vector3.Up * 1.25f, p + Vector3.Up * 0.4f };
 	}
 
 	// --- setup -----------------------------------------------------------------------------
@@ -263,6 +264,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	}
 
 	private bool _arrived;
+	private bool _proneCover;
 
 	/// <summary>Walks the brain's destination over the navmesh; in combat closes in and faces the target.</summary>
 	private void Move(float delta)
@@ -280,6 +282,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			speed = plan.Speed;
 			faceYaw = plan.FaceYaw;
 			crouch = plan.Crouch;
+			_proneCover = plan.Prone;
 		}
 		else
 		{
@@ -288,7 +291,8 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			_suppression = Mathf.Max(0f, _suppression - 0.3f * delta);
 		}
 		UpdateWeapon(delta, inCombat);
-		ApplyCrouch(delta, crouch, _underFire.IsProne);
+		ApplyCrouch(delta, crouch, _underFire.IsProne || (inCombat && _proneCover));
+		ApplyLean(delta, _leaning ? _leanSide : 0f);
 
 		var flatVel = Vector3.Zero;
 		_arrived = destination is null;

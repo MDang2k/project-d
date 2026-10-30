@@ -72,6 +72,15 @@ public static class Stats
 		public const string ProneHoldS = "react.prone_hold_s";
 	}
 
+	/// <summary>Taking cover, peeking and firing blind (AI combat v2 spec s5).</summary>
+	public static class Cover
+	{
+		public const string SearchM = "cover.search_m";
+		public const string LeanM = "cover.lean_m";
+		public const string BlindInjury = "cover.blind_injury";
+		public const string BlindErrorMult = "cover.blind_error_mult";
+	}
+
 	public static class Brain
 	{
 		public const string ArrivalRadius = "brain.arrival_radius";
@@ -178,6 +187,11 @@ public static class Stats
 		F(React.CoverMaxM, 8f, 0f, 40f, "m"),
 		F(React.NearMissM, 3f, 0f, 10f, "m"),
 		F(React.ProneHoldS, 3f, 0f, 30f, "s"),
+
+		F(Cover.SearchM, 10f, 2f, 40f, "m"),
+		F(Cover.LeanM, 0.45f, 0f, 1f, "m"),
+		F(Cover.BlindInjury, 0.6f, 0f, 1f, "", false),
+		F(Cover.BlindErrorMult, 4f, 1f, 20f, "x", false),
 
 		F(Brain.ArrivalRadius, 1.2f, 0.1f, 10f, "m"),
 		F(Brain.LookAroundS, 3f, 0f, 60f, "s"),

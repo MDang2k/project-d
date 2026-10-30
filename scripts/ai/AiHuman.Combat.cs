@@ -10,13 +10,15 @@ namespace ProjectD;
 /// </summary>
 public partial class AiHuman
 {
-	private readonly record struct CombatPlan(Vector3? Destination, float Speed, float? FaceYaw, bool Crouch);
+	private readonly record struct CombatPlan(Vector3? Destination, float Speed, float? FaceYaw, bool Crouch, bool Prone = false);
 
 	private const float CoverRefreshS = 1f;
 
 	private CombatTactics _tactics = null!;
 	private AiBurstFire _burst = null!;
 	private AiAimMotor _motor = null!;
+	private bool _blindFiring;
+	private bool _leaning;
 	private static readonly HandlingTuning Handling = HandlingTuning.Default;
 	private Vector3 _lastTargetPos;
 	private Vector3 _targetVelocity;
@@ -200,6 +202,8 @@ public partial class AiHuman
 
 		var plan = new CombatPlan(null, S(Stats.Move.RunSpeed), faceTarget, false);
 		_wantsFire = false;
+		_blindFiring = false;
+		_leaning = false;
 		switch (_tactics.State)
 		{
 			case TacticState.Advance:
@@ -216,10 +220,25 @@ public partial class AiHuman
 				plan = plan with { Destination = _coverPoint, FaceYaw = null };
 				break;
 			case TacticState.Hide:
-				plan = plan with { Destination = _coverPoint, Crouch = true, Speed = S(Stats.Move.WalkSpeed) };
+				plan = plan with
+				{
+					Destination = _coverPoint,
+					Crouch = _coverClass != CoverClass.Standing,
+					Prone = _coverClass == CoverClass.Prone && _arrived,
+					Speed = S(Stats.Move.WalkSpeed),
+				};
+				// pinned and badly hurt: hold the gun round the cover and shoot at where the target was
+				_blindFiring = Injury() > S(Stats.Cover.BlindInjury) && Perception.InterestPoint is not null && _arrived;
+				_wantsFire = _blindFiring;
 				break;
 			case TacticState.Peek:
-				plan = plan with { Destination = _peekPoint ?? _coverPoint, Speed = S(Stats.Move.WalkSpeed) };
+				plan = plan with
+				{
+					Destination = _peekPoint ?? _coverPoint,
+					Speed = S(Stats.Move.WalkSpeed),
+					Crouch = _coverClass == CoverClass.Prone,
+				};
+				_leaning = _coverClass == CoverClass.Standing && _leanSide != 0f && _arrived;
 				_wantsFire = sees;
 				break;
 			case TacticState.Suppress:
@@ -318,62 +337,6 @@ public partial class AiHuman
 		return GetWorld3D().DirectSpaceState.IntersectRay(q).Count > 0;
 	}
 
-	/// <summary>Nearest navmesh spot within 10 m that the threat cannot see at crouch height.</summary>
-	private Vector3? FindCover(Vector3 threat, bool retreat)
-	{
-		var me = GlobalPosition;
-		var threatEye = new Vector3(threat.X, Mathf.Max(threat.Y, me.Y + 1.4f), threat.Z);
-		Vector3? best = null;
-		var bestScore = float.MaxValue;
-		var myThreatDist = me.DistanceTo(threat);
-
-		void Consider(Vector3 candidate)
-		{
-			var snapped = SnapToNav(candidate);
-			if (new Vector2(snapped.X - candidate.X, snapped.Z - candidate.Z).Length() > 1.5f)
-				return;
-			if (!Blocked(threatEye, snapped + Vector3.Up * 1.0f))
-				return;
-			var score = me.DistanceTo(snapped);
-			if (retreat)
-				score -= 0.3f * snapped.DistanceTo(threat);
-			else
-				score += 0.4f * Mathf.Max(0f, myThreatDist - snapped.DistanceTo(threat));
-			if (score < bestScore)
-			{
-				bestScore = score;
-				best = snapped;
-			}
-		}
-
-		Consider(me);
-		foreach (var radius in new[] { 3f, 6f, 10f })
-		{
-			for (var a = 0; a < 360; a += 30)
-			{
-				var rad = Mathf.DegToRad(a);
-				Consider(me + new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad)) * radius);
-			}
-		}
-		return best;
-	}
-
-	/// <summary>From cover: the first nearby spot (standing, or a sidestep) with a clear shot.</summary>
-	private Vector3? FindPeekPoint()
-	{
-		if (_coverPoint is not { } cover || Perception.InterestPoint is not { } target)
-			return null;
-		var toTarget = new Vector3(target.X - cover.X, 0f, target.Z - cover.Z).Normalized();
-		var side = toTarget.Cross(Vector3.Up);
-		foreach (var offset in new[] { 0f, 1f, -1f, 2f, -2f })
-		{
-			var p = SnapToNav(cover + side * offset);
-			if (!Blocked(p + Vector3.Up * 1.6f, target))
-				return p;
-		}
-		return null;
-	}
-
 	/// <summary>A spot about 70 degrees around the target with a clear line to it.</summary>
 	private Vector3? FindFlankPoint(Vector3 target)
 	{
@@ -465,6 +428,7 @@ public partial class AiHuman
 			var ads = position.DistanceTo(_aimPoint) > 10f ? 1f : 0f;
 			_motor.Shot(gun.RecoilTuning, HandlingModel.RecoilMultiplier(Handling, PerceivedStance, ads));
 		}
+		_motor.ErrorScale = _blindFiring ? S(Stats.Cover.BlindErrorMult) : 1f;
 		var dir = _motor.Direction(position, _aimPoint);
 		// the gun and ammo themselves, in MOA, on top of the shooter's aim
 		dir = Dispersion.Apply(dir, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), () => (float)_rng.NextDouble());
@@ -483,6 +447,6 @@ public partial class AiHuman
 		_crouching = next < 0.85f;
 		_prone = next < 0.5f;
 		if (Weapon is { } w)
-			w.Position = new Vector3(0.18f, 1.2f * next, -0.2f);
+			w.Position = new Vector3(0.18f + LeanOffset, 1.2f * next, -0.2f);
 	}
 }

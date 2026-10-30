@@ -73,6 +73,9 @@ public sealed class AiAimMotor
 	/// <summary>Climb left after the bot's own correction, x yaw and y pitch in degrees.</summary>
 	public Vector2 Recoil => _recoil.Offset;
 
+	/// <summary>Multiplies the error wander; 1 normally, more when firing blind around cover.</summary>
+	public float ErrorScale { get; set; } = 1f;
+
 	/// <summary>0 settled .. 1 just lost the aim.</summary>
 	public float Unsettled => _unsettled;
 
@@ -124,7 +127,7 @@ public sealed class AiAimMotor
 		var motion = Math.Clamp(Math.Max(_last.OwnSpeedFraction, _last.TargetSpeedFraction), 0f, 1f);
 		amp *= 1f + (t.MovingMult - 1f) * motion;
 		amp *= 1f + (t.SuppressedMult - 1f) * Math.Clamp(_last.Suppression, 0f, 1f);
-		return amp;
+		return amp * ErrorScale;
 	}
 
 	/// <summary>Total offset from the target point, x yaw and y pitch in degrees.</summary>
