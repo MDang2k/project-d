@@ -204,7 +204,7 @@ Total for the foundation (phases 0 to 4): about 6 to 7 working days, mostly pure
 | Phase | Status |
 |---|---|
 | 0 Agree on the design, write the spec | **Done** (2026-10-30) |
-| 1 Stats and modifiers core | Not started |
+| 1 Stats and modifiers core | **Done** (2026-10-30) |
 | 2 Components and definitions | Not started |
 | 3 Migrate the AI, no behaviour change | Not started |
 | 4 Modifier sources and debug view | Not started |

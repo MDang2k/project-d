@@ -27,7 +27,7 @@ An archetype, a boss, a tier-2 escort and a veteran bandit differ by a handful o
 
 A **stat** is one named number. Ids are dotted lowercase, grouped by area, defined once in code (`Stats`, a registry of constants with default, min, max, unit and a higher-is-better flag). The registry is the contract: a sheet column, a modifier or a code read with an unknown id fails validation. Adding a stat means adding a registry entry and the code that reads it.
 
-Initial registry, from today's `AiPreset` and the code defaults that were hidden outside it (about 55):
+Initial registry, from today's `AiPreset` and the code defaults that were hidden outside it (44 today):
 
 | Group | Stats |
 |---|---|
@@ -182,7 +182,7 @@ Updated 2026-10-30. Keep this table current.
 | Item | Status | Notes |
 |---|---|---|
 | Spec written, decisions recorded | **Done** | this file |
-| Phase 1 stats and modifiers core | Not started | |
+| Phase 1 stats and modifiers core | **Done** | `Stats` registry (44 stats), `StatModifier`, `StatResolver` (order of operations, additive percentages, explain), `StatSet` (cache, replace by source, timed expiry, changed event) in `scripts/systems/actors/`, with 27 xUnit tests; `ActorRuntime` (tags, properties) comes with phase 2 |
 | Phase 2 sheets, generator, catalog | Not started | the designer adds the Actors and Modifier sets sheets (or approves the generated ones) |
 | Phase 3 migrate the AI | Not started | |
 | Phase 4 modifier sources, inspector | Not started | |
