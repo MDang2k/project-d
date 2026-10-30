@@ -18,6 +18,11 @@ public partial class AiHuman
 	private AiBurstFire _burst = null!;
 	private AimTuning _aim = AimTuning.Default;
 	private MedicalData? _healItem;
+	private AiUnderFire _underFire = null!;
+	private bool _prone;
+
+	/// <summary>Raised when any AI takes a hit, so squadmates nearby can duck too.</summary>
+	private static event Action<AiHuman>? AllyHit;
 	private readonly Random _rng = new();
 	private ProjectileManager? _projectiles;
 	private readonly Array<Rid> _ownRids = new();
@@ -40,6 +45,7 @@ public partial class AiHuman
 	/// <summary>Current combat behavior (null outside combat); partners read this to coordinate flanks.</summary>
 	public TacticState? CombatState => Brain.State == AiState.Combat ? _tactics.State : null;
 	public bool IsCrouching => _crouching;
+	public UnderFirePhase UnderFirePhase => _underFire.Phase;
 
 	private void InitCombat()
 	{
@@ -51,12 +57,19 @@ public partial class AiHuman
 			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS), _rng);
 		_burst.BurstFinished += () => _tactics.OnBurstFinished();
 		Actor.Stats.Changed += OnStatsChanged;
+		_underFire = new AiUnderFire(ActorTuning.UnderFire(Actor.Stats), _rng);
+		AllyHit += OnAllyHit;
 		Brain.StateChanged += (_, next) =>
 		{
 			if (next == AiState.Combat)
 				_tactics.Begin();
 		};
-		Health.HitTaken += _ => _suppression = Mathf.Min(1f, _suppression + 0.6f);
+		Health.HitTaken += _ =>
+		{
+			_suppression = Mathf.Min(1f, _suppression + 0.6f);
+			TriggerUnderFire();
+			AllyHit?.Invoke(this);
+		};
 		Health.MedicalFinished += (_, _) => _healed = true;
 		if (Weapon is { } w)
 		{
@@ -80,6 +93,7 @@ public partial class AiHuman
 	{
 		if (Actor is not null)
 			Actor.Stats.Changed -= OnStatsChanged;
+		AllyHit -= OnAllyHit;
 		if (_projectiles is not null)
 			_projectiles.Passed -= OnBulletPassed;
 	}
@@ -96,6 +110,29 @@ public partial class AiHuman
 		_burst.Retune(SInt(Stats.Fire.BurstMin), SInt(Stats.Fire.BurstMax), S(Stats.Fire.BurstPauseMinS),
 			S(Stats.Fire.BurstPauseMaxS), S(Stats.Fire.ReactionS));
 		_agent.TargetDesiredDistance = S(Stats.Brain.ArrivalRadius);
+		_underFire.Tuning = ActorTuning.UnderFire(stats);
+	}
+
+	/// <summary>Being shot at only matters once the AI is fighting; patrol and search have their own senses.</summary>
+	private void TriggerUnderFire()
+	{
+		if (!Health.IsDead && Brain.State == AiState.Combat)
+			_underFire.Trigger();
+	}
+
+	private void OnAllyHit(AiHuman who)
+	{
+		if (!ReferenceEquals(who, this) && who.Faction == Faction && who.GlobalPosition.DistanceTo(GlobalPosition) < 15f)
+			TriggerUnderFire();
+	}
+
+	/// <summary>Metres to the nearest cover from the threat, searched now rather than at the next refresh.</summary>
+	private float? CoverDistanceNow()
+	{
+		var threat = Perception.InterestPoint ?? GlobalPosition - GlobalBasis.Z * 10f;
+		_coverPoint = FindCover(threat, false);
+		_coverRefresh = CoverRefreshS;
+		return _coverPoint is { } c ? GlobalPosition.DistanceTo(c) : null;
 	}
 
 	/// <summary>Bullets that whip past make the AI keep its head down.</summary>
@@ -107,8 +144,11 @@ public partial class AiHuman
 		var seg = to - from;
 		var len2 = seg.LengthSquared();
 		var t = len2 > 0.0001f ? Mathf.Clamp((chest - from).Dot(seg) / len2, 0f, 1f) : 0f;
-		if (chest.DistanceTo(from + seg * t) < 1.5f)
+		var miss = chest.DistanceTo(from + seg * t);
+		if (miss < 1.5f)
 			_suppression = Mathf.Min(1f, _suppression + 0.12f);
+		if (miss < S(Stats.React.NearMissM))
+			TriggerUnderFire();
 	}
 
 	private float Injury()
@@ -136,6 +176,7 @@ public partial class AiHuman
 		var faceTarget = Mathf.Atan2(-toTarget.X, -toTarget.Z);
 
 		_suppression = Mathf.Max(0f, _suppression - 0.3f * delta);
+		_underFire.Update(delta, CoverDistanceNow, _arrived);
 		_coverRefresh -= delta;
 		if (_coverRefresh <= 0f)
 		{
@@ -188,6 +229,22 @@ public partial class AiHuman
 				plan = plan with { Crouch = true, Destination = null };
 				break;
 		}
+
+		switch (_underFire.Phase)
+		{
+			case UnderFirePhase.Reacting:
+			case UnderFirePhase.GettingUp:
+				plan = plan with { Destination = null, FaceYaw = faceTarget };
+				break;
+			case UnderFirePhase.TakingCover:
+				plan = plan with { Destination = _coverPoint, FaceYaw = null, Speed = S(Stats.Move.SprintSpeed), Crouch = false };
+				break;
+			case UnderFirePhase.Prone:
+				plan = plan with { Destination = null, FaceYaw = faceTarget };
+				break;
+		}
+		if (_underFire.BlocksFire)
+			_wantsFire = false;
 
 		// Never open fire until roughly facing the target.
 		if (_wantsFire)
@@ -370,15 +427,16 @@ public partial class AiHuman
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 	}
 
-	private void ApplyCrouch(float delta, bool crouch)
+	private void ApplyCrouch(float delta, bool crouch, bool prone)
 	{
-		var target = crouch ? 0.65f : 1f;
+		var target = prone ? 0.35f : crouch ? 0.65f : 1f;
 		var next = Mathf.MoveToward(_crouchScale, target, 3f * delta);
 		_crouchScale = next;
 		HitboxRig.SetHeightScale(_hitboxRoot, next);
 		if (_bodyMesh is not null)
 			_bodyMesh.Scale = new Vector3(1f, next, 1f);
 		_crouching = next < 0.85f;
+		_prone = next < 0.5f;
 		if (Weapon is { } w)
 			w.Position = new Vector3(0.18f, 1.2f * next, -0.2f);
 	}

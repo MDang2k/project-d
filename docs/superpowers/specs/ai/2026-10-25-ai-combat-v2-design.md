@@ -1,6 +1,6 @@
 # AI combat v2: the humanized adversary
 
-Status: approved design, not implemented. Rework of the M5 human AI (GDD §16), from the designer's AI combat design doc plus the brainstorm on 2026-10-25. Applies to every human AI: faction grunts, escorts, bosses, Die Troika, Abteilung Ewig. The Hollowed and Die Wächter keep their own AI. Numbers marked **(tune)**.
+Status: approved design, build step 1 partly implemented (see Implementation status). Rework of the M5 human AI (GDD §16), from the designer's AI combat design doc plus the brainstorm on 2026-10-25. Applies to every human AI: faction grunts, escorts, bosses, Die Troika, Abteilung Ewig. The Hollowed and Die Wächter keep their own AI. Numbers marked **(tune)**.
 
 ## Intent
 
@@ -225,3 +225,16 @@ Claude's calls (designer may change): bots have stamina; bots share the player b
 - Voice barks per faction (audio content).
 - M9 night raids spec (flashlight and NVG items in raid).
 - Exact numbers: everything marked **(tune)**, set in AI range and playtests.
+
+## Implementation status
+
+Updated 2026-10-30. Numbers live in the Actors sheet as stats (`react.*`, `move.*`), so the old `AiPreset` field list in section 11 is replaced by the composable actors stats.
+
+| Item | Status | Notes |
+|---|---|---|
+| Step 1 under-fire reaction | **Done, playtest pending** | `AiUnderFire` (pure, 7 tests): hit, near miss within `react.near_miss_m`, or a squadmate hit within 15 m starts a reaction of `react.delay_min_s` to `react.delay_max_s`; then an immediate cover search, a sprint (`move.sprint_speed`) when cover is within `react.cover_max_m`, else prone for `react.prone_hold_s` and a get-up of `move.get_up_s`. Fast turn (`react.turn_deg_s`), normal turn now a stat (`move.turn_deg_s`, default 220, was 140), acceleration and braking (`move.accel`, `move.decel`). Triggers only while the AI is in combat |
+| Step 1 AI prone body | **Placeholder** | prone scales the capsule mesh and hitboxes to 0.35 of standing height and reports `Stance.Prone` to perception; no prone pose or crawl until the shared body rig is used |
+| Step 1 stamina for bots | Not started | needs the player's `StaminaPool` and sprint rules wired to the AI |
+| Step 1 low-courage prone in the open | Not started | with the utility layer |
+| Step 1 AI range counters (raycasts per frame, AI frame time) | Not started | |
+| Steps 2 to 7 | Not started | |

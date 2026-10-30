@@ -13,7 +13,6 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private const float TickS = 0.1f;
 	private const float EyeHeight = 1.6f;
 	private const float RespawnS = 8f;
-	private const float TurnSpeedDegS = 140f;
 
 	/// <summary>The actor this AI plays (stats, tags, item ids); set before the node enters the tree.</summary>
 	public ActorInstance? Actor { get; set; }
@@ -70,7 +69,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	public Faction Faction => Actor is null ? Faction.Looters : ActorTuning.ParseFaction(Actor.Def.Faction);
 	public bool IsAlive => !Health.IsDead;
-	public Stance PerceivedStance => IsCrouching ? Stance.Crouch : Stance.Stand;
+	public Stance PerceivedStance => _prone ? Stance.Prone : IsCrouching ? Stance.Crouch : Stance.Stand;
 	public float PerceivedSpeedFraction
 		=> Mathf.Clamp(new Vector2(Velocity.X, Velocity.Z).Length() / 5.2f, 0f, 1f);
 	public Rid BodyRid => GetRid();
@@ -285,10 +284,11 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		else
 		{
 			_wantsFire = false;
+			_underFire.Reset();
 			_suppression = Mathf.Max(0f, _suppression - 0.3f * delta);
 		}
 		UpdateWeapon(delta, inCombat);
-		ApplyCrouch(delta, crouch);
+		ApplyCrouch(delta, crouch, _underFire.IsProne);
 
 		var flatVel = Vector3.Zero;
 		_arrived = destination is null;
@@ -321,8 +321,12 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		}
 
 		var vel = Velocity;
-		vel.X = flatVel.X;
-		vel.Z = flatVel.Z;
+		// accelerate like the player instead of snapping to speed; brake harder than we start
+		var horizontal = new Vector2(vel.X, vel.Z);
+		var wanted = new Vector2(flatVel.X, flatVel.Z);
+		horizontal = horizontal.MoveToward(wanted, (wanted.Length() > horizontal.Length() ? S(Stats.Move.Accel) : S(Stats.Move.Decel)) * delta);
+		vel.X = horizontal.X;
+		vel.Z = horizontal.Y;
 		vel.Y = IsOnFloor() ? 0f : vel.Y - _gravity * delta;
 		Velocity = vel;
 		var wasOnFloor = IsOnFloor();
@@ -341,7 +345,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		{
 			_scanBaseYaw = faceYaw.Value;
 		}
-		var yaw = Mathf.RotateToward(Rotation.Y, faceYaw.Value, Mathf.DegToRad(TurnSpeedDegS) * delta);
+		var yaw = Mathf.RotateToward(Rotation.Y, faceYaw.Value, Mathf.DegToRad(_underFire.TurnsFast ? S(Stats.React.TurnDegS) : S(Stats.Move.TurnDegS)) * delta);
 		Rotation = new Vector3(0f, yaw, 0f);
 	}
 
@@ -518,7 +522,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			return;
 		}
 		var seeing = Perception.SeesTarget ? "  SEES" : "";
-		var tactic = Brain.State == AiState.Combat ? $"/{_tactics.State}" : "";
+		var tactic = Brain.State == AiState.Combat ? $"/{_tactics.State}" + (_underFire.Phase == UnderFirePhase.None ? "" : $" !{_underFire.Phase}") : "";
 		_label.Text = $"{ActorId}  [{Brain.State}{tactic}]\n{Perception.Level}  {Perception.Awareness * 100f:0}%{seeing}\n{LastCue}";
 		_label.Modulate = Perception.Level switch
 		{

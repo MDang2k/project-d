@@ -52,6 +52,24 @@ public static class Stats
 	{
 		public const string WalkSpeed = "move.walk_speed";
 		public const string RunSpeed = "move.run_speed";
+		public const string SprintSpeed = "move.sprint_speed";
+		public const string CrouchSpeed = "move.crouch_speed";
+		public const string ProneSpeed = "move.prone_speed";
+		public const string TurnDegS = "move.turn_deg_s";
+		public const string Accel = "move.accel";
+		public const string Decel = "move.decel";
+		public const string GetUpS = "move.get_up_s";
+	}
+
+	/// <summary>The fast reaction to being shot at (AI combat v2 spec s4).</summary>
+	public static class React
+	{
+		public const string DelayMinS = "react.delay_min_s";
+		public const string DelayMaxS = "react.delay_max_s";
+		public const string TurnDegS = "react.turn_deg_s";
+		public const string CoverMaxM = "react.cover_max_m";
+		public const string NearMissM = "react.near_miss_m";
+		public const string ProneHoldS = "react.prone_hold_s";
 	}
 
 	public static class Brain
@@ -141,6 +159,20 @@ public static class Stats
 
 		F(Move.WalkSpeed, 1.6f, 0.1f, 10f, "m/s"),
 		F(Move.RunSpeed, 3.4f, 0.1f, 12f, "m/s"),
+		F(Move.SprintSpeed, 5.2f, 0.1f, 12f, "m/s"),
+		F(Move.CrouchSpeed, 1.6f, 0.1f, 10f, "m/s"),
+		F(Move.ProneSpeed, 0.7f, 0.1f, 5f, "m/s"),
+		F(Move.TurnDegS, 220f, 30f, 1080f, "deg/s"),
+		F(Move.Accel, 10f, 1f, 100f, "m/s2"),
+		F(Move.Decel, 14f, 1f, 100f, "m/s2"),
+		F(Move.GetUpS, 0.8f, 0f, 5f, "s", false),
+
+		F(React.DelayMinS, 0.15f, 0f, 3f, "s", false),
+		F(React.DelayMaxS, 0.30f, 0f, 3f, "s", false),
+		F(React.TurnDegS, 540f, 30f, 1440f, "deg/s"),
+		F(React.CoverMaxM, 8f, 0f, 40f, "m"),
+		F(React.NearMissM, 3f, 0f, 10f, "m"),
+		F(React.ProneHoldS, 3f, 0f, 30f, "s"),
 
 		F(Brain.ArrivalRadius, 1.2f, 0.1f, 10f, "m"),
 		F(Brain.LookAroundS, 3f, 0f, 60f, "s"),

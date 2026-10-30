@@ -32,6 +32,10 @@ public static class ActorTuning
 		s.Get(Stats.Aim.MaxSpreadDeg), s.Get(Stats.Aim.MinSpreadDeg), s.Get(Stats.Aim.DistanceSpreadPer100M),
 		s.Get(Stats.Aim.MovingMult), s.Get(Stats.Aim.SuppressedMult));
 
+	public static UnderFireTuning UnderFire(StatSet s) => new(
+		s.Get(Stats.React.DelayMinS), s.Get(Stats.React.DelayMaxS), s.Get(Stats.React.CoverMaxM),
+		s.Get(Stats.React.ProneHoldS), s.Get(Stats.Move.GetUpS));
+
 	/// <summary>"Allied PMC", "allied_pmc" and "AlliedPmc" all name the same faction.</summary>
 	public static Faction ParseFaction(string text)
 	{
