@@ -1,6 +1,17 @@
 # Plan: data-driven composable actors (AI first)
 
-Status: **draft for review**, nothing implemented. Written 2026-10-28 after the discussion of how AI stats are managed today. Proposes how to replace the single `AiPreset` resource with a composable, data-driven architecture, and the order to build it in. When a phase is built, tick it in the status table at the bottom.
+Status: **approved 2026-10-30; spec written** (`docs/superpowers/specs/ai/2026-10-30-composable-actors-design.md`), nothing implemented. Written 2026-10-28 after the discussion of how AI stats are managed today. Proposes how to replace the single `AiPreset` resource with a composable, data-driven architecture, and the order to build it in. When a phase is built, tick it in the status table at the bottom.
+
+## Decisions (2026-10-30)
+
+The designer answered the open questions; they change the plan like this, and the spec has the detail:
+
+1. **AI first**, the player later through skills (phase 7).
+2. **Actors live in the catalog workbook**, not in `.tres` files: an Actors sheet (templates, blank cells inherit) and a long-format Modifier sets sheet. A generator turns them into JSON the game reads. Sections 3.3 and 3.4 below (components as `.tres`, field-level override resources) are **superseded**: components become column groups of the sheet, inheritance is template rows. Phase 2 and phase 5 change accordingly.
+3. **Templates** (parent row, blank cells inherit), one level of override per cell.
+4. **Additive percentages** for all modifiers.
+5. **One stat per tuning number.**
+6. **In-game stat inspector** (F5), no editor tool.
 
 ## 1. Why change
 
@@ -192,7 +203,7 @@ Total for the foundation (phases 0 to 4): about 6 to 7 working days, mostly pure
 
 | Phase | Status |
 |---|---|
-| 0 Agree on the design, write the spec | Not started |
+| 0 Agree on the design, write the spec | **Done** (2026-10-30) |
 | 1 Stats and modifiers core | Not started |
 | 2 Components and definitions | Not started |
 | 3 Migrate the AI, no behaviour change | Not started |
