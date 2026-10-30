@@ -187,6 +187,7 @@ public partial class AiHuman
 		var faceTarget = Mathf.Atan2(-toTarget.X, -toTarget.Z);
 
 		_suppression = Mathf.Max(0f, _suppression - 0.3f * delta);
+		TickSquad(delta);
 		_underFire.Update(delta, CoverDistanceNow, _arrived);
 		_coverRefresh -= delta;
 		if (_coverRefresh <= 0f)
@@ -197,7 +198,7 @@ public partial class AiHuman
 
 		var situation = new CombatSituation(sees, distance, Perception.SecondsSinceCue, Injury(), _suppression,
 			_coverPoint is not null, _arrived, _healItem is not null, _healed,
-			PartnerIsEngaged(), _flankPoint is not null);
+			PartnerIsEngaged(), _flankPoint is not null, HoldFlankNow);
 		_tactics.Update(delta, situation);
 		Decide(delta, situation);
 		if (_tactics.State != _lastTactic)
@@ -213,7 +214,7 @@ public partial class AiHuman
 		switch (_tactics.State)
 		{
 			case TacticState.Advance:
-				plan = plan with { Destination = target, FaceYaw = null };
+				plan = plan with { Destination = MayAdvanceNow ? target : null, FaceYaw = MayAdvanceNow ? null : faceTarget };
 				_wantsFire = sees && distance <= S(Stats.Tactics.EngageDistance) * 1.2f;
 				break;
 			case TacticState.Shoot:
@@ -286,6 +287,7 @@ public partial class AiHuman
 				_wantsFire = false;
 		}
 		TrackTarget(target, sees, delta);
+		SquadFrame(target, sees, delta);
 		var point = sees ? target : target + Vector3.Up * 1.1f;
 		if (sees && Weapon is { } gun)
 		{
@@ -304,6 +306,13 @@ public partial class AiHuman
 	/// </summary>
 	private void Decide(float delta, in CombatSituation s)
 	{
+		if (_fleeing)
+		{
+			if (_tactics.State != TacticState.Flee)
+				_tactics.Force(TacticState.Flee);
+			_tactics.NeedsDecision = false;
+			return;
+		}
 		_decideS -= delta;
 		if (_decideS > 0f && !_tactics.NeedsDecision)
 			return;
@@ -311,7 +320,7 @@ public partial class AiHuman
 		_tactics.NeedsDecision = false;
 		var facts = new UtilityFacts(s.SeesTarget, s.TargetDistance, S(Stats.Tactics.EngageDistance), s.SecondsSinceSeen,
 			s.Injury, s.Suppression, s.CoverAvailable, s.HealItemAvailable, s.Healed, s.PartnerEngaged, s.FlankPointAvailable,
-			_tactics.BurstsInState);
+			_tactics.BurstsInState, SquadRole);
 		_action = AiUtility.Choose(facts, Temperament, _action, () => (float)_rng.NextDouble() - 0.5f);
 		if (AiUtility.Serves(_tactics.State, _action))
 			return;

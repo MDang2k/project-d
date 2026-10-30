@@ -130,11 +130,13 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		BuildDebug();
 		NoiseBus.Noise += OnNoise;
 		InitCombat();
+		JoinSquad();
 	}
 
 	public override void _ExitTree()
 	{
 		NoiseBus.Noise -= OnNoise;
+		LeaveSquad();
 		ExitCombat();
 	}
 
@@ -278,6 +280,12 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 		var crouch = false;
 		var inCombat = Brain.State == AiState.Combat;
+		CheckFledAway(delta);
+		if (_fleeing && !inCombat)
+		{
+			destination = _fleePoint;
+			speed = S(Stats.Move.SprintSpeed);
+		}
 		if (inCombat)
 		{
 			var plan = PlanCombat(delta);
@@ -386,6 +394,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private void OnDied()
 	{
 		_deadTimer = RespawnS;
+		Squad?.Died(_id);
 		_lootTarget?.Model.StopSearch();
 		_lootTarget = null;
 		SyncGearWithWeapon();
@@ -450,6 +459,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		BuildGear();
 		Health.Reset();
 		Perception.Reset();
+		_fleeing = false;
+		LeaveSquad();
+		JoinSquad(); // back among whoever is near, with a clean record
 		LastCue = "-";
 		Brain.Update(0f, new AiSenses(AwarenessLevel.Unaware, false, null, 99f), false, false);
 	}

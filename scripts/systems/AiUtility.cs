@@ -24,7 +24,9 @@ public readonly record struct UtilityFacts(
 	bool PartnerEngaged,
 	bool FlankPointAvailable,
 	/// <summary>Bursts fired since the last cover.</summary>
-	int BurstsInOpen);
+	int BurstsInOpen,
+	/// <summary>What the squad has given this bot to do.</summary>
+	SquadRole Role = SquadRole.None);
 
 /// <summary>
 /// Scores each action from the facts and the temperament and picks the best, with a bonus for the current action so
@@ -48,9 +50,15 @@ public static class AiUtility
 				return t.Aggression * (0.55f + lost) * far * healthy * (1f - pinned * (1f - t.Aggression * 0.5f));
 			}
 			case TacticAction.Hold:
-				return 0.2f + (1f - t.Aggression) * 0.35f + t.SelfPreservation * 0.3f + pinned * 0.15f;
+				return 0.2f + (1f - t.Aggression) * 0.35f + t.SelfPreservation * 0.3f + pinned * 0.15f
+					+ (f.Role == SquadRole.Anchor ? 0.25f : 0f);
 			case TacticAction.Flank:
-				return f.PartnerEngaged && f.FlankPointAvailable ? t.Aggression * 0.85f * healthy : 0f;
+			{
+				if (!f.PartnerEngaged && f.Role != SquadRole.Flanker || !f.FlankPointAvailable || f.Role == SquadRole.Anchor)
+					return 0f;
+				var own = t.Aggression * 0.85f;
+				return (f.Role == SquadRole.Flanker ? Math.Max(own, 0.6f) + 0.25f : own) * healthy;
+			}
 			case TacticAction.Suppress:
 				return !f.SeesTarget && f.SecondsSinceSeen < 12f ? 0.5f + t.Aggression * 0.2f : 0f;
 			case TacticAction.SeekCover:

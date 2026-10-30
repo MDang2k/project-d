@@ -165,3 +165,27 @@ public class UtilityControlledTacticsTests
 		Assert.True(t.NeedsDecision);
 	}
 }
+
+public class SquadRoleUtilityTests
+{
+	private static UtilityFacts Facts(SquadRole role, bool partner = true, bool point = true)
+		=> new(true, 30f, 25f, 0f, 0f, 0f, true, false, false, partner, point, 0, role);
+
+	private static readonly Temperament Calm = new(0.3f, 0.7f, 0.3f);
+
+	[Fact]
+	public void AFlankerFlanksEvenIfCalmAndAnAnchorNeverDoes()
+	{
+		Assert.Equal(TacticAction.Flank, AiUtility.Choose(Facts(SquadRole.Flanker), Calm, TacticAction.Hold));
+		Assert.Equal(0f, AiUtility.Score(TacticAction.Flank, Facts(SquadRole.Anchor), new Temperament(1f, 0f, 0f)));
+		Assert.NotEqual(TacticAction.Flank, AiUtility.Choose(Facts(SquadRole.Anchor), new Temperament(0.9f, 0.2f, 0.2f), TacticAction.Hold));
+	}
+
+	[Fact]
+	public void AFlankerNeedsARouteButNotAPartnerSignal()
+	{
+		Assert.True(AiUtility.Score(TacticAction.Flank, Facts(SquadRole.Flanker, partner: false), Calm) > 0f);
+		Assert.Equal(0f, AiUtility.Score(TacticAction.Flank, Facts(SquadRole.Flanker, point: false), Calm));
+		Assert.Equal(0f, AiUtility.Score(TacticAction.Flank, Facts(SquadRole.None, partner: false), Calm));
+	}
+}

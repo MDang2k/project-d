@@ -149,7 +149,9 @@ public readonly record struct CombatSituation(
 	/// <summary>Healing finished (item use done or bleeding stopped).</summary>
 	bool Healed,
 	bool PartnerEngaged,
-	bool FlankPointAvailable);
+	bool FlankPointAvailable,
+	/// <summary>The squad wants this flanker to wait at its position until the pincer goes.</summary>
+	bool HoldFlank = false);
 
 /// <summary>
 /// Combat behaviors: advance, shoot, take cover, peek, suppress, flank, retreat, heal, flee. Pure logic
@@ -298,8 +300,8 @@ public sealed class CombatTactics
 				break;
 
 			case TacticState.Flank:
-				if (s.SeesTarget && s.TargetDistance <= _t.EngageDistance * 0.7f || s.AtDestination
-					|| StateTimeS > 14f)
+				if (s.SeesTarget && s.TargetDistance <= _t.EngageDistance * 0.7f || s.AtDestination && !s.HoldFlank
+					|| StateTimeS > (UtilityControlled ? 40f : 14f))
 					Enter(TacticState.Shoot);
 				else if (s.Suppression > 0.8f && s.CoverAvailable)
 					Enter(TacticState.SeekCover);

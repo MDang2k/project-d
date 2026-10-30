@@ -115,6 +115,15 @@ public static class Stats
 		public const string ReactionS = "fire.reaction_s";
 	}
 
+	/// <summary>Squad behaviour: shouting, discipline, despawning after a rout (AI combat v2 spec s8).</summary>
+	public static class Squad
+	{
+		public const string CalloutRadiusM = "squad.callout_radius_m";
+		public const string CalloutEveryS = "squad.callout_every_s";
+		public const string Disciplined = "squad.disciplined";
+		public const string DespawnM = "squad.despawn_m";
+	}
+
 	/// <summary>Temperament beside aggression and courage (those are in Tactics): how easily the nerve breaks.</summary>
 	public static class Temper
 	{
@@ -226,6 +235,11 @@ public static class Stats
 		F(Fire.ReactionS, 0.6f, 0f, 10f, "s", false),
 
 		F(Temper.Panic, 0.3f, 0f, 1f),
+
+		F(Squad.CalloutRadiusM, 30f, 0f, 100f, "m"),
+		F(Squad.CalloutEveryS, 6f, 1f, 60f, "s", false),
+		F(Squad.Disciplined, 0f, 0f, 1f),
+		F(Squad.DespawnM, 60f, 10f, 300f, "m"),
 
 		F(Tactics.Courage, 0.5f, 0f, 1f),
 		F(Tactics.Aggression, 0.5f, 0f, 1f),
