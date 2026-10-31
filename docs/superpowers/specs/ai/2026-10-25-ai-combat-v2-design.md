@@ -77,6 +77,7 @@ The core fix for "sluggish".
 - **Turning:** while reacting, the turn rate rises to 540 °/s **(tune)**; normal turning becomes a preset value (default 220 °/s **(tune)**).
 - **Movement speeds** (preset fields, defaults equal to the player's): walk 2.8, sprint 5.2, crouch 1.6, prone crawl 0.7 m/s. AI movement uses acceleration like the player's, not instant velocity.
 - **Stamina** (Claude's call, from "same physical rules"): bots use the player's `StaminaPool` and `MovementModel` sprint rules, so a bot that sprinted to cover and then flanks runs out of sprint like the player does.
+- **Stance, pivot and prone movement (2026-10-31):** AI stance changes, the torso cone and pivot step, and prone crawling and turning follow the animation spec sections 1.5 to 1.7 (time-gated transitions and the prone turn collision apply to AI too); the notes below are the AI-specific part.
 - **AI prone:** new stance for AI: lower body pose, prone hitboxes, slower to get up (0.8 s **(tune)**), counts as prone for perception (`TargetProfile`).
 - **Body** (Claude's call): bots use the shared player body rig and `BodyPoseModel` (the character model work on `feat/player-model`) for prone, lean peeks and blind fire, with hitboxes following the bones. If that work is not merged when AI v2 starts, the AI hitbox rig is moved per stance as a placeholder and swapped later.
 - **Afterwards:** back into normal combat from cover or prone: peek, return fire, or crawl to better cover.

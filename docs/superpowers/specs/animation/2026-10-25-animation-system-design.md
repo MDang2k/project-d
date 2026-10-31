@@ -1,6 +1,6 @@
 # Animation system: layered graph with procedural post-pass
 
-Status: approved design (compiled from the designer's animation research doc, 2026-10-25), **partly implemented, see Implementation status**. Replaces the "IK only, no hand-made animations" approach of the slice body (GDD §6 "Player body", CLAUDE.md "Full-body first person") with a hierarchical, layered animation graph in which keyframed clips, procedural IK, spring physics and gameplay code run as one multi-stage pipeline. Applies to the player and to every human AI (AI combat v2 uses the same body). Godot 4.7.2 (mono). Numbers marked **(tune)**. Choices not in the designer's doc are marked **(Claude's call)**.
+Status: approved design (compiled from the designer's animation research doc, 2026-10-25), **partly implemented, see Implementation status**; sections 1.5 to 1.7 (whole-body turning and pivot, stance switching, locomotion while prone) added 2026-10-31 from the designer's research notes, not implemented. Replaces the "IK only, no hand-made animations" approach of the slice body (GDD §6 "Player body", CLAUDE.md "Full-body first person") with a hierarchical, layered animation graph in which keyframed clips, procedural IK, spring physics and gameplay code run as one multi-stage pipeline. Applies to the player and to every human AI (AI combat v2 uses the same body). Godot 4.7.2 (mono). Numbers marked **(tune)**. Choices not in the designer's doc are marked **(Claude's call)**.
 
 ## Implementation status
 
@@ -12,7 +12,10 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 | 1.1 | Placeholder clips | **Done** | generated at startup from `GaitModel`; real clips with the same names (`Loco_<Stance>_<ring>_<dir>`) replace them without graph changes |
 | 1.1 | Real locomotion clips (CC0 library) | **Partial** | Quaternius Universal Animation Library (Standard) legs for stand idle/walk/sprint and crouch idle/walk, retargeted by `tools/retarget_ual.py` (script, not Blender) into `data/animation/locomotion_clips.json`; the pack ships forward clips only, so back plays them reversed and the sides, diagonals' strafe and all of prone stay on the generated gait; only the motion is used on top of our own hip height and crouch base (foot IK now plants the feet); credited in `assets/CREDITS.md` |
 | 1.1 | Granular crouch (C + wheel) | **Done** | already on the branch (`StanceHeightModel`) |
-| 1.1 | Stance transition clips, turn in place, foot sliding fix by real stride, jump/land/mantle/sprint start-stop clips, heavy-load gait set | Not started | |
+| 1.1 | Foot sliding fix by real stride, jump/land/mantle/sprint start-stop clips, heavy-load gait set | Not started | |
+| 1.5 | Whole-body turning: torso cone, pivot step, pivot camera dip and jitter, foot-drag sound, gear swing | Not started | replaces the old turn-in-place bullet of 1.1; AI already twists spine, chest and head toward the aim (yaw 25 / 40 / 35 over spine, chest and head up to 80 degrees) but its hips follow at the plain turn rate, no cone, no pivot step |
+| 1.6 | Stance switching: time-gated stand, crouch, prone transitions, input and fire lockouts, camera, dust, gear shift, get-up | Not started | replaces the old transition bullet of 1.1; today the stance float follows eye height and the AI scales its hitboxes with a rate, nothing is locked out |
+| 1.7 | Locomotion while prone: crawl, one-handed weapon, rate-limited turn with camera bank, body collision on turns | Not started | prone movement speed (0.7 m/s) and the prone gait exist as generated placeholders only |
 | 1.2 | Aim offset | **Partial** | procedural pitch split over spine, chest and head (`AimOffsetSolver`); looking down the torso follows only a little (it would cover the weapon) until the head-anchored correction exists; no 9 authored poses, no lean poses, no yaw split or turn in place (free look turns the head only) |
 | 1.3 | Weapon action layer: reload choreography | **Partial** | procedural, not authored clips: `ReloadPose` turns the phase and its progress into the support hand path (grip, magazine well, pouch, charging handle) and a weapon pivot tilt (`WeaponPivot` equivalent), the hand follows `WeaponNode.LeftHandAction`, and the old magazine leaves the well, goes in the hand and the new one is inserted (magazine models when they exist); smoothing keeps interrupts and resumes continuous |
 | 1.3 | Authored reload clips per weapon (`AnimationSet`, `WeaponPivot` and hand curves, event time warp) | **Done** (reloads) | `AnimationSetData` (`WeaponData.AnimSet`), `ClipSampler` reads `LeftHandAction`, `RightHandAction` and `WeaponPivot` tracks from the weapon .glb or a library .glb, `ReloadClipWarp` stretches the clip so its event marks meet the logic events and starts resumed reloads at the event already passed; a missing clip or track keeps the procedural choreography; authoring steps in `docs/art/weapon-action-animation-guide.md`; verified with a generated test clip (`--clipdemo`), not yet with a clip authored in Blender; event times come from the set resource (Blender timeline markers do not export) |
@@ -30,7 +33,8 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 | 4.3 | Wall tuck stage 2 (high and low ready) | **Done** | `ReadyPoseModel` |
 | 4.4 | Hand IK weights from clips, trigger finger curl | Not started | `HandTrigger_R` exists in the body model |
 | 4.5 | Foot IK | **Done** (player) | `FootIkModifier`, `LegIk`, probes from `PlayerBody.UpdateFootIk`: feet follow steps and slopes, are pulled onto the ground (crouch clips sank the feet 13 cm before), tilt to the surface (max 30 degrees), pelvis lowers up to 0.25 m; off while airborne, mantling or prone; works on any bone orientation. Slopes and stairs are covered by unit tests but not yet checked on a real map |
-| 4.5 | AI look-at, foot IK for AI (LOD bands) | Not started | |
+| 4.5 | Foot IK for AI | **Done** (looters, near the player) | `AiBodyRig.UpdateFootIk`, two ground rays per bot each frame in the Combat band, off while prone or airborne; counted by the AI range |
+| 4.5 | AI look-at (head toward a point of interest while unaware), AI LOD stepping of the graph | Not started | AI heads only turn with the aim in combat; the mixer is only stopped for Dormant bots |
 | 4.6 | View bob with landing dip, ADS and rest scaling, settings scale | **Done** | `ViewBob`, `PlayerConfig.ViewBobScale`; not in the debug overlay yet |
 | 5.1 to 5.2 | Phased reloads, interrupt and resume | **Done** | `ReloadSequence`, `WeaponController`; sprint, jump, mantle, melee, item use and weapon switch interrupt |
 | 5.1 | Reload phase variants per family (open-bolt, belt-fed) | **Deferred** | see "Deferred until the post-slice weapons" below |
@@ -39,7 +43,8 @@ Updated 2026-10-26. Keep this table current whenever a part of the spec is built
 | 5.3 | Round-by-round loading, stripper clips | **Deferred** | needed by bolt actions and tube shotguns |
 | 5.4 | Malfunction phases | Not started | post-slice |
 | 5.5 | Clip events as data, phase fractions in `AnimationSet` | **Done** (reloads) | event times per clip in `AnimationSetData`; missing ones use the usual proportions |
-| 6 | AI uses the same body and graph, AI animation LOD | Not started | |
+| 6 | AI uses the same body and graph | **Partial** | looters: `AiBodyRig` (locomotion graph with a shared clip library, hips-based crouch and prone, two-bone arm IK and hand poses on a chest-mounted weapon, foot IK, upper-body turn toward the aim); other factions keep the capsule; no reload, fire or medical animation on the AI body |
+| 6 | AI animation LOD by tick band | Not started | |
 | 7 | Clip authoring (weapon families, aim and lean poses, finger poses) | Not started | |
 | 8 | `AnimationSet` resource | **Done** (`AnimationSetData`, reload fields) | `AnimationConfig` not started; spring fields on `WeaponData` and `EyeReliefM` on `PartData` exist |
 
@@ -121,9 +126,9 @@ Godot implementation **(Claude's call; verify every node class in 4.7.2 before b
   - **Granular crouch (designer: yes):** hold the crouch key (C) and use the mouse wheel to raise or lower the stance height between crouch (0.5) and full stand (1.0) in 5 steps of 0.1 **(tune)**. A tap of C still toggles stand and crouch; X still goes prone (prone is not on the wheel range). The chosen height is kept until changed.
   - Effects scale with the height: eye height (camera rig), hitbox and collision capsule height, movement speed (lerp between crouch and walk speeds), sound of footsteps, and the perception stance multiplier (lerp between crouched and standing visibility, `TargetProfile`). Leaning and resting work at every height, so the player can fit the weapon over any ledge or window sill.
   - Input map: two new actions, `stance_up` (wheel up) and `stance_down` (wheel down), active only while crouch is held (approved with this decision; added in `project.godot` at implementation).
-- **Transitions:** stand to crouch and crouch to prone use short transition clips (prone down 0.6 s, prone up 0.8 s **(tune)**) layered by the stance float; the movement model keeps its own stance timing and the clip is time-scaled to match it (section 5.6 rule: logic owns time).
+- **Transitions:** time-gated, with lockouts, camera and body behaviour per direction: see section 1.6 (supersedes the earlier 0.6 s and 0.8 s prone timings). The movement model owns the timing and the clip is time-scaled to match it (section 5.6 rule: logic owns time).
 - **Foot placement:** a foot IK pass in layer 5 (section 4.5) plants feet on slopes and stairs; the base layer provides the stride.
-- **Turn in place:** when the camera yaw leaves the aim-offset yaw limit (±70° standing, ±45° crouched, ±20° prone **(tune)**), the lower body turns to catch up with a turn clip (90° step, 0.35 s **(tune)**); while moving, the lower body faces the movement direction blended toward the camera yaw (strafe rules of the blendspace). Free look (Alt) never turns the body (GDD §6).
+- **Turn in place:** see section 1.5 (torso cone, pivot step, camera cues; supersedes the earlier ±70° / ±45° / ±20° limits and the 0.35 s step) and section 1.7 for prone. While moving, the lower body faces the movement direction blended toward the camera yaw (strafe rules of the blendspace). Free look (Alt) never turns the body (GDD §6).
 - **Special locomotion:** mantle (existing mantling), ladder (if added later), jump, land (light and heavy by fall speed), sprint start and stop. Mantle uses a clip with root motion **read** by the mantle logic for the hand plant, not to move the body (the mantle code moves it).
 - **Weight and inertia:** the stride play rate follows actual ground speed (no foot sliding); heavy load (weight tiers, GDD §6) blends in a heavier gait set (shorter stride, lower torso) by the weight tier float **(Claude's call)**.
 
@@ -154,6 +159,85 @@ Low-priority additive layers run in parallel on top of everything else, each wei
 | Tremor | pain, low hydration, Ewigstein exposure (8e) | arms, head | high-frequency low-amplitude noise; head tremor is applied to the body, never to the camera beyond the existing sway rules |
 | Hit flinch | hit taken (by body part and direction) | upper body | short additive jolt (0.2 s **(tune)**); also drives a camera spring impulse (section 4.1) |
 | Cold / frost (post-slice) | Cascade Site cold, Hollowed contact | arms, shoulders | shiver loop |
+
+### 1.5 Whole-body turning and the pivot step
+
+Added 2026-10-31 from the designer's research notes. The rig splits the spine, pelvis and leg roots so that the view, the torso and the feet turn at different times. The camera stays the authority (section 3); the body is solved to it.
+
+**Torso cone.** The aim yaw (camera yaw for the player, the aim point for AI) is measured against the pelvis yaw.
+
+- Inside the cone the **hips and boots stay pinned to the floor** and only the spine, chest and neck twist (the yaw split of section 1.2). Cone half-angle **50° standing** (the notes say about 45° to 60°), **45° crouched**, **30° prone** (section 1.7) **(tune)**; it narrows continuously with the stance float.
+- Free look (Alt) never turns the body or counts toward the cone (GDD §6).
+- While moving the lower body faces the movement direction (strafe rules of the blendspace) and there is no pivot step; the pelvis follows the aim at a capped yaw rate (`PelvisTurnDegS`, 360 **(tune)**).
+
+**Pivot step.** When the aim yaw leaves the cone while standing (or crouching) still, or moving slower than a walk, a **pivot** plays:
+
+- The pelvis re-squares to the aim yaw. Clips `Pivot_<stance>_L` and `Pivot_<stance>_R` (by turn direction, 90° each, played at a rate scaled by the angle): the **front foot lifts and pivots outward, the back foot shuffles inward**, the planted foot is held by the foot IK lock until its lift phase. Duration 0.45 s per 90° **(tune)**; turns beyond 90° chain steps.
+- While the pelvis catches up the torso twist unwinds, so the **sum always equals the aim yaw** and the sight picture never jumps.
+- A pivot does not block firing or aiming; it cannot start while mantling, changing stance (section 1.6) or airborne.
+- Pure logic, `PivotModel`: inputs aim yaw, pelvis yaw, stance float, ground speed, locked flag; outputs idle or pivoting (direction, progress), the pelvis yaw target and the torso twist left. Tests below.
+
+**First-person cues (legs are not visible).**
+
+- A short **camera dip** (1.5 cm down, spring back in 0.25 s **(tune)**) and a quick **side-to-side jitter** (±0.4° yaw wobble, two cycles over 0.3 s **(tune)**) as the foot lifts; the **weapon sway amplitude rises ×1.6 for 0.4 s** (`InertiaSway` and `SwayModel` multiplier); an audible **foot-drag** sound (surface dependent) plays and emits a small noise (kind `footstep`, radius 6 m **(tune)**). Dip and jitter scale with the view bob slider (section 4.6, 0 turns them off; the sound stays). This is a deliberate, short, small exception to the "stable camera" anti-goal, and it never touches the aim point relative to the sight.
+- The weapon barrel keeps lagging the screen centre by the inertia sway (section 4.2); nothing new there.
+
+**Third-person cues (spectator, enemies, AI).**
+
+- Inside the cone: neck and upper torso twist, hips and boots pinned.
+- Past it: the pivot clip. The **backpack and plate carrier swing** with the yaw acceleration (secondary motion): worn gear meshes hang on spring-damped child nodes (`GearSwing`, a spring-damper per gear piece driven by the pelvis yaw rate and the body acceleration, stiffness and amplitude by the item's weight and size from the catalog). The silhouette shift of the gear is meant to give a player away in shadow, so it is also on in the dark.
+- AI use the same `PivotModel` with the AI aim point as input; the AI turn rates (`move.turn_deg_s`, `react.turn_deg_s`) become the cap of the pelvis turn rate; the upper-body lead already built stays as the in-cone twist.
+
+### 1.6 Stance switching (stand, crouch, prone)
+
+Added 2026-10-31. Transitions are physical, **time-gated** animations: the stance float (section 1.1) moves along a duration curve, not a snap. Logic owns the time (section 5.6); the clips are time-scaled to it.
+
+| Transition | Duration **(tune)** | Controls |
+|---|---|---|
+| Stand to crouch | 0.35 s | free to move at crouch speed; weapon stays ready |
+| Crouch to stand | 0.40 s | |
+| Incremental step (C + wheel) | 0.15 s per step, eased | mechanical, one step of 0.1 per notch (granular crouch); the body holds any height, for example three-quarter crouch |
+| Stand or crouch to prone (X) | 1.25 s (1.0 to 1.5 by speed and load) | **no fire, no ADS, no reload, no weapon action, no movement** until done; hands leave the primary grip |
+| Prone to stand (X, or jump key to crouch) | 1.30 s | **movement keys unresponsive** until the feet are planted under the body; **no fire** during the first 70% (hands back on the grip in the last 30%) |
+
+A transition cannot be cancelled once started, except that a stand-or-crouch step input mid-way reverses a crouch change. Pure logic `StanceTransition` (state, progress, locks) beside `StanceHeightModel`.
+
+**First person.**
+
+- Crouch: smooth vertical camera descent. Incremental crouch: the eye height settles in **precise mechanical increments**, so the player can watch the sightline settle into small gaps.
+- Prone entry: the camera **pitches forward and slams toward the ground** (ease-in curve, then a 3 cm settle bounce **(tune)**); the hands brace on the ground (see below).
+- Getting up: the camera **tilts up slowly**, with fabric rustle and breathing audio; no movement until the feet are planted.
+
+**Third person.**
+
+- Crouch: the knees bend and the centre of gravity drops straight down with the weapon ready; incremental heights freeze at partial knee bend (the crouch blend of the stance float, so no extra clips).
+- Prone entry: the character **drops heavily onto the knees, kicks the boots back and flattens**; a one-shot **dust** burst (dirt, gravel; none on hard floors) and the worn backpack shifts up the back (impulse to `GearSwing`).
+- Getting up: **push up with the arms, one knee under the torso, stand**; an extremely vulnerable high-profile target for over a second: the perception stance multiplier and the hit zones use the standing body from **50% of the way up** (earlier than the visual) **(Claude's call)**.
+- Hands: during prone entry and exit the arm IK weight to the weapon grips fades out and ground-brace targets take over (a ray from each hand to the floor in front of the body); the weapon hangs by the right hand or is held against the chest (`Stance_Brace` pose) **(Claude's call)**.
+- Noise: prone entry emits a gear thud (kind `footstep`, 8 m **(tune)**), getting up 4 m, plus the audio above.
+
+AI uses the same `StanceTransition` and clips: the existing AI under-fire dive and get-up phases (`AiUnderFire`, `move.get_up_s`) take their times from it instead of the hitbox scale rate, and the AI hitboxes follow the animated bones (section 3 of the character visuals spec) instead of the scale placeholder.
+
+### 1.7 Locomotion while prone (crawl and rotate)
+
+Added 2026-10-31. The most restrictive kinematics in the game.
+
+**Moving forward and backward.**
+
+- Army crawl clips `Loco_Prone_crawl_fwd` and `Loco_Prone_crawl_back` (elbows and knees pull the body, the legs kick out behind), time-scaled by ground speed (0.7 m/s forward, 0.5 m/s back **(tune)**). Sideways crawl is **not available** (A and D do nothing prone; lean is already off prone, GDD §6) **(Claude's call, open item)**.
+- First person: the camera **tilts and rolls side to side in a rhythm** (roll ±3.5°, pitch ±1.5°, one cycle per crawl stride **(tune)**, scaled by the view bob slider), and the weapon sits in **one hand, off the screen centre**: pose `Prone_Crawl` (right hand on the grip, left hand on the ground), weapon low and to the side. **ADS is impossible while moving**; stopping restores the two-handed grip over 0.4 s **(tune)**, after which ADS works. Firing while crawling is allowed, one-handed: hip spread ×3 and recoil ×1.5 **(Claude's call)**.
+- Third person: visibly belly-crawls. **A large backpack stands up like a hump** over the back: the backpack model keeps its size while the body lies flat, and the **prone perception profile grows with the backpack's bulk** (a new catalog value `Prone bulk`, 0 to 0.25 added to the prone visibility multiplier **(tune)**; the catalog column is an open item), so a big bag shows even in tall grass.
+- Noise: crawling emits a quiet `footstep` (0.3 of the walking radius **(tune)**).
+
+**Turning while prone.**
+
+- Cone ±30° (section 1.5). Past it the **view yaw rate is clamped to a slow fixed rate** (45°/s **(tune)**) **regardless of mouse DPI or speed**: `LookModel` gets a yaw-rate limit applied only to the part beyond the cone, the mouse delta past it is dropped, not queued.
+- The camera **banks heavily** (roll up to 8° **(tune)**) as the hips are dragged round.
+- Third person: the character **plants the elbows, lifts the lower abdomen slightly and shimmies the hips and legs in an arc** over the floor (clips `Prone_Turn_L` and `Prone_Turn_R`; the pelvis yaw rate equals the clamped rate).
+- **Collision constraint:** the prone body is a real shape (an oriented capsule about 0.4 m in radius and 1.8 m long along the body axis, behind the head). Each yaw step is tested by a **shape sweep** of that capsule; if the legs would touch a wall, rock or root, the **turn stops cold**: the pelvis does not move and the **camera yaw locks** in that direction (the mouse delta is dropped), so the player must crawl forward (or back) into open space before turning further. Pure logic `ProneTurnModel` (rate clamp, cone, blocked flag per direction) with the sweep supplied by the player node.
+- Bipod and rest rules (GDD §7) are unchanged; a deployed bipod pins the yaw limits it already sets.
+
+AI: a prone AI turns under the same clamp and cannot turn into walls; AI crawl (cover to cover at crawl speed) is allowed once the clips exist; until then a prone AI stays where it dropped (today's behaviour).
 
 ## 2. Procedural ADS and attachment IK
 
@@ -378,7 +462,7 @@ Instead of one monolithic reload state, a reload is a sequence of phases separat
 | `WeaponData` | `AnimFamily`, optional clip overrides; `RecoilTuning` spring fields (section 4.1) |
 | Optic and iron-sight parts | `EyeReliefM`; `SightEye` marker on the model |
 | Support-grip parts | `GripLeft` marker with `grip_pose` metadata |
-| `PlayerConfig` / new `AnimationConfig` | aim offset distribution, turn-in-place limits and timing, sway lag spring, view bob amplitudes and ADS scale, granular crouch step size, tuck thresholds and angles, flinch strength, foot IK limits, LOD rates |
+| `PlayerConfig` / new `AnimationConfig` | aim offset distribution, torso cone per stance, pivot duration and camera cues (dip, jitter, sway boost), stance transition durations and lockouts, prone crawl speeds and camera roll, prone yaw-rate clamp, prone body capsule, gear swing stiffness, turn-in-place limits and timing, sway lag spring, view bob amplitudes and ADS scale, granular crouch step size, tuck thresholds and angles, flinch strength, foot IK limits, LOD rates |
 
 - All feel values exposed in the debug overlay where cheap (CLAUDE.md rule 5): spring stiffness and damping, sway lag, bob, tuck angles, aim offset split, view bob on/off.
 
@@ -391,6 +475,10 @@ Instead of one monolithic reload state, a reload is a sequence of phases separat
 | `AdsSolve` | offset that puts a socket on the view axis at eye relief, for sockets at any offset and rotation |
 | `SupportGripResolver` | socket priority from a build |
 | `AimOffsetSolver` | pitch and yaw distribution, prone clamps, turn-in-place triggers |
+| `PivotModel` | cone per stance, pivot start only when still or slow, direction and progress, torso twist plus pelvis yaw equals the aim yaw at every frame, chained steps past 90°, locked during mantle or stance change |
+| `StanceTransition` | durations per direction, lockouts (fire, ADS, reload, movement) at every progress value, standing profile from 50% on the way up, incremental steps and reversal, AI times from the same model |
+| `ProneTurnModel` | cone, fixed yaw rate beyond it independent of input speed, a blocked sweep drops the delta and locks the direction, free direction still turns |
+| `GearSwing` | spring response to yaw acceleration, settle time, amplitude by item weight |
 | `LocomotionParams` | local velocity to blendspace coordinates, stance float to blend weights (`BodyPoseModel.StanceBlend`), play rate from ground speed |
 | `StanceHeight` | granular crouch steps and clamps; speed, eye height and visibility lerps from the height |
 | `ViewBob` | bob offsets from locomotion phase and movement type; ADS and rest scaling; landing dip spring |
@@ -409,11 +497,12 @@ GUT smoke test: the player scene loads with the `AnimationTree` and modifiers an
 6. Additive layers (breathing, limp, arm injury, tremor, flinch).
 7. Foot IK, turn in place polish, AI LOD stepping (with AI combat v2).
 8. Real clips per family as art arrives; malfunction phases with the malfunction work.
+9. Whole-body turning, stance switching and prone locomotion (sections 1.5 to 1.7), in this order: `StanceTransition` and its lockouts with placeholder procedural poses (replaces the AI scale rate too); `PivotModel` with the torso cone, camera cues and foot-drag noise; `ProneTurnModel` with the yaw-rate clamp and the shape-sweep collision (needs the prone collider); the crawl pose and camera roll; `GearSwing` and dust; then the authored clips (`Pivot_*`, `Stance_*`, `Loco_Prone_crawl_*`, `Prone_Turn_*`) as art arrives. Each step has the xUnit tests above and a playtest line below.
 
 ## 11. Editor and playtest handoff (when implemented)
 
 - Editor: import the animation libraries, check bone names match, place `SightEye`, `GripLeft` (with `grip_pose`), `ChargingHandle`, `BoltHandle`, `EjectionPort` markers on each weapon and part model; confirm the `AnimationTree` filters in the inspector.
-- Playtest: ADS on every optic and iron sight lands centred; left hand sits on every foregrip; reload interrupted by sprint at each moment then resumed (and checks show the true state); spring recoil feel per weapon; wall tuck high vs low; view bob strength at walk and sprint (and that ADS stays steady); granular crouch steps over a window sill; turn in place while crouched and prone.
+- Playtest: ADS on every optic and iron sight lands centred; left hand sits on every foregrip; reload interrupted by sprint at each moment then resumed (and checks show the true state); spring recoil feel per weapon; wall tuck high vs low; view bob strength at walk and sprint (and that ADS stays steady); granular crouch steps over a window sill; turn in place while crouched and prone. For 1.5 to 1.7: turn past the cone standing, crouched and prone and feel the dip, jitter and sway boost (and the slider at 0); watch an enemy pivot and see the gear swing; go prone and get up under fire (what you cannot do, how long you are exposed); crawl, stop and ADS; rotate prone in the open, against a wall and against a rock (the turn must stop and the camera lock); a large backpack prone in tall grass.
 
 ## Decisions
 
@@ -426,10 +515,21 @@ GUT smoke test: the player scene loads with the `AnimationTree` and modifiers an
 7. Reloads (and checks, round loading, malfunction clears) are phased, interruptible and resume from the weapon's physical state.
 8. Locomotion clips start from a CC0 library (Quaternius), retargeted in Blender; more clips authored in Blender later.
 9. A small procedural view bob is on by default (reduced in ADS, off when rested), with a 0-150% settings slider.
+10. Whole-body turning (2026-10-31): a torso cone per stance in which only the neck and upper torso twist and the feet stay pinned, a pivot step past it, with a camera dip, side jitter, weapon sway boost and foot-drag sound in first person and a visible step plus swinging gear in third person.
+11. Stance changes are time-gated physical animations (prone 1.0 to 1.5 s with no fire, ADS, reload or movement; getting up over a second, a high-profile target); incremental crouch stays mechanical.
+12. Prone is a real body: army crawl with a rhythmic camera roll and a one-handed weapon (no ADS while moving), a rate-clamped turn past a 30° cone with a camera bank, and turns that stop against geometry and lock the camera.
+
+Claude's calls for 1.5 to 1.7 (designer may change): the tune numbers of the three sections; the cone narrowing with the stance float; the standing profile from 50% up; the brace pose and hand IK fade; the fire lockout of 70% of the get-up; one-handed fire while crawling at hip spread ×3; no sideways crawl; the prone collider shape; bulk of backpacks added to the prone profile; the noise radii; the AI taking the same models.
 
 Claude's calls (designer may change): camera stays the authority with the body solved to it (no head-socket camera); pure logic owns action timing and clips are time-scaled to it, with clip markers as data; clips per weapon family with `WeaponPivot` curves; socket priority for support grips; ready-pose choice rule; interrupter list; post-pass order; AI animation LOD; CC0 locomotion library (needs approval); separate animation libraries per family; build order.
 
 ## Open items
 
 - Death and ragdoll animation (separate spec).
+- Sideways crawl while prone: none in the designer's notes; this spec has none. Say if A and D should shuffle.
+- The catalog value `Prone bulk` for backpacks (a new column in `item_catalog.xlsx`, Backpacks sheet) and which of the Slice backpacks count as large.
+- Whether getting up can be cancelled by going down again, and whether the get-up lockout should also stop aiming.
+- The foot-drag, prone-thud, fabric and breathing sounds are audio content (GDD §17), with dust particle art per surface.
+- GDD §6 (movement: "prone", turning inertia) and the stance input lines get the new rules once built; the footsteps noise table gets the new radii.
+- AI crawl (cover to cover prone) and AI hitboxes following the animated bones are part of 1.6 and 1.7 but wait for the AI body rig of the other factions.
 - CLAUDE.md "Full-body first person" and GDD §6 "Player body" lines updated when the graph is implemented (they still describe IK only).
