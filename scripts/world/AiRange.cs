@@ -268,6 +268,7 @@ public partial class AiRange : Node3D
 		var crowdCount = 0;
 		var pivotTest = false;
 		var proneTurn = false;
+		var crawlTest = false;
 		Stance? goTo = null;
 		var lineupCount = 0;
 		string? botAhead = null;
@@ -298,6 +299,8 @@ public partial class AiRange : Node3D
 				lineupCount = lineup;
 			else if (arg.StartsWith("--bot=") && arg["--bot=".Length..] is { Length: > 0 } botId)
 				botAhead = botId;
+			else if (arg == "--crawl")
+				crawlTest = true;
 			else if (arg == "--proneturn")
 				proneTurn = true;
 			else if (arg == "--pivot")
@@ -371,6 +374,31 @@ public partial class AiRange : Node3D
 				await ToSignal(GetTree().CreateTimer(0.4), SceneTreeTimer.SignalName.Timeout);
 				GD.Print($"STANCE t={i * 0.4 + 0.4:0.0} {_player.DebugStanceLine()}");
 			}
+		}
+		if (crawlTest)
+		{
+			// dev: lie down, crawl forward with a sideways key held (it must do nothing), stop, then lean right
+			_player.DebugGoStance(Stance.Prone);
+			await ToSignal(GetTree().CreateTimer(1.8), SceneTreeTimer.SignalName.Timeout);
+			_player.DebugMove = new Vector2(1f, -1f);
+			for (var i = 0; i < 4; i++)
+			{
+				await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"CRAWL moving pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Z:0.00} {_player.DebugStanceLine()}");
+			}
+			_player.DebugMove = Vector2.Zero;
+			for (var i = 0; i < 3; i++)
+			{
+				await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"CRAWL stopped {_player.DebugStanceLine()}");
+			}
+			Input.ActionPress("lean_right");
+			for (var i = 0; i < 3; i++)
+			{
+				await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"CRAWL lean {_player.DebugStanceLine()}");
+			}
+			Input.ActionRelease("lean_right");
 		}
 		if (proneTurn)
 		{

@@ -171,6 +171,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private readonly StanceTransition _transition = new();
 	private readonly PivotModel _pivotModel = new();
 	private readonly ProneTurnModel _proneTurn = new();
+	private readonly CrawlModel _crawl = new();
+	private readonly ProneLeanTuning _proneLean = new();
+	private float _leanRatio;
 	private float _proneViewYaw;
 	private float _bodyTwistDeg;
 	private PhysicsShapeQueryParameters3D? _proneProbe;
@@ -702,7 +705,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var fired = Weapon is { } held && held.Stats.VelocityMult != 1f
 			? ammo with { MuzzleVelocity = ammo.MuzzleVelocity * held.Stats.VelocityMult }
 			: ammo;
-		var cone = HandlingModel.HipSpreadDeg(_cfg.HipSpreadDeg, Weapon?.Stats.DispersionMult ?? 1f, _aim.Amount);
+		var cone = HandlingModel.HipSpreadDeg(_cfg.HipSpreadDeg, Weapon?.Stats.DispersionMult ?? 1f, _aim.Amount) * _crawl.HipSpreadMult;
 		direction = AiAim.Jitter(direction, cone, GD.Randf);
 		// the gun itself: bullet dispersion in MOA, tightened or widened by the barrel parts and the ammo
 		direction = Dispersion.Apply(direction, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), GD.Randf);
@@ -712,6 +715,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		{
 			var handling = HandlingModel.RecoilMultiplier(_handling, Stance, _aim.Amount, _support.RestAmount,
 				_support.BipodDeployed);
+			handling *= _crawl.RecoilMult; // one hand on the gun while crawling
 			var tuning = w.RecoilTuning;
 			_recoil.Kick(tuning, handling, GD.Randf() * 2f - 1f);
 			KickSprings(tuning, handling);
@@ -945,7 +949,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	private bool AimHeld()
 		=> Weapon is not null && !_mantling && !Weapon.Controller.IsBusy && !_melee.IsBusy && !_swap.Active && !WeaponRedFlagged
-			&& !_transition.BlocksAds
+			&& !_transition.BlocksAds && !_crawl.BlocksAds && !(Stance == Stance.Prone && ProneLean.BlocksAds(_proneLean, _leanRatio))
 			&& (DebugForceAds || (Input.MouseMode == Input.MouseModeEnum.Captured && Input.IsActionPressed("aim")));
 
 	/// <summary>ADS blend, breath hold, sway, recoil recovery, weapon position and FOV.</summary>
@@ -1135,6 +1139,14 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var readyPitch = ReadyPoseModel.PitchDeg(_readyPose, _readyAmount, _readyTuning);
 		_swayNode.Rotation += new Vector3(Mathf.DegToRad(pitch + readyPitch), Mathf.DegToRad(yaw), Mathf.DegToRad(Mathf.Clamp(gun.Z, -cap, cap)));
 		_swayNode.Position += new Vector3(0f, 0f, _gunBack.Value);
+		// crawling: the gun in one hand, low and off the screen centre; prone lean: the rifle rolled nearly horizontal
+		if (_crawl.OneHanded > 0f)
+		{
+			_swayNode.Position += new Vector3(0.12f, -0.14f, 0.05f) * _crawl.OneHanded;
+			_swayNode.Rotation += new Vector3(0f, 0f, Mathf.DegToRad(8f) * _crawl.OneHanded);
+		}
+		if (Stance == Stance.Prone && Mathf.Abs(_leanRatio) > 0.001f)
+			_swayNode.Rotation += new Vector3(0f, 0f, -Mathf.DegToRad(ProneLean.ExtraCantDeg(_proneLean, _leanRatio)));
 		var carry = 1f - _transition.WeaponFollowsView;
 		if (carry > 0f)
 		{
@@ -1208,7 +1220,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	/// <summary>Dev: stance, eye height and the transition state.</summary>
 	public string DebugStanceLine()
-		=> $"stance={Stance} eye={_eyeY:0.00} kind={_transition.Kind} progress={_transition.Progress:0.00} blockFire={_transition.BlocksFire} blockMove={_transition.BlocksMovement} grip={_transition.GripWeight:0.00}";
+		=> $"stance={Stance} oneHanded={_crawl.OneHanded:0.00} adsBlocked={_crawl.BlocksAds} leanRatio={_leanRatio:0.00} camRollZ={Mathf.RadToDeg(_pivot.Rotation.Z):0.0} eye={_eyeY:0.00} kind={_transition.Kind} progress={_transition.Progress:0.00} blockFire={_transition.BlocksFire} blockMove={_transition.BlocksMovement} grip={_transition.GripWeight:0.00}";
 
 	public void DebugSetStance(Stance stance)
 	{
@@ -1349,6 +1361,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var input = DebugMove != Vector2.Zero ? DebugMove : Input.GetVector("move_left", "move_right", "move_forward", "move_back");
 		if (_transition.BlocksMovement)
 			input = Vector2.Zero; // pushing off the floor with both arms
+		if (Stance == Stance.Prone)
+			input.X = 0f; // no lateral crawl: sideways play prone is the lean and the turn shimmy
 		if (Input.IsActionJustPressed("jump") && IsOnFloor() && input.Y < -0.1f
 			&& Stance == Stance.Stand && TryMantle())
 			return;
@@ -1363,6 +1377,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 		var speed = _move.TargetSpeed(Stance, IsSprinting, Tier, _heights.CrouchLevel)
 			* _penalties.MoveSpeedMultiplier;
+		if (Stance == Stance.Prone && input.Y > 0f)
+			speed *= _crawl.Tuning.BackSpeedShare; // crawling backwards is slower
 		var horizontal = _move.StepHorizontal(new Vector2(Velocity.X, Velocity.Z),
 			new Vector2(wish.X, wish.Z), speed, Tier, IsOnFloor(), delta);
 		var vel = Velocity;
@@ -1534,7 +1550,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	private void UpdateRig(float delta)
 	{
-		var allowed = Stance != Stance.Prone && !IsSprinting && !_mantling;
+		var allowed = (Stance != Stance.Prone || !_transition.Locked) && !IsSprinting && !_mantling;
 		var target = LookModel.LeanTarget(Input.IsActionPressed("lean_left"),
 			Input.IsActionPressed("lean_right"), allowed);
 		_lean = LookModel.LeanStep(_lean, target, _cfg.LeanSpeed, delta);
@@ -1543,10 +1559,15 @@ public partial class Player : CharacterBody3D, IPerceivable
 			? Mathf.Lerp(_transitionFromEye, targetEye, _transition.EyeBlend) + _transition.EyeSettleM
 			: Mathf.MoveToward(_eyeY, targetEye, _cfg.EyeHeightSpeed * delta);
 		var pivotY = _eyeY * _cfg.LeanPivotFraction;
-		var shift = ClampLeanToWalls(_lean * _cfg.LeanDistance);
-		var ratio = _cfg.LeanDistance > 0f ? shift / _cfg.LeanDistance : 0f;
+		// prone the lean rolls the torso onto the shoulder and hip: a bigger roll and a smaller shift
+		var proneLeaning = Stance == Stance.Prone;
+		var leanDistance = proneLeaning ? _proneLean.ShiftM : _cfg.LeanDistance;
+		var leanRoll = proneLeaning ? _proneLean.MaxRollDeg : _cfg.LeanRollDeg;
+		var shift = ClampLeanToWalls(_lean * leanDistance);
+		var ratio = leanDistance > 0f ? shift / leanDistance : 0f;
+		_leanRatio = proneLeaning ? ratio : 0f;
 		_pivot.Position = new Vector3(shift, pivotY, 0f);
-		_pivot.Rotation = new Vector3(Mathf.DegToRad(_transition.CameraPitchDeg), 0f, -Mathf.DegToRad(_cfg.LeanRollDeg) * ratio);
+		_pivot.Rotation = new Vector3(Mathf.DegToRad(_transition.CameraPitchDeg), 0f, -Mathf.DegToRad(leanRoll) * ratio);
 		_body.SetGripWeight(_transition.GripWeight);
 		var stanceMix = BodyPoseModel.StanceBlend(_eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight);
 		var proneActive = stanceMix.Prone >= 0.5f && !_mantling;
@@ -1571,6 +1592,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		}
 		_body.Rotation = new Vector3(0f, Mathf.DegToRad(-_bodyTwistDeg), 0f); // hips and boots stay where the pivot or the drag left them
 		_pivot.Rotation += new Vector3(0f, 0f, Mathf.DegToRad(_proneTurn.BankDeg) * _cfg.ViewBobScale); // the camera banks as the hips are dragged round
+		_crawl.Update(delta, proneActive && !_transition.Locked, new Vector2(Velocity.X, Velocity.Z).Length());
+		_pivot.Rotation += new Vector3(Mathf.DegToRad(_crawl.PitchDeg), 0f, Mathf.DegToRad(_crawl.RollDeg)) * _cfg.ViewBobScale; // the army crawl's rhythmic sway
 		ApplyViewBob(delta, pivotY);
 		// first-person pivot cues: a dip and a quick sideways jitter as the foot lifts (the view bob slider scales them)
 		_head.Position += Vector3.Up * _pivotModel.CameraDipM * _cfg.ViewBobScale;
