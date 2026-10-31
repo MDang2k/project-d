@@ -267,6 +267,7 @@ public partial class AiRange : Node3D
 		var report = false;
 		var crowdCount = 0;
 		var pivotTest = false;
+		var proneTurn = false;
 		Stance? goTo = null;
 		var lineupCount = 0;
 		string? botAhead = null;
@@ -297,6 +298,8 @@ public partial class AiRange : Node3D
 				lineupCount = lineup;
 			else if (arg.StartsWith("--bot=") && arg["--bot=".Length..] is { Length: > 0 } botId)
 				botAhead = botId;
+			else if (arg == "--proneturn")
+				proneTurn = true;
 			else if (arg == "--pivot")
 				pivotTest = true;
 			else if (arg == "--dark")
@@ -367,6 +370,27 @@ public partial class AiRange : Node3D
 			{
 				await ToSignal(GetTree().CreateTimer(0.4), SceneTreeTimer.SignalName.Timeout);
 				GD.Print($"STANCE t={i * 0.4 + 0.4:0.0} {_player.DebugStanceLine()}");
+			}
+		}
+		if (proneTurn)
+		{
+			// dev: lie down, then swing the view hard; print the cone, the clamped drag and the bank
+			if (OS.GetCmdlineUserArgs().Contains("--wall"))
+			{
+				// a wall beside where the legs would swing when turning left
+				var wall = new StaticBody3D { Position = new Vector3(0.8f, 1f, 1.2f) };
+				wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(0.3f, 2f, 1.6f) } });
+				AddChild(wall);
+			}
+			_player.DebugGoStance(Stance.Prone);
+			await ToSignal(GetTree().CreateTimer(1.8), SceneTreeTimer.SignalName.Timeout);
+			// a steady violent swing: 3 degrees every physics frame, as a fast mouse would
+			for (var i = 0; i < 150; i++)
+			{
+				_player.DebugTurnBy(3f);
+				await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+				if (i % 25 == 24)
+					GD.Print($"PRONETURN frame={i + 1} {_player.DebugPivotLine()}");
 			}
 		}
 		if (pivotTest)

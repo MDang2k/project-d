@@ -170,6 +170,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private StanceHeightModel _heights = null!;
 	private readonly StanceTransition _transition = new();
 	private readonly PivotModel _pivotModel = new();
+	private readonly ProneTurnModel _proneTurn = new();
+	private float _proneViewYaw;
+	private float _bodyTwistDeg;
+	private PhysicsShapeQueryParameters3D? _proneProbe;
+
 	private float _transitionFromEye;
 	private ClearanceModel _clearance = null!;
 	private bool _crouchAdjusted;
@@ -264,6 +269,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		AddChild(_body);
 		_body.Build(_cfg, _head, _swayNode, GameState.Instance?.Profile.Side ?? PlayerSide.Allied);
 		_pivotModel.Reset(Mathf.RadToDeg(Rotation.Y));
+		_proneTurn.Reset(Mathf.RadToDeg(Rotation.Y));
+		_proneViewYaw = Mathf.RadToDeg(Rotation.Y);
 		_pivotModel.PivotStarted += _ => NoiseBus.Emit(GlobalPosition, 6f, "footstep", this); // the foot drags on the floor
 		_camera.Near = 0.03f;
 		_camera.Fov = _cfg.HipFovDeg;
@@ -1191,7 +1198,10 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	/// <summary>Dev: pelvis yaw, torso twist and the pivot state.</summary>
 	public string DebugPivotLine()
-		=> $"aim={Mathf.RadToDeg(Rotation.Y):0} pelvis={_pivotModel.PelvisYawDeg:0} twist={_pivotModel.TwistDeg:0} pivoting={_pivotModel.Pivoting}";
+		=> $"aim={Mathf.RadToDeg(Rotation.Y):0} pelvis={(_proneTurn.Dragging || _bodyTwistDeg != _pivotModel.TwistDeg ? _proneTurn.PelvisYawDeg : _pivotModel.PelvisYawDeg):0} twist={_bodyTwistDeg:0} pivoting={_pivotModel.Pivoting} dragging={_proneTurn.Dragging} blocked={_proneTurn.Blocked} bank={_proneTurn.BankDeg:0.0}";
+
+	/// <summary>Dev: turns the view by this much, as a mouse movement would.</summary>
+	public void DebugTurnBy(float deg) => RotateY(Mathf.DegToRad(deg));
 
 	/// <summary>Dev: yaws the view as the mouse would.</summary>
 	public void DebugTurnTo(float yawDeg) => Rotation = new Vector3(0f, Mathf.DegToRad(yawDeg), 0f);
@@ -1539,9 +1549,28 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_pivot.Rotation = new Vector3(Mathf.DegToRad(_transition.CameraPitchDeg), 0f, -Mathf.DegToRad(_cfg.LeanRollDeg) * ratio);
 		_body.SetGripWeight(_transition.GripWeight);
 		var stanceMix = BodyPoseModel.StanceBlend(_eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight);
-		_pivotModel.Update(delta, Mathf.RadToDeg(Rotation.Y), stanceMix, new Vector2(Velocity.X, Velocity.Z).Length(),
-			_mantling || !IsOnFloor() || _transition.Locked);
-		_body.Rotation = new Vector3(0f, Mathf.DegToRad(-_pivotModel.TwistDeg), 0f); // hips and boots stay where the pivot left them
+		var proneActive = stanceMix.Prone >= 0.5f && !_mantling;
+		if (proneActive)
+		{
+			// lying down: a free cone, then a rate-clamped hip drag that stops against geometry (animation spec s1.7)
+			var pelvis = _proneTurn.PelvisYawDeg;
+			var proneYaw = _proneTurn.Step(delta, _proneViewYaw, Mathf.RadToDeg(Rotation.Y),
+				ProneBodyHits(pelvis + 1.5f), ProneBodyHits(pelvis - 1.5f));
+			Rotation = new Vector3(0f, Mathf.DegToRad(proneYaw), 0f);
+			_proneViewYaw = proneYaw;
+			_bodyTwistDeg = _proneTurn.TwistDeg;
+			_pivotModel.Reset(_proneTurn.PelvisYawDeg);
+		}
+		else
+		{
+			_proneTurn.Reset(Mathf.RadToDeg(Rotation.Y));
+			_proneViewYaw = Mathf.RadToDeg(Rotation.Y);
+			_pivotModel.Update(delta, Mathf.RadToDeg(Rotation.Y), stanceMix, new Vector2(Velocity.X, Velocity.Z).Length(),
+				_mantling || !IsOnFloor() || _transition.Locked);
+			_bodyTwistDeg = _pivotModel.TwistDeg;
+		}
+		_body.Rotation = new Vector3(0f, Mathf.DegToRad(-_bodyTwistDeg), 0f); // hips and boots stay where the pivot or the drag left them
+		_pivot.Rotation += new Vector3(0f, 0f, Mathf.DegToRad(_proneTurn.BankDeg) * _cfg.ViewBobScale); // the camera banks as the hips are dragged round
 		ApplyViewBob(delta, pivotY);
 		// first-person pivot cues: a dip and a quick sideways jitter as the foot lifts (the view bob slider scales them)
 		_head.Position += Vector3.Up * _pivotModel.CameraDipM * _cfg.ViewBobScale;
@@ -1552,11 +1581,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_free.Rotation = new Vector3(Mathf.DegToRad(_freeLook.Y), Mathf.DegToRad(_freeLook.X), 0f);
 		var local = GlobalBasis.Inverse() * Velocity;
 		// the legs animate against the pelvis, which can lag the view inside the cone
-		local = new Basis(Vector3.Up, Mathf.DegToRad(_pivotModel.TwistDeg)) * local;
+		local = new Basis(Vector3.Up, Mathf.DegToRad(_bodyTwistDeg)) * local;
 		_body.Locomote(local, _eyeY, !IsOnFloor() || _mantling);
 		var proneWeight = BodyPoseModel.StanceBlend(_eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight).Prone;
 		_body.UpdateFootIk(GetWorld3D().DirectSpaceState, CollisionMask, GetRid(), IsOnFloor() && !_mantling, proneWeight);
-		_body.Pose(_eyeY, _pivot.Rotation.Z, shift, Mathf.RadToDeg(_head.Rotation.X), _freeLook, _pivotModel.TwistDeg);
+		_body.Pose(_eyeY, _pivot.Rotation.Z, shift, Mathf.RadToDeg(_head.Rotation.X), _freeLook, _bodyTwistDeg);
 	}
 
 	/// <summary>Small procedural camera bob in step with the feet, plus a dip on landing (animation spec s4.6).</summary>
@@ -1729,6 +1758,25 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var h = HeightFor(Stance);
 		_capsule.Height = h;
 		_collision.Position = new Vector3(0f, h * 0.5f, 0f);
+	}
+
+	/// <summary>
+	/// True when the prone body, turned to this pelvis yaw, would touch the world: a capsule 1.8 m long lying behind the
+	/// head. It floats a few centimetres above the floor so only things standing on it count.
+	/// </summary>
+	private bool ProneBodyHits(float pelvisYawDeg)
+	{
+		_proneProbe ??= new PhysicsShapeQueryParameters3D
+		{
+			Shape = new CapsuleShape3D { Radius = 0.25f, Height = 1.8f },
+			CollisionMask = CollisionMask,
+			Exclude = new Array<Rid> { GetRid() },
+		};
+		var yaw = new Basis(Vector3.Up, Mathf.DegToRad(pelvisYawDeg));
+		// the capsule's axis is Y: lay it along the body (Z), centred 0.8 m behind the head and 0.32 m up
+		var lying = yaw * new Basis(Vector3.Right, Mathf.Pi * 0.5f);
+		_proneProbe.Transform = new Transform3D(lying, GlobalPosition + yaw * new Vector3(0f, 0.32f, 0.8f));
+		return GetWorld3D().DirectSpaceState.IntersectShape(_proneProbe, 1).Count > 0;
 	}
 
 	private bool CanFitAt(Vector3 feet, Stance target) => CanFitHeight(feet, HeightFor(target));
