@@ -283,7 +283,7 @@ public partial class AiHuman
 				plan = plan with { Destination = null, FaceYaw = faceTarget };
 				break;
 		}
-		if (_underFire.BlocksFire)
+		if (_underFire.BlocksFire || StanceLocked)
 			_wantsFire = false;
 
 		// Never open fire until roughly facing the target.
@@ -507,10 +507,30 @@ public partial class AiHuman
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 	}
 
+	private static readonly StanceTransitionTuning StanceTimes = new();
+	private Stance _stanceFrom = Stance.Stand, _stanceTo = Stance.Stand;
+	private float _stanceSpan = 0.35f, _stanceS = 0.35f;
+
+	private static Stance StanceOf(float scale) => scale >= 0.8f ? Stance.Stand : scale >= 0.5f ? Stance.Crouch : Stance.Prone;
+	private static float ScaleOf(Stance s) => s switch { Stance.Stand => 1f, Stance.Crouch => 0.65f, _ => 0.35f };
+
+	/// <summary>Going prone or getting up is under way: no fire, as for the player (the hands are off the weapon).</summary>
+	private bool StanceLocked => (_stanceFrom == Stance.Prone || _stanceTo == Stance.Prone)
+		&& Mathf.Abs(_crouchScale - ScaleOf(_stanceTo)) > 0.01f;
+
 	private void ApplyCrouch(float delta, bool crouch, bool prone)
 	{
 		var target = prone ? 0.35f : crouch ? 0.65f : 1f;
-		var next = Mathf.MoveToward(_crouchScale, target, 3f * delta);
+		var targetStance = prone ? Stance.Prone : crouch ? Stance.Crouch : Stance.Stand;
+		if (targetStance != _stanceTo)
+		{
+			// the same durations as the player's stance changes (animation spec s1.6)
+			_stanceFrom = StanceOf(_crouchScale);
+			_stanceTo = targetStance;
+			_stanceSpan = Mathf.Max(0.05f, Mathf.Abs(ScaleOf(_stanceFrom) - ScaleOf(_stanceTo)));
+			_stanceS = StanceTransition.DurationS(StanceTimes, _stanceFrom, _stanceTo);
+		}
+		var next = Mathf.MoveToward(_crouchScale, target, _stanceSpan / _stanceS * delta);
 		if (next == _crouchScale)
 			return; // nothing to move: the hitbox walk below is not free
 		_crouchScale = next;

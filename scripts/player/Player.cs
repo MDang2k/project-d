@@ -168,6 +168,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private PainOverlay _pain = null!;
 	private Penalties _penalties = new(1f, 1f, false, 1f, 0f);
 	private StanceHeightModel _heights = null!;
+	private readonly StanceTransition _transition = new();
+	private float _transitionFromEye;
 	private ClearanceModel _clearance = null!;
 	private bool _crouchAdjusted;
 	private ProjectileManager? _projectiles;
@@ -488,7 +490,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private void UpdateMelee(float delta)
 	{
 		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
-		if (captured && !_mantling && Input.IsActionJustPressed("melee") && _melee.TryStart(Arms.IsExhausted))
+		if (captured && !_mantling && !_transition.BlocksWeaponActions && Input.IsActionJustPressed("melee") && _melee.TryStart(Arms.IsExhausted))
 		{
 			Weapon?.Controller.Interrupt();
 			Arms.Spend(_melee.Spec.StaminaCost);
@@ -572,7 +574,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Draws the weapon from a slot (1, 2, 3 keys).</summary>
 	public void SelectSlot(EquipSlot slot)
 	{
-		if (Inventory.Inventory.InSlot(slot) is null)
+		if (Inventory.Inventory.InSlot(slot) is null || _transition.BlocksWeaponActions)
 			return;
 		ActiveSlot = slot;
 		RefreshHeldWeapon();
@@ -627,7 +629,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Uses a medical, food or drink item from the inventory; consumed when finished.</summary>
 	public bool UseItem(ItemInstance item)
 	{
-		if (_pendingUse is not null || Health.IsDead)
+		if (_pendingUse is not null || Health.IsDead || _transition.BlocksWeaponActions)
 			return false;
 		Weapon?.Controller.Interrupt();
 		var started = ItemDb.Data(item.Spec.Id)?.Payload switch
@@ -933,6 +935,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	private bool AimHeld()
 		=> Weapon is not null && !_mantling && !Weapon.Controller.IsBusy && !_melee.IsBusy && !_swap.Active && !WeaponRedFlagged
+			&& !_transition.BlocksAds
 			&& (DebugForceAds || (Input.MouseMode == Input.MouseModeEnum.Captured && Input.IsActionPressed("aim")));
 
 	/// <summary>ADS blend, breath hold, sway, recoil recovery, weapon position and FOV.</summary>
@@ -1122,6 +1125,13 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var readyPitch = ReadyPoseModel.PitchDeg(_readyPose, _readyAmount, _readyTuning);
 		_swayNode.Rotation += new Vector3(Mathf.DegToRad(pitch + readyPitch), Mathf.DegToRad(yaw), Mathf.DegToRad(Mathf.Clamp(gun.Z, -cap, cap)));
 		_swayNode.Position += new Vector3(0f, 0f, _gunBack.Value);
+		var carry = 1f - _transition.WeaponFollowsView;
+		if (carry > 0f)
+		{
+			// hands on the ground: the weapon hangs low and tilted down instead of following the view
+			_swayNode.Position += new Vector3(0.05f, -0.22f, 0.08f) * carry;
+			_swayNode.Rotation += new Vector3(Mathf.DegToRad(-30f) * carry, 0f, 0f);
+		}
 	}
 
 	private void UpdateWeaponInput()
@@ -1132,7 +1142,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
 		weapon.Controller.ReloadTimeMultiplier = _penalties.ReloadTimeMultiplier;
 		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling && !_swap.Active && !WeaponRedFlagged
-			&& !_clearance.BlocksFire && !_melee.IsBusy;
+			&& !_clearance.BlocksFire && !_melee.IsBusy && !_transition.BlocksFire;
 		weapon.TriggerHeld = DebugForceTrigger || Input.IsActionPressed("fire");
 		if (Input.IsActionJustPressed("fire") || DebugForceTrigger)
 			weapon.TriggerPressed = true;
@@ -1146,7 +1156,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (Input.IsActionJustPressed("rest_bipod"))
 			ToggleBipod(weapon);
 		var c = weapon.Controller;
-		if (_melee.IsBusy)
+		if (_melee.IsBusy || _transition.BlocksWeaponActions)
 			return;
 		if (Input.IsActionJustPressed("reload") && !IsSprinting)
 		{
@@ -1173,6 +1183,13 @@ public partial class Player : CharacterBody3D, IPerceivable
 	}
 
 	/// <summary>Debug/screenshot helper: switches stance without input or headroom checks.</summary>
+	/// <summary>Dev: a stance change through the real path (transition, locks), as a key press would make.</summary>
+	public void DebugGoStance(Stance stance) => SetStance(stance);
+
+	/// <summary>Dev: stance, eye height and the transition state.</summary>
+	public string DebugStanceLine()
+		=> $"stance={Stance} eye={_eyeY:0.00} kind={_transition.Kind} progress={_transition.Progress:0.00} blockFire={_transition.BlocksFire} blockMove={_transition.BlocksMovement} grip={_transition.GripWeight:0.00}";
+
 	public void DebugSetStance(Stance stance)
 	{
 		Stance = stance;
@@ -1297,6 +1314,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		UpdateInteract();
 		UpdateQuickUse();
 		UpdateWeaponInput();
+		_transition.Update(delta);
 		UpdateMelee(delta);
 		if (_mantling)
 		{
@@ -1309,6 +1327,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		HandleStanceInput();
 
 		var input = DebugMove != Vector2.Zero ? DebugMove : Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+		if (_transition.BlocksMovement)
+			input = Vector2.Zero; // pushing off the floor with both arms
 		if (Input.IsActionJustPressed("jump") && IsOnFloor() && input.Y < -0.1f
 			&& Stance == Stance.Stand && TryMantle())
 			return;
@@ -1456,7 +1476,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Squashes the standing hitbox set to the current stance height.</summary>
 	private void UpdateHitboxes()
 	{
-		var scale = Mathf.Clamp(HeightFor(Stance) / Mathf.Max(0.1f, _cfg.StandHeight), 0.3f, 1f);
+		var scale = Mathf.Clamp(HeightFor(_transition.PerceivedStance(Stance)) / Mathf.Max(0.1f, _cfg.StandHeight), 0.3f, 1f);
 		HitboxRig.SetHeightScale(_hitboxRoot, scale);
 	}
 
@@ -1467,7 +1487,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	public Faction Faction => DebugFaction ?? GameState.Instance?.Profile.Side?.ToFaction() ?? _cfg.PlayerFaction;
 	public bool IsAlive => !Health.IsDead && !_noclip;
-	public Stance PerceivedStance => Stance;
+	public Stance PerceivedStance => _transition.PerceivedStance(Stance);
 	public float PerceivedSpeedFraction
 		=> Mathf.Clamp(new Vector2(Velocity.X, Velocity.Z).Length() / Mathf.Max(0.1f, _cfg.SprintSpeed), 0f, 1f);
 	public Rid BodyRid => GetRid();
@@ -1498,12 +1518,16 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var target = LookModel.LeanTarget(Input.IsActionPressed("lean_left"),
 			Input.IsActionPressed("lean_right"), allowed);
 		_lean = LookModel.LeanStep(_lean, target, _cfg.LeanSpeed, delta);
-		_eyeY = Mathf.MoveToward(_eyeY, _move.EyeHeight(Stance, _heights.CrouchLevel), _cfg.EyeHeightSpeed * delta);
+		var targetEye = _move.EyeHeight(Stance, _heights.CrouchLevel);
+		_eyeY = _transition.Locked
+			? Mathf.Lerp(_transitionFromEye, targetEye, _transition.EyeBlend) + _transition.EyeSettleM
+			: Mathf.MoveToward(_eyeY, targetEye, _cfg.EyeHeightSpeed * delta);
 		var pivotY = _eyeY * _cfg.LeanPivotFraction;
 		var shift = ClampLeanToWalls(_lean * _cfg.LeanDistance);
 		var ratio = _cfg.LeanDistance > 0f ? shift / _cfg.LeanDistance : 0f;
 		_pivot.Position = new Vector3(shift, pivotY, 0f);
-		_pivot.Rotation = new Vector3(0f, 0f, -Mathf.DegToRad(_cfg.LeanRollDeg) * ratio);
+		_pivot.Rotation = new Vector3(Mathf.DegToRad(_transition.CameraPitchDeg), 0f, -Mathf.DegToRad(_cfg.LeanRollDeg) * ratio);
+		_body.SetGripWeight(_transition.GripWeight);
 		ApplyViewBob(delta, pivotY);
 
 		if (!Input.IsActionPressed("free_look"))
@@ -1614,6 +1638,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	private void HandleStanceInput()
 	{
+		if (_transition.BlocksStanceInput)
+			return; // going prone and getting up cannot be cancelled
 		// Tap C toggles crouch on release; holding C and scrolling adjusts height instead.
 		if (Input.IsActionJustPressed("crouch"))
 			_crouchAdjusted = false;
@@ -1636,9 +1662,20 @@ public partial class Player : CharacterBody3D, IPerceivable
 			return;
 		if (HeightFor(next) > HeightFor(Stance) && !CanFitAt(GlobalPosition, next))
 			return;
+		var from = Stance;
 		Stance = next;
 		ApplyStanceShape();
+		_transitionFromEye = _eyeY;
+		if (_transition.TryStart(from, next) && _transition.Locked)
+			BeginLockedTransition(next == Stance.Prone);
 		StanceChanged?.Invoke(Stance);
+	}
+
+	/// <summary>Going prone or getting up: the weapon action stops, the body makes a noise (gear thud, scuffing).</summary>
+	private void BeginLockedTransition(bool prone)
+	{
+		Weapon?.Controller.Interrupt();
+		NoiseBus.Emit(GlobalPosition, prone ? 8f : 4f, "footstep", this);
 	}
 
 	private float HeightFor(Stance stance) => _move.CapsuleHeight(stance, _heights.CrouchLevel);
@@ -1647,7 +1684,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private void AdjustHeight(float notches)
 	{
 		_crouchAdjusted = true;
-		if (Stance == Stance.Prone)
+		if (Stance == Stance.Prone || _transition.BlocksStanceInput)
 			return;
 		var oldStance = Stance;
 		var oldLevel = _heights.CrouchLevel;
@@ -1660,6 +1697,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 			return;
 		}
 		var changed = next != Stance;
+		_transitionFromEye = _eyeY;
+		_transition.StartStep(oldStance, next);
 		Stance = next;
 		ApplyStanceShape();
 		if (changed)

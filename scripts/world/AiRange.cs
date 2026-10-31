@@ -266,6 +266,7 @@ public partial class AiRange : Node3D
 		var fire = 0.0;
 		var report = false;
 		var crowdCount = 0;
+		Stance? goTo = null;
 		var lineupCount = 0;
 		string? botAhead = null;
 		foreach (var arg in OS.GetCmdlineUserArgs())
@@ -278,6 +279,8 @@ public partial class AiRange : Node3D
 				fire = f;
 			else if (arg.StartsWith("--yaw=") && float.TryParse(arg["--yaw=".Length..], out var yaw))
 				_player.RotationDegrees = new Vector3(0f, yaw, 0f);
+			else if (arg.StartsWith("--go=") && System.Enum.TryParse<Stance>(arg["--go=".Length..], true, out var goStance))
+				goTo = goStance;
 			else if (arg == "--crouch")
 				_player.DebugSetStance(Stance.Crouch);
 			else if (arg == "--prone")
@@ -350,6 +353,17 @@ public partial class AiRange : Node3D
 					GD.Print($"BODY take primary: clicked={tookVest} carried {before}->{inv.AllItems().Count()} fal found={found is not null} " +
 						$"foundInRaid={found?.FoundInRaid} bodyPrimary={body.Body!.InSlot(EquipSlot.Primary)?.Spec.Id ?? "none"}");
 				}
+			}
+		}
+		if (goTo is { } go)
+		{
+			// dev: change stance through the real path and print the transition each half second
+			await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+			_player.DebugGoStance(go);
+			for (var i = 0; i < 6; i++)
+			{
+				await ToSignal(GetTree().CreateTimer(0.4), SceneTreeTimer.SignalName.Timeout);
+				GD.Print($"STANCE t={i * 0.4 + 0.4:0.0} {_player.DebugStanceLine()}");
 			}
 		}
 		if (crowdCount > 0)

@@ -195,7 +195,7 @@ public static class Stats
 		F(Move.TurnDegS, 220f, 30f, 1080f, "deg/s"),
 		F(Move.Accel, 10f, 1f, 100f, "m/s2"),
 		F(Move.Decel, 14f, 1f, 100f, "m/s2"),
-		F(Move.GetUpS, 0.8f, 0f, 5f, "s", false),
+		F(Move.GetUpS, 1.3f, 0f, 5f, "s", false),
 
 		F(React.DelayMinS, 0.15f, 0f, 3f, "s", false),
 		F(React.DelayMaxS, 0.30f, 0f, 3f, "s", false),

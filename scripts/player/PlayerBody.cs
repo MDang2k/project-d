@@ -37,6 +37,21 @@ public partial class PlayerBody : Node3D
 
 	public WeaponNode? HeldItem { get; private set; }
 
+	private float _gripWeight = 1f;
+
+	/// <summary>
+	/// 1 with both hands on the weapon, 0 with them off it (pushing off the floor): the arm IK and hand poses fade out
+	/// and the arms hang down.
+	/// </summary>
+	public void SetGripWeight(float weight)
+	{
+		_gripWeight = Mathf.Clamp(weight, 0f, 1f);
+		if (_ik is not null)
+			_ik.Influence = _gripWeight;
+		if (_hands is not null)
+			_hands.Influence = _gripWeight;
+	}
+
 	/// <summary>Head and cap meshes: shadow-only in first person, fully drawn for the debug outside views.</summary>
 	private readonly System.Collections.Generic.List<GeometryInstance3D> _headMeshes = new();
 
@@ -396,7 +411,8 @@ public partial class PlayerBody : Node3D
 		Rotate(_headBone, Yaw(twist + freeLookDeg.X) * Pitch(headPitch + freeLookDeg.Y));
 
 		// No weapon: the IK is off, so the arms hang down instead of staying in the model's T-pose rest.
-		if (HeldItem is null)
+		// The same when the hands let go of it (the IK influence is then fading out over this pose).
+		if (HeldItem is null || _gripWeight < 1f)
 		{
 			_skel.SetBonePoseRotation(_upperArmL, _armDownL);
 			_skel.SetBonePoseRotation(_upperArmR, _armDownR);

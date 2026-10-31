@@ -1,10 +1,9 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=40 format=3]
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://b844f2xs5u7d"]
 
-[ext_resource type="Script" path="res://scripts/weapons/WeaponData.cs" id="1"]
-[ext_resource type="Resource" path="res://data/animation/ak.tres" id="91"]
+[ext_resource type="Script" uid="uid://dsp2kha275frj" path="res://scripts/weapons/WeaponData.cs" id="1"]
 [ext_resource type="Resource" path="res://data/ammo/7_62x39.tres" id="2"]
-
-[ext_resource type="Script" path="res://scripts/weapons/WeaponSlotData.cs" id="90"]
+[ext_resource type="Script" uid="uid://cptngkxwaaacy" path="res://scripts/weapons/WeaponSlotData.cs" id="90"]
+[ext_resource type="Resource" path="res://data/animation/ak.tres" id="91"]
 
 [sub_resource type="Resource" id="slot0"]
 script = ExtResource("90")
@@ -12,10 +11,6 @@ Id = "barrel"
 Type = "barrel"
 Accepts = PackedStringArray("ak.barrel")
 Required = true
-Accessory = false
-Marker = ""
-Rail = ""
-RailStart = 0
 
 [sub_resource type="Resource" id="slot1"]
 script = ExtResource("90")
@@ -23,10 +18,6 @@ Id = "bolt"
 Type = "bolt"
 Accepts = PackedStringArray("ak.bolt")
 Required = true
-Accessory = false
-Marker = ""
-Rail = ""
-RailStart = 0
 
 [sub_resource type="Resource" id="slot2"]
 script = ExtResource("90")
@@ -34,10 +25,6 @@ Id = "gas"
 Type = "gas"
 Accepts = PackedStringArray("ak.gastube")
 Required = true
-Accessory = false
-Marker = ""
-Rail = ""
-RailStart = 0
 
 [sub_resource type="Resource" id="slot3"]
 script = ExtResource("90")
@@ -45,74 +32,51 @@ Id = "grip"
 Type = "grip"
 Accepts = PackedStringArray("ak.grip")
 Required = true
-Accessory = false
-Marker = ""
-Rail = ""
-RailStart = 0
 
 [sub_resource type="Resource" id="slot4"]
 script = ExtResource("90")
 Id = "handguard"
 Type = "handguard"
 Accepts = PackedStringArray("ak.handguard")
-Required = false
-Accessory = false
 Marker = "Handguard"
-Rail = ""
-RailStart = 0
 
 [sub_resource type="Resource" id="slot5"]
 script = ExtResource("90")
 Id = "stock"
 Type = "stock"
 Accepts = PackedStringArray("ak.stock")
-Required = false
-Accessory = false
 Marker = "Stock"
-Rail = ""
-RailStart = 0
 
 [sub_resource type="Resource" id="slot6"]
 script = ExtResource("90")
 Id = "dovetail"
 Type = "mount"
 Accepts = PackedStringArray("dovetail.side")
-Required = false
 Accessory = true
 Marker = "OpticMount"
-Rail = ""
-RailStart = 0
 
 [resource]
 script = ExtResource("1")
 Id = "ak_type"
 NameKey = "weapon.ak_type"
 Ammo = ExtResource("2")
-MagazineCapacity = 30
-RoundsPerMinute = 600.0
-AllowsSemi = true
-AllowsAuto = true
+WeightKg = 3.6
 RecoilVerticalDeg = 1.1
-RecoilHorizontalDeg = 0.5
 RecoilReleaseDelayS = 0.1
 AdsTimeS = 0.22
 SwayBaseDeg = 0.35
+AnimSet = ExtResource("91")
+Ergonomics = 60.0
+VerticalRecoilRating = 45.0
+HipStabilityRating = 45.0
+DispersionMoa = 5.0
+Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2"), SubResource("slot3"), SubResource("slot4"), SubResource("slot5"), SubResource("slot6")])
+DefaultPartSlots = PackedStringArray("barrel", "bolt", "gas", "grip", "handguard", "stock")
+DefaultPartItems = PackedStringArray("ak_barrel_std", "ak_bolt_carrier", "ak_gas_tube", "ak_grip_std", "ak_handguard_std", "ak_stock_std")
 TacticalReloadS = 2.4
 FastReloadS = 1.6
 MagCheckS = 1.2
 ChamberCheckS = 0.9
 ChargeS = 0.7
-WeightKg = 3.6
 BodySize = Vector3(0.05, 0.1, 0.88)
 GripRightOffset = Vector3(0, -0.06, 0.05)
-GripLeftOffset = Vector3(0, -0.04, -0.25)
-Ergonomics = 60.0
-VerticalRecoilRating = 45.0
-HorizontalRecoilRating = 50.0
-StabilityRating = 50.0
-DispersionMoa = 5.0
-HipStabilityRating = 45.0
-AnimSet = ExtResource("91")
-Slots = Array[ExtResource("90")]([SubResource("slot0"), SubResource("slot1"), SubResource("slot2"), SubResource("slot3"), SubResource("slot4"), SubResource("slot5"), SubResource("slot6")])
-DefaultPartSlots = PackedStringArray("barrel", "bolt", "gas", "grip", "handguard", "stock")
-DefaultPartItems = PackedStringArray("ak_barrel_std", "ak_bolt_carrier", "ak_gas_tube", "ak_grip_std", "ak_handguard_std", "ak_stock_std")
