@@ -132,6 +132,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		InitCombat();
 		JoinSquad();
 		StaggerTicks();
+		_pivot.Reset(Mathf.RadToDeg(Rotation.Y));
 		Health.HitTaken += _ => Wake();
 	}
 
@@ -314,6 +315,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		AiPerf.AddMs(Frame, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
 	}
 
+	private readonly PivotModel _pivot = new();
 	private bool _arrived;
 	private bool _proneCover;
 
@@ -407,8 +409,11 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		{
 			_scanBaseYaw = faceYaw.Value;
 		}
-		var yaw = Mathf.RotateToward(Rotation.Y, faceYaw.Value, Mathf.DegToRad(_underFire.TurnsFast ? S(Stats.React.TurnDegS) : S(Stats.Move.TurnDegS)) * delta);
-		Rotation = new Vector3(0f, yaw, 0f);
+		// the hips follow the aim only past the torso cone (a pivot step) or while moving; the upper body takes the rest
+		var rate = _underFire.TurnsFast ? S(Stats.React.TurnDegS) : S(Stats.Move.TurnDegS);
+		_pivot.Update(delta, Mathf.RadToDeg(faceYaw.Value), StanceWeights(_crouchScale), new Vector2(Velocity.X, Velocity.Z).Length(),
+			!IsOnFloor() || StanceLocked, rate);
+		Rotation = new Vector3(0f, Mathf.DegToRad(_pivot.PelvisYawDeg), 0f);
 	}
 
 	/// <summary>Body colour from the actor sheet (red, green, blue), a drab default when missing.</summary>
@@ -506,6 +511,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		BuildGear();
 		Health.Reset();
 		Perception.Reset();
+		_pivot.Reset(Mathf.RadToDeg(Rotation.Y));
 		_fleeing = false;
 		LeaveSquad();
 		JoinSquad(); // back among whoever is near, with a clean record
@@ -549,7 +555,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 	private void PerceiveTick(float dt)
 	{
 		var eye = GlobalPosition + Vector3.Up * EyeHeight;
-		var forward = -GlobalBasis.Z;
+		var forward = new Basis(Vector3.Up, Mathf.DegToRad(_pivot.TwistDeg)) * -GlobalBasis.Z; // the head, not the hips
 		forward.Y = 0f;
 		forward = forward.Normalized();
 

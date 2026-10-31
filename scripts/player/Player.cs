@@ -169,6 +169,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private Penalties _penalties = new(1f, 1f, false, 1f, 0f);
 	private StanceHeightModel _heights = null!;
 	private readonly StanceTransition _transition = new();
+	private readonly PivotModel _pivotModel = new();
 	private float _transitionFromEye;
 	private ClearanceModel _clearance = null!;
 	private bool _crouchAdjusted;
@@ -262,6 +263,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_body = new PlayerBody { Name = "Body" };
 		AddChild(_body);
 		_body.Build(_cfg, _head, _swayNode, GameState.Instance?.Profile.Side ?? PlayerSide.Allied);
+		_pivotModel.Reset(Mathf.RadToDeg(Rotation.Y));
+		_pivotModel.PivotStarted += _ => NoiseBus.Emit(GlobalPosition, 6f, "footstep", this); // the foot drags on the floor
 		_camera.Near = 0.03f;
 		_camera.Fov = _cfg.HipFovDeg;
 		UpdateRig(0f);
@@ -987,7 +990,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_aim.Amount, IsHoldingBreath, _support.RestAmount, _support.BipodDeployed);
 		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling,
 				weapon.Data.SwayBaseDeg * weapon.Stats.SwayMult * ergo.SwayMult(ergonomics), ctx)
-			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier;
+			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier * _pivotModel.SwayBoost;
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
 		var (posOffset, rotDeg) = UpdateActionPose(delta, weapon);
 		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y + rotDeg.X), Mathf.DegToRad(sway.X + rotDeg.Y),
@@ -1185,6 +1188,13 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Debug/screenshot helper: switches stance without input or headroom checks.</summary>
 	/// <summary>Dev: a stance change through the real path (transition, locks), as a key press would make.</summary>
 	public void DebugGoStance(Stance stance) => SetStance(stance);
+
+	/// <summary>Dev: pelvis yaw, torso twist and the pivot state.</summary>
+	public string DebugPivotLine()
+		=> $"aim={Mathf.RadToDeg(Rotation.Y):0} pelvis={_pivotModel.PelvisYawDeg:0} twist={_pivotModel.TwistDeg:0} pivoting={_pivotModel.Pivoting}";
+
+	/// <summary>Dev: yaws the view as the mouse would.</summary>
+	public void DebugTurnTo(float yawDeg) => Rotation = new Vector3(0f, Mathf.DegToRad(yawDeg), 0f);
 
 	/// <summary>Dev: stance, eye height and the transition state.</summary>
 	public string DebugStanceLine()
@@ -1528,16 +1538,25 @@ public partial class Player : CharacterBody3D, IPerceivable
 		_pivot.Position = new Vector3(shift, pivotY, 0f);
 		_pivot.Rotation = new Vector3(Mathf.DegToRad(_transition.CameraPitchDeg), 0f, -Mathf.DegToRad(_cfg.LeanRollDeg) * ratio);
 		_body.SetGripWeight(_transition.GripWeight);
+		var stanceMix = BodyPoseModel.StanceBlend(_eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight);
+		_pivotModel.Update(delta, Mathf.RadToDeg(Rotation.Y), stanceMix, new Vector2(Velocity.X, Velocity.Z).Length(),
+			_mantling || !IsOnFloor() || _transition.Locked);
+		_body.Rotation = new Vector3(0f, Mathf.DegToRad(-_pivotModel.TwistDeg), 0f); // hips and boots stay where the pivot left them
 		ApplyViewBob(delta, pivotY);
+		// first-person pivot cues: a dip and a quick sideways jitter as the foot lifts (the view bob slider scales them)
+		_head.Position += Vector3.Up * _pivotModel.CameraDipM * _cfg.ViewBobScale;
+		_head.Rotation += new Vector3(0f, Mathf.DegToRad(_pivotModel.JitterDeg) * _cfg.ViewBobScale, 0f);
 
 		if (!Input.IsActionPressed("free_look"))
 			_freeLook = LookModel.FreeLookReturn(_freeLook, _cfg.FreeLookReturnDegS, delta);
 		_free.Rotation = new Vector3(Mathf.DegToRad(_freeLook.Y), Mathf.DegToRad(_freeLook.X), 0f);
 		var local = GlobalBasis.Inverse() * Velocity;
+		// the legs animate against the pelvis, which can lag the view inside the cone
+		local = new Basis(Vector3.Up, Mathf.DegToRad(_pivotModel.TwistDeg)) * local;
 		_body.Locomote(local, _eyeY, !IsOnFloor() || _mantling);
 		var proneWeight = BodyPoseModel.StanceBlend(_eyeY, _cfg.StandEyeHeight, _cfg.CrouchEyeHeight, _cfg.ProneEyeHeight).Prone;
 		_body.UpdateFootIk(GetWorld3D().DirectSpaceState, CollisionMask, GetRid(), IsOnFloor() && !_mantling, proneWeight);
-		_body.Pose(_eyeY, _pivot.Rotation.Z, shift, Mathf.RadToDeg(_head.Rotation.X), _freeLook);
+		_body.Pose(_eyeY, _pivot.Rotation.Z, shift, Mathf.RadToDeg(_head.Rotation.X), _freeLook, _pivotModel.TwistDeg);
 	}
 
 	/// <summary>Small procedural camera bob in step with the feet, plus a dip on landing (animation spec s4.6).</summary>

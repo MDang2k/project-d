@@ -266,6 +266,7 @@ public partial class AiRange : Node3D
 		var fire = 0.0;
 		var report = false;
 		var crowdCount = 0;
+		var pivotTest = false;
 		Stance? goTo = null;
 		var lineupCount = 0;
 		string? botAhead = null;
@@ -296,6 +297,8 @@ public partial class AiRange : Node3D
 				lineupCount = lineup;
 			else if (arg.StartsWith("--bot=") && arg["--bot=".Length..] is { Length: > 0 } botId)
 				botAhead = botId;
+			else if (arg == "--pivot")
+				pivotTest = true;
 			else if (arg == "--dark")
 				AddChild(new LightZone { Level = LightLevel.Dark, Size = new Vector3(400f, 30f, 400f) });
 			else if (arg.StartsWith("--bushes=") && arg["--bushes=".Length..].Split(',') is { Length: 2 } bp
@@ -364,6 +367,20 @@ public partial class AiRange : Node3D
 			{
 				await ToSignal(GetTree().CreateTimer(0.4), SceneTreeTimer.SignalName.Timeout);
 				GD.Print($"STANCE t={i * 0.4 + 0.4:0.0} {_player.DebugStanceLine()}");
+			}
+		}
+		if (pivotTest)
+		{
+			// dev: turn the view inside the cone, then past it, and print the pelvis and twist
+			await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+			foreach (var yaw in new[] { 30f, 100f, -60f })
+			{
+				_player.DebugTurnTo(yaw);
+				for (var i = 0; i < 4; i++)
+				{
+					await ToSignal(GetTree().CreateTimer(0.15), SceneTreeTimer.SignalName.Timeout);
+					GD.Print($"PIVOT view={yaw:0} {_player.DebugPivotLine()}");
+				}
 			}
 		}
 		if (crowdCount > 0)

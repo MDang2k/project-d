@@ -378,7 +378,7 @@ public partial class PlayerBody : Node3D
 	/// the locomotion graph; the spine and chest follow part of the look pitch (aim offset) and the head keeps
 	/// facing the camera.
 	/// </summary>
-	public void Pose(float eyeY, float leanRoll, float leanShift, float lookPitchDeg = 0f, Vector2 freeLookDeg = default)
+	public void Pose(float eyeY, float leanRoll, float leanShift, float lookPitchDeg = 0f, Vector2 freeLookDeg = default, float torsoTwistDeg = 0f)
 	{
 		// support-hand finger pose from the active grip socket (HandSupport_<pose>_L), else the default one
 		if (HeldItem is { GripPose: { Length: > 0 } pose } && _hands.HasPose($"HandSupport_{pose}_L"))
@@ -402,13 +402,14 @@ public partial class PlayerBody : Node3D
 		_skel.SetBonePosePosition(_spine, _spineRest);
 		var (spinePitch, chestPitch, headPitch) = AimOffsetSolver.Distribute(_aimOffset, lookPitchDeg, prone);
 		// lean is shared by spine and chest so the body curves instead of kinking at the waist
-		Rotate(_spine, new Quaternion(Vector3.Back, leanRoll * 0.5f) * Pitch(spinePitch));
+		// the body model is turned by -torsoTwist (the pelvis lags the view inside the cone); spine, chest and neck take it back
+		Rotate(_spine, Yaw(torsoTwistDeg * 0.3f) * new Quaternion(Vector3.Back, leanRoll * 0.5f) * Pitch(spinePitch));
 
 		// Bladed stance while holding a weapon: chest turns right so the left shoulder comes forward,
 		// head turns back so it keeps facing the camera. Off when prone (the chest lies along -Z).
 		var twist = HeldItem is null ? 0f : _cfg.HoldChestTwistDeg * (1f - prone);
-		Rotate(_chest, Yaw(-twist) * new Quaternion(Vector3.Back, leanRoll * 0.5f) * Pitch(chestPitch));
-		Rotate(_headBone, Yaw(twist + freeLookDeg.X) * Pitch(headPitch + freeLookDeg.Y));
+		Rotate(_chest, Yaw(-twist + torsoTwistDeg * 0.4f) * new Quaternion(Vector3.Back, leanRoll * 0.5f) * Pitch(chestPitch));
+		Rotate(_headBone, Yaw(twist + freeLookDeg.X + torsoTwistDeg * 0.3f) * Pitch(headPitch + freeLookDeg.Y));
 
 		// No weapon: the IK is off, so the arms hang down instead of staying in the model's T-pose rest.
 		// The same when the hands let go of it (the IK influence is then fading out over this pose).

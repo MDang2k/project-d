@@ -86,16 +86,28 @@ public partial class AiHuman
 	}
 
 	/// <summary>Feeds the animated body: the body-frame velocity, the stance and whether it is airborne.</summary>
+	/// <summary>Stand, crouch and prone weights for the AI's stance scale (1, 0.65, 0.35).</summary>
+	private static (float Stand, float Crouch, float Prone) StanceWeights(float scale)
+	{
+		if (scale >= 0.65f)
+		{
+			var t = Mathf.Clamp((scale - 0.65f) / 0.35f, 0f, 1f);
+			return (t, 1f - t, 0f);
+		}
+		var p = Mathf.Clamp((scale - 0.35f) / 0.30f, 0f, 1f);
+		return (0f, p, 1f - p);
+	}
+
 	private void UpdateRig(float delta)
 	{
 		if (_rig is not { } rig)
 			return;
 		// the upper body turns to what the AI aims at, in the body's own frame
-		float yaw = 0f, pitch = 0f;
+		var yaw = _pivot.TwistDeg;
+		var pitch = 0f;
 		if (Brain.State == AiState.Combat)
 		{
 			var local = GlobalBasis.Inverse() * (_aimPoint - (GlobalPosition + Vector3.Up * 1.4f));
-			yaw = Mathf.RadToDeg(Mathf.Atan2(-local.X, -local.Z));
 			pitch = Mathf.RadToDeg(Mathf.Atan2(local.Y, new Vector2(local.X, local.Z).Length()));
 		}
 		rig.Animate(delta, GlobalBasis.Inverse() * Velocity, S(Stats.Move.WalkSpeed), S(Stats.Move.SprintSpeed), _crouchScale,

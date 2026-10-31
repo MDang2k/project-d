@@ -289,7 +289,7 @@ public partial class AiHuman
 		// Never open fire until roughly facing the target.
 		if (_wantsFire)
 		{
-			var error = Mathf.Abs(Mathf.AngleDifference(Rotation.Y, faceTarget));
+			var error = Mathf.Abs(Mathf.AngleDifference(Rotation.Y + Mathf.DegToRad(_pivot.TwistDeg), faceTarget));
 			if (error > Mathf.DegToRad(25f))
 				_wantsFire = false;
 		}
