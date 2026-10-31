@@ -83,7 +83,7 @@ The central plot device.
 
 ### Stances and actions
 
-Walk, sprint, crouch, crouch-sprint, prone, mantle (low obstacles), lean left/right (any stance except prone and sprint), free look. Movement has inertia that scales with carried weight: heavier = slower acceleration, slower turning while sprinting.
+Walk, sprint, crouch, crouch-sprint, prone, mantle (low obstacles), lean left/right (any stance except sprint; while prone the lean rolls the torso onto its side, canting the weapon and blocking ADS), no sideways crawl while prone, free look. Movement has inertia that scales with carried weight: heavier = slower acceleration, slower turning while sprinting.
 
 ### Player body
 
