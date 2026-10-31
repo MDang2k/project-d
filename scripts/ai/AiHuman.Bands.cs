@@ -82,12 +82,28 @@ public partial class AiHuman
 		vel.Y = IsOnFloor() ? 0f : vel.Y - _gravity * delta;
 		Velocity = vel;
 		MoveAndSlide();
-		UpdateRig();
+		UpdateRig(delta);
 	}
 
 	/// <summary>Feeds the animated body: the body-frame velocity, the stance and whether it is airborne.</summary>
-	private void UpdateRig()
+	private void UpdateRig(float delta)
 	{
-		_rig?.Animate(GlobalBasis.Inverse() * Velocity, S(Stats.Move.WalkSpeed), S(Stats.Move.SprintSpeed), _crouchScale, !IsOnFloor());
+		if (_rig is not { } rig)
+			return;
+		// the upper body turns to what the AI aims at, in the body's own frame
+		float yaw = 0f, pitch = 0f;
+		if (Brain.State == AiState.Combat)
+		{
+			var local = GlobalBasis.Inverse() * (_aimPoint - (GlobalPosition + Vector3.Up * 1.4f));
+			yaw = Mathf.RadToDeg(Mathf.Atan2(-local.X, -local.Z));
+			pitch = Mathf.RadToDeg(Mathf.Atan2(local.Y, new Vector2(local.X, local.Z).Length()));
+		}
+		rig.Animate(delta, GlobalBasis.Inverse() * Velocity, S(Stats.Move.WalkSpeed), S(Stats.Move.SprintSpeed), _crouchScale,
+			!IsOnFloor(), yaw, pitch);
+		// foot IK probes only for bots near the player, one pair of rays each
+		var near = _band == AiBand.Combat;
+		if (near)
+			AiPerf.Ray(Frame, 2);
+		rig.UpdateFootIk(GetWorld3D().DirectSpaceState, 1u, GetRid(), near && IsOnFloor());
 	}
 }

@@ -395,7 +395,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		MoveAndSlide();
 		if (!lifted)
 			StepUp.Down(this, 0.3f, wasOnFloor);
-		UpdateRig();
+		UpdateRig(delta);
 
 		// Standing around: sweep the view around where the AI was last facing.
 		if (faceYaw is null)

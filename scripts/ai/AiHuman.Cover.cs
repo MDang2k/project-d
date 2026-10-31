@@ -162,10 +162,10 @@ public partial class AiHuman
 
 	private void PlaceWeapon()
 	{
+		if (_rig is not null)
+			return; // the weapon rides on the animated chest
 		if (Weapon is { } w)
-			w.Position = _rig is { } rig
-				? new Vector3(0.1f + LeanOffset, rig.HoldHeight, -0.3f)
-				: new Vector3(0.18f + LeanOffset, 1.2f * _crouchScale, -0.2f);
+			w.Position = new Vector3(0.18f + LeanOffset, 1.2f * _crouchScale, -0.2f);
 	}
 
 	private float LeanOffset => _lean * S(Stats.Cover.LeanM);
