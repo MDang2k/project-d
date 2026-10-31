@@ -112,6 +112,7 @@
      "0.42",
      "0.3"
     ],
+    "body_model": "looter",
     "archetypes": [
      "conscript:70",
      "rat:30"

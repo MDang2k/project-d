@@ -22,7 +22,7 @@ OUT = ROOT / "data" / "actors" / "actors.json"
 LISTS = {"Tags", "Modifier sets", "Weapon choices", "Armor", "Body color", "Archetypes"}
 PROPS = {"Weapon": "weapon", "Weapon choices": "weapon_choices", "Armor": "armor", "Heal item": "heal_item",
          "Rig": "rig", "Backpack": "backpack", "Pocket table": "pocket_table", "Loots corpses": "loots_corpses",
-         "Body color": "body_color", "Archetypes": "archetypes"}
+         "Body color": "body_color", "Body model": "body_model", "Archetypes": "archetypes"}
 LINKS = {"Boss row": "boss_row", "Loadout faction": "loadout_faction", "Loadout tier": "loadout_tier"}
 OPS = {"add", "pct", "min", "max", "set"}
 

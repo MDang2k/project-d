@@ -266,6 +266,7 @@ public partial class AiRange : Node3D
 		var fire = 0.0;
 		var report = false;
 		var crowdCount = 0;
+		var lineupCount = 0;
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--shot="))
@@ -287,6 +288,8 @@ public partial class AiRange : Node3D
 				StartTestRaid(raidSeconds);
 			else if (arg.StartsWith("--crowd=") && int.TryParse(arg["--crowd=".Length..], out var crowd))
 				crowdCount = crowd;
+			else if (arg.StartsWith("--lineup=") && int.TryParse(arg["--lineup=".Length..], out var lineup))
+				lineupCount = lineup;
 			else if (arg == "--dark")
 				AddChild(new LightZone { Level = LightLevel.Dark, Size = new Vector3(400f, 30f, 400f) });
 			else if (arg.StartsWith("--bushes=") && arg["--bushes=".Length..].Split(',') is { Length: 2 } bp
@@ -353,6 +356,8 @@ public partial class AiRange : Node3D
 				await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 			SpawnCrowd(crowdCount);
 		}
+		if (lineupCount > 0)
+			SpawnLooterLineup(lineupCount);
 		if (wait > 0.0)
 			await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
 		if (report)

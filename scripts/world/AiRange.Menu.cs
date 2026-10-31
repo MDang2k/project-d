@@ -73,6 +73,8 @@ public partial class AiRange
 		speed.ValueChanged += v => Engine.TimeScale = v;
 		box.AddChild(speed);
 
+		box.AddChild(Action("Looter look test: 8 mannequins", () => SpawnLooterLineup(8)));
+
 		var row = new GridContainer { Columns = 2 };
 		row.AddChild(Action("Spawn body ahead", () => CorpseSpawner.Spawn(this, AheadPoint(8f),
 			new[] { "flak_vest_t1" })));
@@ -146,6 +148,32 @@ public partial class AiRange
 			}
 			: System.Array.Empty<Vector3>();
 		SpawnAi(presetId, at, yaw, loop, $"_dbg{++_spawned}");
+	}
+
+	/// <summary>A row of looter mannequins facing the player, each with its own random face and outfit, for a look test.</summary>
+	private void SpawnLooterLineup(int count)
+	{
+		var forward = -_player.GlobalBasis.Z;
+		forward.Y = 0f;
+		forward = forward.Normalized();
+		var right = forward.Cross(Vector3.Up);
+		var centre = AheadPoint(6f);
+		for (var i = 0; i < count; i++)
+		{
+			var at = centre + right * ((i - (count - 1) * 0.5f) * 1.1f);
+			var toPlayer = _player.GlobalPosition - at;
+			var ai = new AiHuman
+			{
+				Name = $"looter_look{++_spawned}",
+				Actor = ActorDb.Create("looter"),
+				Mannequin = true,
+				Position = at,
+				RotationDegrees = new Vector3(0f, Mathf.RadToDeg(Mathf.Atan2(-toPlayer.X, -toPlayer.Z)), 0f),
+			};
+			AddChild(ai);
+			ai.ShowDebug = false;
+			GD.Print($"LOOK {ai.Name}: {ai.LookLabel}");
+		}
 	}
 
 	private void ToggleMenu()

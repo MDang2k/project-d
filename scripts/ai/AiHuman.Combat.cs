@@ -36,7 +36,7 @@ public partial class AiHuman
 	private ProjectileManager? _projectiles;
 	private readonly Array<Rid> _ownRids = new();
 	private Node3D _hitboxRoot = null!;
-	private MeshInstance3D? _bodyMesh;
+	private Node3D? _bodyMesh;
 
 	private float _suppression;
 	private float _coverRefresh;

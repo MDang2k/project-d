@@ -142,8 +142,23 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		ExitCombat();
 	}
 
+	/// <summary>Standing display dummy: does not think, move or perceive (look tests in the AI range).</summary>
+	public bool Mannequin { get; set; }
+
+	/// <summary>Which face and outfit texture the model body got (dev reporting), empty for the capsule.</summary>
+	public string LookLabel { get; private set; } = "";
+
 	private void BuildBody()
 	{
+		if (Def.Text("body_model") is { Length: > 0 } kind
+			&& AiBodyVisual.Build(kind, _rng, out var look) is { } visual)
+		{
+			LookLabel = look;
+			_bodyMesh = visual;
+			AddChild(visual);
+			AddWeapon();
+			return;
+		}
 		var mat = new StandardMaterial3D { AlbedoColor = BodyColor() };
 		_bodyMesh = new MeshInstance3D
 		{
@@ -165,12 +180,16 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			Position = new Vector3(0f, 1.65f, -0.13f),
 			MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.1f, 0.1f, 0.1f) },
 		});
-		if (_weaponData is { } data)
-		{
-			Weapon = WeaponNode.Create(data);
-			Weapon.Position = new Vector3(0.18f, 1.2f, -0.2f);
-			AddChild(Weapon);
-		}
+		AddWeapon();
+	}
+
+	private void AddWeapon()
+	{
+		if (_weaponData is not { } data)
+			return;
+		Weapon = WeaponNode.Create(data);
+		Weapon.Position = new Vector3(0.18f, 1.2f, -0.2f);
+		AddChild(Weapon);
 	}
 
 	private void BuildDebug()
@@ -245,6 +264,13 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			if (_deadTimer <= 0f)
 				Respawn();
 			UpdateLabel();
+			return;
+		}
+
+		if (Mannequin)
+		{
+			_noises.Clear();
+			Coast(delta);
 			return;
 		}
 
