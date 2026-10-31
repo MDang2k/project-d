@@ -17,6 +17,9 @@ public partial class AiHuman
 	private float _wokenS;
 	private Player? _player;
 
+	/// <summary>Dev: animation pose of the body, empty for the capsule.</summary>
+	public string PoseLabel => _rig?.DebugPose() ?? "";
+
 	/// <summary>Current work band (dev reporting).</summary>
 	public AiBand Band => _band;
 
@@ -66,6 +69,7 @@ public partial class AiHuman
 		var distance = _player is { } p ? GlobalPosition.DistanceTo(p.GlobalPosition) : 0f;
 		var fighting = Brain.State == AiState.Combat || Perception.Awareness > 0.5f;
 		_band = AiTickBands.Classify(BandTuning, distance, fighting, _wokenS > 0f);
+		_rig?.SetActive(_band != AiBand.Dormant);
 	}
 
 	/// <summary>A sound that reaches a far-off AI, or a hit on it, wakes it for a few seconds.</summary>
@@ -78,5 +82,12 @@ public partial class AiHuman
 		vel.Y = IsOnFloor() ? 0f : vel.Y - _gravity * delta;
 		Velocity = vel;
 		MoveAndSlide();
+		UpdateRig();
+	}
+
+	/// <summary>Feeds the animated body: the body-frame velocity, the stance and whether it is airborne.</summary>
+	private void UpdateRig()
+	{
+		_rig?.Animate(GlobalBasis.Inverse() * Velocity, S(Stats.Move.WalkSpeed), S(Stats.Move.SprintSpeed), _crouchScale, !IsOnFloor());
 	}
 }

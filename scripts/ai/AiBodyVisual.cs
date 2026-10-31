@@ -11,8 +11,7 @@ public sealed record BodyModel(string OutfitModel, string[] Faces, string[] Outf
 
 /// <summary>
 /// Builds the visible body of an AI from the character models: the shared body (with head) plus an outfit on one
-/// skeleton, a random face and outfit texture, and the arms hanging down. Static pose for now; the player's animation
-/// and hand IK are not used on AI yet.
+/// skeleton and a random face and outfit texture. The result is an <see cref="AiBodyRig"/> that animates it.
 /// </summary>
 public static class AiBodyVisual
 {
@@ -39,7 +38,7 @@ public static class AiBodyVisual
 	}
 
 	/// <summary>The body for a kind, or null when the kind or one of its files is missing (the AI keeps its capsule).</summary>
-	public static Node3D? Build(string kind, System.Random rng, out string description)
+	public static AiBodyRig? Build(string kind, System.Random rng, out string description)
 	{
 		description = "";
 		if (!Kinds.TryGetValue(kind, out var model))
@@ -54,7 +53,7 @@ public static class AiBodyVisual
 		var faceTex = Load<Texture2D>(Textures + face + ".png");
 		var outfitTex = Load<Texture2D>(Textures + outfitTexture + ".png");
 
-		var root = new Node3D { Name = "BodyVisual" };
+		var root = new AiBodyRig { Name = "BodyVisual" };
 		var body = bodyScene.Instantiate<Node3D>();
 		var outfit = outfitScene.Instantiate<Node3D>();
 		root.AddChild(body);
@@ -76,8 +75,9 @@ public static class AiBodyVisual
 			var texture = mi.Name == "HeadMesh" || mi.Name == "Body" ? faceTex : outfitTex;
 			Retexture(mi, texture);
 		}
-		// the pose goes on once the skeleton is in the tree (set earlier, the import's rest pose came back)
-		root.TreeEntered += () => Callable.From(() => HangArms(skel)).CallDeferred();
+			root.SetSkeleton(skel,
+			skel.FindChild("Palm_L", true, false) is Node3D pl ? pl.Transform : Transform3D.Identity,
+			skel.FindChild("Palm_R", true, false) is Node3D pr ? pr.Transform : Transform3D.Identity);
 		description = $"{face} / {outfitTexture}";
 		return root;
 	}
@@ -97,23 +97,4 @@ public static class AiBodyVisual
 		}
 	}
 
-	/// <summary>The rig rests in a T pose; swing each upper arm down, a little out from the body.</summary>
-	private static void HangArms(Skeleton3D skel)
-	{
-		foreach (var (arm, fore) in new[] { ("Arm_L", "Forearm_L"), ("Arm_R", "Forearm_R") })
-		{
-			var upper = skel.FindBone(arm);
-			var lower = skel.FindBone(fore);
-			if (upper < 0 || lower < 0)
-				continue;
-			var rest = skel.GetBoneRest(upper).Basis;
-			var dir = (rest * skel.GetBoneRest(lower).Origin).Normalized();
-			var side = Mathf.Sign(skel.GetBoneGlobalRest(upper).Origin.X);
-			var hang = new Quaternion(Vector3.Back, Mathf.DegToRad(8f) * side) * Vector3.Down;
-			var down = (skel.GetBoneGlobalRest(skel.GetBoneParent(upper)).Basis.Orthonormalized().Inverse() * hang).Normalized();
-			var axis = dir.Cross(down);
-			var arc = axis.LengthSquared() < 1e-6f ? Quaternion.Identity : new Quaternion(axis.Normalized(), dir.AngleTo(down));
-			skel.SetBonePoseRotation(upper, arc * rest.GetRotationQuaternion());
-		}
-	}
 }

@@ -37,6 +37,7 @@ public partial class AiHuman
 	private readonly Array<Rid> _ownRids = new();
 	private Node3D _hitboxRoot = null!;
 	private Node3D? _bodyMesh;
+	private AiBodyRig? _rig;
 
 	private float _suppression;
 	private float _coverRefresh;
@@ -514,8 +515,8 @@ public partial class AiHuman
 			return; // nothing to move: the hitbox walk below is not free
 		_crouchScale = next;
 		HitboxRig.SetHeightScale(_hitboxRoot, next);
-		if (_bodyMesh is not null)
-			_bodyMesh.Scale = new Vector3(1f, next, 1f);
+		if (_bodyMesh is not null && _rig is null)
+			_bodyMesh.Scale = new Vector3(1f, next, 1f); // the animated body lowers its own hips instead
 		_crouching = next < 0.85f;
 		_prone = next < 0.5f;
 		PlaceWeapon();

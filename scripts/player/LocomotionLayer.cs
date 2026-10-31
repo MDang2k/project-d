@@ -15,6 +15,8 @@ public sealed class LocomotionLayer
 	private const int Steps = 16;
 	private static readonly string[] Bones = { "Thigh_L", "Shin_L", "Foot_L", "Thigh_R", "Shin_R", "Foot_R" };
 
+	private static readonly Dictionary<(string, GaitTuning), AnimationLibrary> Libraries = new();
+
 	private readonly AnimationTree _tree;
 
 	public AnimationTree Tree => _tree;
@@ -35,7 +37,11 @@ public sealed class LocomotionLayer
 		var rests = new Dictionary<string, Quaternion>();
 		for (var i = 0; i < skeleton.GetBoneCount(); i++)
 			rests[skeleton.GetBoneName(i)] = skeleton.GetBoneRest(i).Basis.GetRotationQuaternion();
-		tree.AddAnimationLibrary("", BuildLibrary(skeletonPath, gait, rests));
+		// every body on the same rig and gait shares one library (building the clips is not cheap)
+		var key = (skeletonPath, gait);
+		if (!Libraries.TryGetValue(key, out var library))
+			Libraries[key] = library = BuildLibrary(skeletonPath, gait, rests);
+		tree.AddAnimationLibrary("", library);
 		tree.TreeRoot = BuildGraph();
 		parent.AddChild(tree);
 		tree.Active = true;

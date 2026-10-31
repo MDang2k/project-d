@@ -267,6 +267,7 @@ public partial class AiRange : Node3D
 		var report = false;
 		var crowdCount = 0;
 		var lineupCount = 0;
+		string? botAhead = null;
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--shot="))
@@ -290,6 +291,8 @@ public partial class AiRange : Node3D
 				crowdCount = crowd;
 			else if (arg.StartsWith("--lineup=") && int.TryParse(arg["--lineup=".Length..], out var lineup))
 				lineupCount = lineup;
+			else if (arg.StartsWith("--bot=") && arg["--bot=".Length..] is { Length: > 0 } botId)
+				botAhead = botId;
 			else if (arg == "--dark")
 				AddChild(new LightZone { Level = LightLevel.Dark, Size = new Vector3(400f, 30f, 400f) });
 			else if (arg.StartsWith("--bushes=") && arg["--bushes=".Length..].Split(',') is { Length: 2 } bp
@@ -358,6 +361,8 @@ public partial class AiRange : Node3D
 		}
 		if (lineupCount > 0)
 			SpawnLooterLineup(lineupCount);
+		if (botAhead is not null)
+			SpawnBotAhead(botAhead, patrol: true); // dev: one live bot in front of the player
 		if (wait > 0.0)
 			await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
 		if (report)
@@ -365,7 +370,7 @@ public partial class AiRange : Node3D
 			var b = _player.Health.Body;
 			GD.Print($"PLAYER maxCamStep={_player.MaxCameraYStep:0.000} pos={_player.GlobalPosition.X:0.00},{_player.GlobalPosition.Y:0.00},{_player.GlobalPosition.Z:0.00} dead={_player.IsDead} H{b.Hp(BodyPart.Head):0} T{b.Hp(BodyPart.Thorax):0} S{b.Hp(BodyPart.Stomach):0} LA{b.Hp(BodyPart.LeftArm):0} RA{b.Hp(BodyPart.RightArm):0} LL{b.Hp(BodyPart.LeftLeg):0} RL{b.Hp(BodyPart.RightLeg):0}");
 			foreach (var ai in GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>())
-				GD.Print($"AI {ai.ActorId}/{ai.Archetype}/{ai.Action} band={ai.Band} state={ai.Brain.State}/{ai.CombatState} squad={ai.SquadLabel} underfire={ai.UnderFirePhase} cover={ai.CoverKind} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
+				GD.Print($"AI {ai.ActorId}/{ai.Archetype}/{ai.Action} band={ai.Band} pose={ai.PoseLabel} spd={ai.Velocity.Length():0.0} state={ai.Brain.State}/{ai.CombatState} squad={ai.SquadLabel} underfire={ai.UnderFirePhase} cover={ai.CoverKind} pos={ai.GlobalPosition.X:0.0},{ai.GlobalPosition.Z:0.0} level={ai.Perception.Level} awareness={ai.Perception.Awareness:0.00} sees={ai.Perception.SeesTarget} cue={ai.LastCue} shots={ai.ShotsFired} looted={ai.LootedItems}");
 		}
 		if (report)
 			GD.Print($"PERF {PerfLine()} peakRays={AiPerf.PeakRays}");

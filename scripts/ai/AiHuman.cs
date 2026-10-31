@@ -154,6 +154,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			&& AiBodyVisual.Build(kind, _rng, out var look) is { } visual)
 		{
 			LookLabel = look;
+			_rig = visual;
 			_bodyMesh = visual;
 			AddChild(visual);
 			AddWeapon();
@@ -190,6 +191,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		Weapon = WeaponNode.Create(data);
 		Weapon.Position = new Vector3(0.18f, 1.2f, -0.2f);
 		AddChild(Weapon);
+		_rig?.Hold(Weapon);
 	}
 
 	private void BuildDebug()
@@ -393,6 +395,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		MoveAndSlide();
 		if (!lifted)
 			StepUp.Down(this, 0.3f, wasOnFloor);
+		UpdateRig();
 
 		// Standing around: sweep the view around where the AI was last facing.
 		if (faceYaw is null)

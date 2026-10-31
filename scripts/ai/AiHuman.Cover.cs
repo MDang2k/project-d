@@ -163,7 +163,9 @@ public partial class AiHuman
 	private void PlaceWeapon()
 	{
 		if (Weapon is { } w)
-			w.Position = new Vector3(0.18f + LeanOffset, 1.2f * _crouchScale, -0.2f);
+			w.Position = _rig is { } rig
+				? new Vector3(0.1f + LeanOffset, rig.HoldHeight, -0.3f)
+				: new Vector3(0.18f + LeanOffset, 1.2f * _crouchScale, -0.2f);
 	}
 
 	private float LeanOffset => _lean * S(Stats.Cover.LeanM);
