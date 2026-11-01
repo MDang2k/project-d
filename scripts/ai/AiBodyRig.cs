@@ -27,6 +27,9 @@ public partial class AiBodyRig : Node3D
 	private float _aimYaw, _aimPitch;
 	private float _prone;
 	private BoneAttachment3D? _mount;
+	private readonly GearSwing _backpackSwing = new();
+	private Node3D? _backpack;
+	private Vector3 _lastLocalVelocity;
 	private static readonly AimOffsetTuning AimOffset = AimOffsetTuning.Default;
 
 	/// <summary>Height of the gun above the feet for the current stance, metres.</summary>
@@ -189,6 +192,33 @@ public partial class AiBodyRig : Node3D
 		}
 	}
 
+	/// <summary>Shows or hides the placeholder backpack on the back; it swings with the body (animation spec s1.5).</summary>
+	public void SetBackpack(bool on)
+	{
+		if (on && _backpack is null)
+		{
+			var mount = new BoneAttachment3D { Name = "BackpackMount", BoneName = "Chest" };
+			_skel.AddChild(mount);
+			var toBody = _skel.GetBoneGlobalRest(_chest).Basis.Orthonormalized().Inverse();
+			var pivot = new Node3D { Name = "BackpackPivot", Basis = toBody, Position = toBody * new Vector3(0f, 0.15f, 0.2f) };
+			mount.AddChild(pivot);
+			// hangs from the shoulders: the swing pivots at the top of the pack
+			_backpack = new Node3D { Name = "BackpackSwing" };
+			_backpack.AddChild(new MeshInstance3D
+			{
+				Mesh = new BoxMesh { Size = new Vector3(0.34f, 0.45f, 0.18f) },
+				Position = new Vector3(0f, -0.22f, 0.09f),
+				MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.32f, 0.3f, 0.22f) },
+			});
+			pivot.AddChild(_backpack);
+		}
+		if (_backpack is not null)
+			_backpack.Visible = on;
+	}
+
+	/// <summary>A shove on the worn gear (dropping prone shifts the pack up the back), degrees per second.</summary>
+	public void BumpGear(Vector3 velocityDegS) => _backpackSwing.Bump(velocityDegS);
+
 	/// <summary>Stops the mixer when the AI is far away (it needs no legs there).</summary>
 	public void SetActive(bool on)
 	{
@@ -201,10 +231,17 @@ public partial class AiBodyRig : Node3D
 	/// standing, about 0.65 crouched and 0.35 prone (the scale the AI already uses for its hitboxes).
 	/// </summary>
 	public void Animate(float delta, Vector3 localVelocity, float walkSpeed, float sprintSpeed, float stanceScale, bool airborne,
-		float aimYawDeg, float aimPitchDeg)
+		float aimYawDeg, float aimPitchDeg, float yawRateDegS = 0f)
 	{
 		if (_loco is null)
 			return;
+		if (_backpack is { Visible: true } && delta > 0.0001f)
+		{
+			var accel = -(localVelocity.Z - _lastLocalVelocity.Z) / delta; // forward is -Z
+			_backpackSwing.Update(delta, yawRateDegS, Mathf.Clamp(accel, -12f, 12f), 12f);
+			_backpack.RotationDegrees = _backpackSwing.RotationDeg;
+		}
+		_lastLocalVelocity = localVelocity;
 		var eyeY = stanceScale >= 0.65f
 			? Mathf.Lerp(Cfg.CrouchEyeHeight, Cfg.StandEyeHeight, (stanceScale - 0.65f) / 0.35f)
 			: Mathf.Lerp(Cfg.ProneEyeHeight, Cfg.CrouchEyeHeight, Mathf.Clamp((stanceScale - 0.35f) / 0.30f, 0f, 1f));

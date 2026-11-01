@@ -12,6 +12,7 @@ public partial class AiHuman
 	private static readonly AiBandTuning BandTuning = new();
 
 	private AiBand _band = AiBand.Combat;
+	private float _lastPelvisYaw;
 	private float _bandCheckS;
 	private float _thinkAccS;
 	private float _wokenS;
@@ -110,8 +111,11 @@ public partial class AiHuman
 			var local = GlobalBasis.Inverse() * (_aimPoint - (GlobalPosition + Vector3.Up * 1.4f));
 			pitch = Mathf.RadToDeg(Mathf.Atan2(local.Y, new Vector2(local.X, local.Z).Length()));
 		}
+		var yawRate = delta > 0.0001f ? PivotModel.WrapDeg(_pivot.PelvisYawDeg - _lastPelvisYaw) / delta : 0f;
+		_lastPelvisYaw = _pivot.PelvisYawDeg;
+		rig.SetBackpack(Gear.InSlot(EquipSlot.Backpack) is not null);
 		rig.Animate(delta, GlobalBasis.Inverse() * Velocity, S(Stats.Move.WalkSpeed), S(Stats.Move.SprintSpeed), _crouchScale,
-			!IsOnFloor(), yaw, pitch);
+			!IsOnFloor(), yaw, pitch, yawRate);
 		// foot IK probes only for bots near the player, one pair of rays each
 		var near = _band == AiBand.Combat;
 		if (near)

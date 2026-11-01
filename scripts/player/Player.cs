@@ -1746,6 +1746,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private void BeginLockedTransition(bool prone)
 	{
 		Weapon?.Controller.Interrupt();
+		GroundDust.Puff(this, GlobalPosition, prone ? 1f : 0.5f);
 		NoiseBus.Emit(GlobalPosition, prone ? 8f : 4f, "footstep", this);
 	}
 

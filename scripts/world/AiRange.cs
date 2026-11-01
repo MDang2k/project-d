@@ -271,6 +271,7 @@ public partial class AiRange : Node3D
 		var crawlTest = false;
 		Stance? goTo = null;
 		var lineupCount = 0;
+		var lineupBacks = false;
 		string? botAhead = null;
 		foreach (var arg in OS.GetCmdlineUserArgs())
 		{
@@ -295,6 +296,8 @@ public partial class AiRange : Node3D
 				StartTestRaid(raidSeconds);
 			else if (arg.StartsWith("--crowd=") && int.TryParse(arg["--crowd=".Length..], out var crowd))
 				crowdCount = crowd;
+			else if (arg == "--lineupback")
+				lineupBacks = true;
 			else if (arg.StartsWith("--lineup=") && int.TryParse(arg["--lineup=".Length..], out var lineup))
 				lineupCount = lineup;
 			else if (arg.StartsWith("--bot=") && arg["--bot=".Length..] is { Length: > 0 } botId)
@@ -443,7 +446,7 @@ public partial class AiRange : Node3D
 			SpawnCrowd(crowdCount);
 		}
 		if (lineupCount > 0)
-			SpawnLooterLineup(lineupCount);
+			SpawnLooterLineup(lineupCount, lineupBacks);
 		if (botAhead is not null)
 			SpawnBotAhead(botAhead, patrol: true); // dev: one live bot in front of the player
 		if (wait > 0.0)

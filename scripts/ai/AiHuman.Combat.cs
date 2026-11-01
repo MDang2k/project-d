@@ -529,6 +529,13 @@ public partial class AiHuman
 			_stanceTo = targetStance;
 			_stanceSpan = Mathf.Max(0.05f, Mathf.Abs(ScaleOf(_stanceFrom) - ScaleOf(_stanceTo)));
 			_stanceS = StanceTransition.DurationS(StanceTimes, _stanceFrom, _stanceTo);
+			if (_stanceTo == Stance.Prone && _stanceFrom != Stance.Prone)
+			{
+				_rig?.BumpGear(new Vector3(-90f, 0f, 0f)); // the pack rides up the back
+				GroundDust.Puff(this, GlobalPosition);
+			}
+			else if (_stanceFrom == Stance.Prone)
+				GroundDust.Puff(this, GlobalPosition, 0.5f);
 		}
 		var next = Mathf.MoveToward(_crouchScale, target, _stanceSpan / _stanceS * delta);
 		if (next == _crouchScale)

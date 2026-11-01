@@ -151,7 +151,7 @@ public partial class AiRange
 	}
 
 	/// <summary>A row of looter mannequins facing the player, each with its own random face and outfit, for a look test.</summary>
-	private void SpawnLooterLineup(int count)
+	private void SpawnLooterLineup(int count, bool backsToPlayer = false)
 	{
 		var forward = -_player.GlobalBasis.Z;
 		forward.Y = 0f;
@@ -168,7 +168,7 @@ public partial class AiRange
 				Actor = ActorDb.Create("looter"),
 				Mannequin = true,
 				Position = at,
-				RotationDegrees = new Vector3(0f, Mathf.RadToDeg(Mathf.Atan2(-toPlayer.X, -toPlayer.Z)), 0f),
+				RotationDegrees = new Vector3(0f, Mathf.RadToDeg(Mathf.Atan2(-toPlayer.X, -toPlayer.Z)) + (backsToPlayer ? 180f : 0f), 0f),
 			};
 			AddChild(ai);
 			ai.ShowDebug = false;
