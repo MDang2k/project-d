@@ -2,7 +2,7 @@
 
 Date: 2026-10-16
 
-Status: approved design, not implemented. Last of five M7 sub-projects (7a persistence done; 7b hub shell and stash, 7c economy and traders, 7d insurance: specs approved; 7e this). Implements GDD §14 (quest types, prerequisites, rewards, chains) and the "5-6 quests" line of §20 M7.
+Status: implemented (commit 87a6c9b). Last of five M7 sub-projects; all five are built. Reputation rewards are stored but nothing reads them until M8b. Implements GDD §14 (quest types, prerequisites, rewards, chains) and the "5-6 quests" line of §20 M7.
 
 ## Intent
 

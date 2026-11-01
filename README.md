@@ -92,11 +92,7 @@ Each spec has a detailed "Implementation status" table.
 
 ## Housekeeping
 
-- `main` has 35 commits not pushed to `origin/main`, counting this update.
-- Some spec Status lines are out of date, so trust this file and the "Implementation status" tables first:
-  - M7b, M7c, M7d and M7e say "not implemented", but they are built.
-  - The AI combat v2 header says step 1 is partly built; its table shows steps 1-7.
-  - Composable actors lists phase 6 as not started; that phase is AI combat v2.
+- `main` has 36 commits not pushed to `origin/main`, counting this update.
 
 ## Commands
 

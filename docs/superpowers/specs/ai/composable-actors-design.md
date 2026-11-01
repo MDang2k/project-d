@@ -2,7 +2,7 @@
 
 Date: 2026-10-30
 
-Status: approved design, not implemented. Phase 0 of `docs/superpowers/plans/2026-10-28-composable-actor-data.md`. Replaces the single `AiPreset` resource with actors that are **defined in the item catalog workbook** as template rows plus modifier sets, resolved at spawn into one number per tuning value. AI first; the player joins through the skills milestone. Written from the designer's answers of 2026-10-30. Numbers marked **(tune)**.
+Status: approved design, phases 1-6 implemented with the exceptions in Implementation status; phase 7 not started. Phase 0 of `docs/superpowers/plans/2026-10-28-composable-actor-data.md`. Replaces the single `AiPreset` resource with actors that are **defined in the item catalog workbook** as template rows plus modifier sets, resolved at spawn into one number per tuning value. AI first; the player joins through the skills milestone. Written from the designer's answers of 2026-10-30. Numbers marked **(tune)**.
 
 ## Designer decisions
 
@@ -179,7 +179,7 @@ GUT smoke: an AI spawns from an actor id and ticks a few frames headless.
 
 ## Implementation status
 
-Updated 2026-10-30. Keep this table current.
+Updated 2026-11-01. Keep this table current.
 
 | Item | Status | Notes |
 |---|---|---|
@@ -189,7 +189,7 @@ Updated 2026-10-30. Keep this table current.
 | Phase 3 migrate the AI | **Done, except deleting the old preset** | `AiHuman` takes an `ActorInstance` (`ActorDb` loads actors.json and finds item resources by id; `ActorTuning` maps stats to the existing tuning records; limb HP comes from the `health.*` stats; body colour from the sheet). Spawners (`RaidLevel`, `AiRange`) pass actor ids. 14 golden tests compare every actor with the old `data/ai/*.tres`. Headless AI range run spawns and thinks as before. `AiPreset.cs` and `data/ai/*.tres` stay as the oracle until the designer has playtested; then delete them with the golden tests' oracle switched to fixed numbers |
 | Phase 4 modifier sources, inspector | **Done, except suppression and injury** | `export_actors.py` generates `boss_hp_<id>` Pct sets from the Bosses sheet HP multiplier (test: resolved HP equals the sheet columns; integer stats now round after fixing float error, 110.5 gives 111). `ActorDb.Create(id, tier, act)` adds `tier_N` / `act_N` sets when the sheet defines them (none defined yet; the designer adds them, no spawner picks a tier yet). AI models take new tunings live (`Tuning` setters, `AiBurstFire.Retune`), so a modifier added at runtime changes behaviour at once. F5 inspector (`ActorInspector`, `scenes/ui/actor_inspector.tscn`, debug builds, AI range and raids): final value, base and sources per stat; F6 / F7 toggle veteran / rookie on the AI looked at. Suppression and injury stay as the existing 0..1 state values: turning them into timed modifiers would change tuned feel and needs designer numbers |
 | Phase 5 catalog loadouts | **Done** | `export_actors.py` writes the usable Faction Loadouts rows into actors.json: Slice items only, catalog id mapped to the game id through the item's "Exists as 'x'" note (akm to ak_type, fn_fal to fal_type, mg3_mg42_type to mg_type) and required to have a resource under data/ (35 rows kept, 107 skipped as post-slice). `LoadoutTable.Resolve` (weighted pick, nearest lower tier fallback, actor cells win, spawner tier overrides `loadout_tier`) feeds `AiHuman`. Slots used: Primary (Pistol as fallback), Vest, Helmet, Rig, Backpack; Melee and the Ammo id column are ignored for now. The four migrated actors keep their own cells, so nothing changes until the designer blanks cells and fills `Loadout faction` / `Loadout tier`. 7 xUnit tests |
-| Phase 6 AI combat v2 | Not started | separate plan |
+| Phase 6 AI combat v2 | **Done, playtest pending** | built as steps 1-7 of `docs/superpowers/specs/ai/ai-combat-v2-design.md`; gaps are listed there |
 | Phase 7 player skills | Not started | with M8a |
 
 ## Decisions

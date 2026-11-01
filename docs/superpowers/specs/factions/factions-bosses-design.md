@@ -2,7 +2,7 @@
 
 Date: 2026-10-23
 
-Status: approved design, not implemented. Visual identity, equipment and behaviour for every faction, all bosses, and the roaming boss squad Die Troika. Data lives in the catalog: sheets **Faction Loadouts** and **Bosses** in `docs/design/item_catalog.xlsx` (CSV: `docs/design/catalog/faction_loadouts.csv`, `bosses.csv`). Builds on GDD §16, the 8f bosses spec, the story bible (final names) and the asset pipeline spec. Numbers marked **(tune)**.
+Status: approved design, partly implemented: the Faction Loadouts sheet feeds actor loadouts, the Bosses sheet feeds boss HP modifier sets, and looters have their model. Bosses, Die Troika, gear tiers per map and the factions beyond looters, bandits and both PMC sides are not built. Visual identity, equipment and behaviour for every faction, all bosses, and the roaming boss squad Die Troika. Data lives in the catalog: sheets **Faction Loadouts** and **Bosses** in `docs/design/item_catalog.xlsx` (CSV: `docs/design/catalog/faction_loadouts.csv`, `bosses.csv`). Builds on GDD §16, the 8f bosses spec, the story bible (final names) and the asset pipeline spec. Numbers marked **(tune)**.
 
 ## 1. Reading factions without a HUD
 

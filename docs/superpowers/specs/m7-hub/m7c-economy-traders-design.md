@@ -2,7 +2,7 @@
 
 Date: 2026-10-15
 
-Status: approved design, not implemented. Third of five M7 sub-projects (7a persistence done; 7b hub shell and stash, spec approved; 7c this; 7d insurance; 7e quests). Implements GDD §13 (traders), §15 (extraction payment), §10 (stash).
+Status: implemented (commit 9a13d01). Third of five M7 sub-projects; all five are built. Implements GDD §13 (traders), §15 (extraction payment), §10 (stash).
 
 ## Intent
 

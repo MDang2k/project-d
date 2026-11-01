@@ -2,7 +2,7 @@
 
 Date: 2026-10-15
 
-Status: approved design, not implemented. Second of five M7 sub-projects (7a persistence done; 7b this; 7c economy and traders; 7d insurance; 7e quests). Implements GDD §4 (core loop), §5 (side), §10 (stash), §15 (saving).
+Status: implemented (commit 1e43163). Second of five M7 sub-projects; all five are built. Implements GDD §4 (core loop), §5 (side), §10 (stash), §15 (saving).
 
 ## Intent
 

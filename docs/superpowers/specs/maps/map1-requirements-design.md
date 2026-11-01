@@ -2,7 +2,7 @@
 
 Date: 2026-10-12
 
-Status: approved design, not implemented. Extends GDD §19 (Map 1) and §15 (Raids). Numbers marked **(tune)**.
+Status: approved design, not implemented; the current map 1 is an earlier test blockout, and the reinforcement wave and validator are not built. Extends GDD §19 (Map 1) and §15 (Raids). Numbers marked **(tune)**.
 
 ## Intent
 

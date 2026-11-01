@@ -2,7 +2,7 @@
 
 Date: 2026-10-15
 
-Status: approved design, not implemented. Fourth of five M7 sub-projects (7a persistence done; 7b hub shell and stash, spec approved; 7c economy and traders, spec approved; 7d this; 7e quests). Implements GDD §15 (Insurance) and §13 (insurance bought from quartermasters).
+Status: implemented (commit b7bbba2). Fourth of five M7 sub-projects; all five are built. Implements GDD §15 (Insurance) and §13 (insurance bought from quartermasters).
 
 ## Intent
 
