@@ -29,7 +29,7 @@ Values marked **(tune)** are starting points to adjust through playtesting. Item
 
 - **1939–1965:** The Second World War continues for twenty years longer than in our history.
 - **1943:** German engineers find the outer alien ruins beneath central Germany. Crude salvage (prototype armor, power cells, relic weapons) keeps the Reich fighting and stalls the Allies.
-- **1950s:** The dig reaches the inner ruins and the Ewigstein lattice; Project Ewigstein begins. The full truth (the ruins are a prison and Ewigstein is its lock) lives in `docs/superpowers/specs/story/2026-10-21-story-core-truth-design.md` and is revealed only through play.
+- **1950s:** The dig reaches the inner ruins and the Ewigstein lattice; Project Ewigstein begins. The full truth (the ruins are a prison and Ewigstein is its lock) lives in `docs/superpowers/specs/story/story-core-truth-design.md` and is revealed only through play.
 - **1965 — Event 65**, the disaster. An experiment triggers a chain reaction, similar to Half-Life's resonance cascade. A series of massive explosions devastates central Europe and turns Germany into a wasteland. The war ends.
 - **1965–1970:** The Allies and the Soviet Union jointly declare an exclusion zone. Both send private military contractors in to secure artifacts and research, officially to "contain" the zone. Scavengers, looters and bandits settle in the ruins. The fallout turns some people into zombies, the **Hollowed**. The zone is officially the Sperrgebiet, "the Sperr" to contractors.
 - **1970:** The game begins. Late in the story, aliens begin to appear.
@@ -87,7 +87,7 @@ Walk, sprint, crouch, crouch-sprint, prone, mantle (low obstacles), lean left/ri
 
 ### Player body
 
-Full-body first person: looking down shows legs and torso, and the body casts shadows. Arms hold the weapon through IK so leaning, resting and bipods look physically correct without hand-made animations in the slice. Hand-made animations (reloads, mag checks) replace or layer on top of this when custom art arrives. The animation system (layered graph, socket-based ADS, spring recoil, interruptible phased reloads) is specified in `docs/superpowers/specs/animation/2026-10-25-animation-system-design.md`.
+Full-body first person: looking down shows legs and torso, and the body casts shadows. Arms hold the weapon through IK so leaning, resting and bipods look physically correct without hand-made animations in the slice. Hand-made animations (reloads, mag checks) replace or layer on top of this when custom art arrives. The animation system (layered graph, socket-based ADS, spring recoil, interruptible phased reloads) is specified in `docs/superpowers/specs/animation/animation-system-design.md`.
 
 ### Stamina
 
@@ -308,7 +308,7 @@ Where the player delivers the decisive Ewigstein at the end of the story determi
 
 1. **Your own government:** your side wins the energy race.
 2. **The other side:** betrayal; requires sufficient reputation with them.
-3. **Return it and seal the ruins:** nobody gets it. (Full ending design, including a hidden fourth ending, in `docs/superpowers/specs/story/2026-10-22-story-endings-design.md`.)
+3. **Return it and seal the ruins:** nobody gets it. (Full ending design, including a hidden fourth ending, in `docs/superpowers/specs/story/story-endings-design.md`.)
 
 Each ending needs its own final mission(s). A fourth, hidden ending exists (see the endings spec).
 
@@ -357,7 +357,7 @@ One shared human AI system. Factions differ through presets: loadout tables, acc
 - Vision: cone with distance; modified by the target's stance, movement, lighting and cover.
 - Hearing: footsteps (louder when sprinting or on loud surfaces), gunshots (very far), searching containers, reloads at close range.
 
-AI uses the same health, armor and weapon systems as the player. Full combat design (under-fire reaction, aim through the weapon model, personalities, squads, performance bands): `docs/superpowers/specs/ai/2026-10-25-ai-combat-v2-design.md`.
+AI uses the same health, armor and weapon systems as the player. Full combat design (under-fire reaction, aim through the weapon model, personalities, squads, performance bands): `docs/superpowers/specs/ai/ai-combat-v2-design.md`.
 
 ### Hostility matrix (slice)
 

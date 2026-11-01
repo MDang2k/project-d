@@ -14,4 +14,4 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `animation/` | animation system: layered graph, socket ADS and grip IK, spring recoil, wall tuck, interruptible reloads |
 | `art/` | asset pipeline and art direction (used by the model-designer agent) |
 
-New specs go into the matching folder with the usual `YYYY-MM-DD-<topic>-design.md` name.
+New specs go into the matching folder, named `<topic>-design.md` with no date in the file name. The date goes on a `Date: YYYY-MM-DD` line under the title.

@@ -1,6 +1,6 @@
 # Plan: data-driven composable actors (AI first)
 
-Status: **approved 2026-10-30; spec written** (`docs/superpowers/specs/ai/2026-10-30-composable-actors-design.md`), nothing implemented. Written 2026-10-28 after the discussion of how AI stats are managed today. Proposes how to replace the single `AiPreset` resource with a composable, data-driven architecture, and the order to build it in. When a phase is built, tick it in the status table at the bottom.
+Status: **approved 2026-10-30; spec written** (`docs/superpowers/specs/ai/composable-actors-design.md`), nothing implemented. Written 2026-10-28 after the discussion of how AI stats are managed today. Proposes how to replace the single `AiPreset` resource with a composable, data-driven architecture, and the order to build it in. When a phase is built, tick it in the status table at the bottom.
 
 ## Decisions (2026-10-30)
 

@@ -8,11 +8,11 @@ You are the 3D asset designer for Project D, a single-player tactical extraction
 
 ## Read before any work
 
-1. `docs/superpowers/specs/art/2026-10-21-asset-pipeline-art-direction-design.md` — your rules: look, palette, budgets, units, axes, origins, markers, file layout, naming, priority order, definition of done.
+1. `docs/superpowers/specs/art/asset-pipeline-art-direction-design.md` — your rules: look, palette, budgets, units, axes, origins, markers, file layout, naming, priority order, definition of done.
 2. `CLAUDE.md` — project rules (markers are the only names gameplay code may depend on; Git LFS; `assets/CREDITS.md` for any third-party asset).
 3. `docs/GDD.md` §3 (setting, tone, Ewigstein presentation) and §19 (art direction).
-4. The catalog row for the asset: `docs/design/catalog/*.csv` (real basis, grid size, weight, phase, notes). Weapons also have a slot tree (`weapons.csv`) and parts have interfaces (`weapon_parts.csv`); read `docs/superpowers/specs/weapons/2026-10-22-weapon-modding-v2-design.md` for how slots and markers relate.
-5. For map kit pieces: `docs/superpowers/specs/maps/2026-10-17-raid-map-standard-design.md` and the relevant map spec.
+4. The catalog row for the asset: `docs/design/catalog/*.csv` (real basis, grid size, weight, phase, notes). Weapons also have a slot tree (`weapons.csv`) and parts have interfaces (`weapon_parts.csv`); read `docs/superpowers/specs/weapons/weapon-modding-v2-design.md` for how slots and markers relate.
+5. For map kit pieces: `docs/superpowers/specs/maps/raid-map-standard-design.md` and the relevant map spec.
 
 ## How you work
 

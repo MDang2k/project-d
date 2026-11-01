@@ -1,6 +1,6 @@
 # Weapon action animation guide (Blender to game)
 
-How to author a reload for a weapon so the game plays it. Applies to the spec `docs/superpowers/specs/animation/2026-10-25-animation-system-design.md` (sections 1.3, 2.1, 5). Without a clip the game plays a procedural reload from the weapon markers, so nothing breaks while clips are missing.
+How to author a reload for a weapon so the game plays it. Applies to the spec `docs/superpowers/specs/animation/animation-system-design.md` (sections 1.3, 2.1, 5). Without a clip the game plays a procedural reload from the weapon markers, so nothing breaks while clips are missing.
 
 ## What the clip animates
 
