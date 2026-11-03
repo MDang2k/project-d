@@ -2,7 +2,7 @@
 
 Date: 2026-10-20
 
-Status: approved design, not implemented. Defines the roster of raid maps, their place in the zone, and the Tarkov-style transit network between them. Each map gets its own design spec later, following `docs/superpowers/specs/maps/raid-map-standard-design.md`; map 1 already has `docs/superpowers/specs/maps/map1-revision-design.md`. Numbers marked **(tune)**.
+Status: approved design. Built for the Border Strip (the only map with transits so far): zone and gate rules, the stand-still timer, the map registry (`data/maps/registry.json`), arrival points, scene handoff with the carried inventory, limb health, injuries and energy/hydration. Not built: exposure and quest progress carry-over (neither system exists yet), the chain-aware save and raid outcome (a transit does not end the raid, record a run, or roll insurance), unlock rules, the other maps. Defines the roster of raid maps, their place in the zone, and the Tarkov-style transit network between them. Each map gets its own design spec later, following `docs/superpowers/specs/maps/raid-map-standard-design.md`; map 1 already has `docs/superpowers/specs/maps/map1-revision-design.md`. Numbers marked **(tune)**.
 
 ## Intent
 

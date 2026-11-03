@@ -2,7 +2,7 @@
 
 Date: 2026-10-17
 
-Status: approved design, not implemented. Applies to every raid map. Map 1 applies it in `docs/superpowers/specs/maps/map1-revision-design.md`. Builds on `docs/superpowers/specs/maps/map1-requirements-design.md` (loop pacing, wave, validator) and the marker needs of 7c, 7e, 8c, 8d, 8e and 8f. Numbers marked **(tune)**.
+Status: approved design. Built: `MapLayout` parser and `MapValidator` (spawns, extracts, loot, landmarks, cover, height, buildings, markers, static body budget). Graybox generator built: `GrayboxBuilder` (ground with trench cuts, mounds, building walls with openings, floor slabs, stairs, roofs, props, markers) and `GrayboxTscn`; command `scripts/tools/GenerateMap.cs`. Hand scene for Border Strip built. Mine hazard built for Border Strip. Not built: resting-surface rule. Applies to every raid map. Map 1 applies it in `docs/superpowers/specs/maps/map1-revision-design.md`. Builds on `docs/superpowers/specs/maps/map1-requirements-design.md` (loop pacing, wave, validator) and the marker needs of 7c, 7e, 8c, 8d, 8e and 8f. Numbers marked **(tune)**.
 
 ## Intent
 
@@ -78,6 +78,7 @@ The map 1 `MapValidator` grows to check, with injected path length, line of sigh
 | Lock (key or code) on a container or door | 8f, 8d |
 | Knowledge spot | 8d |
 | Ewigstein deposit | 8e |
+| Tunnel zone (pair, cost), transit zone (destination, cost or item), arrival point (from map) | world map spec s3 |
 | Navmesh region | M5 |
 
 ## 6. Performance budget (GTX 1060 class)
