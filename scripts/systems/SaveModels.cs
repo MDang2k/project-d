@@ -61,7 +61,9 @@ public sealed record SaveFile(
 	List<PendingRewardSave>? PendingRewards = null,
 	Dictionary<string, int>? Reputation = null,
 	List<string>? Examined = null,
-	List<PresetSave>? Presets = null)
+	List<PresetSave>? Presets = null,
+	/// <summary>Total XP per skill; levels come from the skill data (v8).</summary>
+	Dictionary<string, float>? Skills = null)
 {
-	public const int CurrentVersion = 7;
+	public const int CurrentVersion = 8;
 }

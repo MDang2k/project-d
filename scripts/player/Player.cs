@@ -164,6 +164,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private ItemInstance? _pendingUse;
 	private int? _heldWeaponUid;
 	private MagazineLoader _loader = null!;
+	private readonly PlayerSkills _skills = new(() => GameState.Instance?.Profile.Skills);
+	private readonly System.Collections.Generic.HashSet<LootContainer> _searchTracked = new();
 	private ItemInstance? _loadAmmo;
 	private PainOverlay _pain = null!;
 	private Penalties _penalties = new(1f, 1f, false, 1f, 0f);
@@ -219,6 +221,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		AddChild(_pain);
 		_loader = new MagazineLoader(_cfg.MagLoadSecondsPerRound);
 		_loader.Finished += OnLoaderFinished;
+		_loader.RoundLoaded += _skills.RoundLoaded;
+		Health.EnemyHitTaken += hit => _skills.HitTaken(hit.Damage);
 		_loader.RoundUnloaded += OnRoundUnloaded;
 		_screen = new InventoryScreen { Name = "InventoryScreen" };
 		AddChild(_screen);
@@ -254,7 +258,12 @@ public partial class Player : CharacterBody3D, IPerceivable
 		Health.HitTaken += _ => _swap.Cancel();
 		_swap.Cancelled += () => GD.Print("[swap] cancelled");
 		Inventory.Changed += RefreshHeldWeapon;
-		Health.MedicalFinished += (_, ok) => FinishPendingUse(ok);
+		Health.MedicalFinished += (_, ok) =>
+		{
+			FinishPendingUse(ok);
+			if (ok)
+				_skills.MedUsed();
+		};
 		Health.ConsumableFinished += _ => FinishPendingUse(true);
 
 		_weights = new WeightModel(_cfg.ToWeightTuning());
@@ -363,16 +372,43 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private HealthComponent CreateHealth()
 	{
 		var h = new HealthComponent { Name = "Health", Config = HealthConfig };
+		h.MaxHpScale = GameState.Instance?.Profile.SkillEffects.MaxHpMultiplier ?? 1f; // the body is built at raid start
 		AddChild(h);
 		return h;
+	}
+
+	/// <summary>
+	/// Hands the skill levels to the models that use them (M8a spec s2). Called every frame so a level-up applies at once;
+	/// the models read the numbers when they use them. Max HP is the exception: it is set when the body is built.
+	/// </summary>
+	private void ApplySkillEffects()
+	{
+		if (GameState.Instance?.Profile.SkillEffects is not { } fx)
+			return;
+		Legs?.SetScale(fx.StaminaMultiplier);
+		if (_health is { } h)
+		{
+			h.DamageScale = fx.HitDamageMultiplier;
+			h.MedTimeScale = fx.MedTimeMultiplier;
+		}
+		if (Weapon is { } w)
+		{
+			w.SkillRecoilMultiplier = fx.RecoilMultiplier;
+			w.Controller.SkillTimeMultiplier = fx.HandlingTimeMultiplier;
+			w.Controller.ExactMagCheck = fx.ExactMagCheck;
+		}
+		if (_screen?.Container is { } open)
+			open.SearchSpeed = 1f / MathF.Max(0.01f, fx.SearchTimeMultiplier);
 	}
 
 	/// <summary>Injury penalties, vitals activity and the pain screen effect.</summary>
 	private void UpdateHealthLinks()
 	{
 		var h = Health;
+		ApplySkillEffects();
 		h.Sprinting = IsSprinting;
 		h.HeavyLoad = Tier >= WeightTier.Heavy;
+		_skills.Update((float)GetPhysicsProcessDeltaTime(), IsSprinting && !h.IsDead, new Vector2(Velocity.X, Velocity.Z).Length(), TotalCarriedKg);
 		_penalties = h.Effects.ComputePenalties(h.Body);
 		_pain.SetStrength(h.IsDead ? 0f : _penalties.PainStrength);
 	}
@@ -469,7 +505,11 @@ public partial class Player : CharacterBody3D, IPerceivable
 		else if (dropped is not null)
 			PickUp(dropped);
 		else
+		{
+			if (_searchTracked.Add(container!))
+				container!.Model.ItemRevealed += _ => _skills.ItemRevealed();
 			_screen.OpenWithContainer(container!);
+		}
 	}
 
 	/// <summary>Dev helper: picks up the nearest dropped item regardless of aim.</summary>
@@ -705,14 +745,23 @@ public partial class Player : CharacterBody3D, IPerceivable
 			weapon.Controller.Store = new InventoryMagazineStore(Inventory.Inventory, data.Ammo?.Caliber,
 				Inventory.NotifyChanged, DropItemToWorld);
 		weapon.ShotFired += OnShotFired;
+		weapon.ShotFired += (_, _, _) => _skills.Shot();
 		weapon.DryFired += () =>
 		{
 			WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
 			NoiseBus.Emit(weapon.GlobalPosition, PerceptionEnvironment.CueRadius("dry_click"), "dry_click", this);
 		};
-		weapon.Controller.MagChecked += r => WeaponMessage?.Invoke(GameText.ForMagCheck(r));
+		weapon.Controller.MagChecked += r =>
+		{
+			_skills.MagChecked();
+			WeaponMessage?.Invoke(GameText.ForMagCheck(r));
+		};
+		weapon.Controller.ReloadFinished += _skills.Reloaded;
 		weapon.Controller.ChamberChecked += loaded =>
+		{
+			_skills.ChamberChecked();
 			WeaponMessage?.Invoke(GameText.Get(loaded ? "msg.chamber.loaded" : "msg.chamber.empty"));
+		};
 		weapon.Controller.MagazineDropped += m => OnMagazineDropped(weapon, m);
 		_body.AttachHeldItem(weapon);
 	}
@@ -1349,7 +1398,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	public override void _PhysicsProcess(double deltaD)
 	{
 		var delta = (float)deltaD;
-		Tier = _weights.TierFor(TotalCarriedKg, StrengthBonusKg);
+		Tier = _weights.TierFor(TotalCarriedKg, StrengthBonusKg + (GameState.Instance?.Profile.SkillEffects.WeightBonusKg ?? 0f));
 		UpdateHealthLinks();
 		if (Health.IsDead)
 		{
@@ -1705,6 +1754,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		IsSprinting = false;
 		Velocity = Vector3.Zero;
 		Legs.Spend(_cfg.MantleStaminaCost * _weights.StaminaDrainMult(Tier));
+		_skills.Mantled();
 		MantleStarted?.Invoke();
 		return true;
 	}

@@ -35,6 +35,18 @@ public sealed class GameProfile
 	/// <summary>Part item ids the player has owned or seen; the workshop sandbox may use them (weapon modding v2 s6).</summary>
 	public HashSet<string> ExaminedParts { get; } = new();
 
+	/// <summary>Skill XP and levels (GDD s12); the numbers are registered at boot by GameState.</summary>
+	public SkillBook Skills { get; }
+
+	/// <summary>What the skill levels do (stamina, weight, handling, recoil, medicine, searching, health).</summary>
+	public SkillEffects SkillEffects { get; }
+
+	public GameProfile()
+	{
+		Skills = new SkillBook();
+		SkillEffects = new SkillEffects(Skills);
+	}
+
 	/// <summary>Saved named builds.</summary>
 	public List<PartPreset> Presets { get; } = new();
 

@@ -22,6 +22,13 @@ public sealed record HealthTuning(
 		HeadHp: 35f, ThoraxHp: 85f, StomachHp: 70f, ArmHp: 60f, LegHp: 65f,
 		DestroyedSpreadMultiplier: 0.6f, SpreadHitsHead: false);
 
+	/// <summary>Every part's maximum HP times a factor (Vitality skill).</summary>
+	public HealthTuning Scaled(float factor) => this with
+	{
+		HeadHp = HeadHp * factor, ThoraxHp = ThoraxHp * factor, StomachHp = StomachHp * factor,
+		ArmHp = ArmHp * factor, LegHp = LegHp * factor,
+	};
+
 	public float MaxHp(BodyPart part) => part switch
 	{
 		BodyPart.Head => HeadHp,

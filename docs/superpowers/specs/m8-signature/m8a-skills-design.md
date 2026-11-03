@@ -2,7 +2,7 @@
 
 Date: 2026-10-16
 
-Status: approved design, not implemented. First of five M8 sub-projects (8a skills; 8b reputation and friendly fire; 8c nemesis; 8d knowledge and journal; 8e Ewigstein). Implements GDD §12, which this spec extends from six to seven skills (Vitality added by the designer; GDD updated in the same commit).
+Status: built, playtest pending (all four steps; the level-up line is drawn by `HudCanvas`, the result screen lists `SkillSummary.RaidLines`, the hub `CharacterScreen` lists `SkillSummary.Rows`). Steps 1 to 3 built (effect hooks: `StaminaPool.SetScale`, `WeaponController.SkillTimeMultiplier`, `WeaponNode.SkillRecoilMultiplier`, `HealthComponent.MaxHpScale / DamageScale / MedTimeScale`, `LootContainer.SearchSpeed`, `HealthTuning.Scaled`, applied every frame by `Player.ApplySkillEffects`; the AI never gets them; Vitality damage scaling covers every hit that goes through `ReceiveHit`, `ReceiveUnarmoredDamage` and `ReceiveDamage`, so mine blasts and falls are softened too, bleeding is not). Steps 1 and 2 (XP reporters: `PlayerSkills`, `SkillTraining`, `HealthComponent.EnemyHitTaken` so mines, falls and bleeding do not train Vitality, `MagazineLoader.RoundLoaded`; raid start and end drive `SkillBook`; level-up is a plain message until the HUD pulse). Step 1 (pure `SkillSpec`, `SkillBook`, `SkillEffects`, `SkillData` and the seven `data/skills/*.tres`, `GameProfile.Skills`, save version 8 with the `skills` map and migration 7 to 8, 33 tests). First of five M8 sub-projects (8a skills; 8b reputation and friendly fire; 8c nemesis; 8d knowledge and journal; 8e Ewigstein). Implements GDD §12, which this spec extends from six to seven skills (Vitality added by the designer; GDD updated in the same commit).
 
 ## Intent
 

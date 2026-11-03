@@ -21,7 +21,10 @@ public partial class WeaponNode
 	/// <summary>Integrated bipod (MG) or a clamp-on bipod part.</summary>
 	public bool HasBipod => Stats.HasBipod;
 
-	/// <summary>Recoil of the base weapon scaled by the build's recoil modifiers.</summary>
+	/// <summary>Multiplier on all recoil from the Recoil Control skill; 1 for the AI.</summary>
+	public float SkillRecoilMultiplier { get; set; } = 1f;
+
+	/// <summary>Recoil of the base weapon scaled by the build's recoil modifiers and the shooter's skill.</summary>
 	public RecoilTuning RecoilTuning
 	{
 		get
@@ -29,12 +32,13 @@ public partial class WeaponNode
 			var t = Data.ToRecoilTuning();
 			return t with
 			{
-				VerticalDeg = t.VerticalDeg * Stats.VerticalRecoilMult,
-				HorizontalDeg = t.HorizontalDeg * Stats.HorizontalRecoilMult,
-				KickPitchDeg = t.KickPitchDeg * Stats.VerticalRecoilMult,
-				KickBackM = t.KickBackM * Stats.VerticalRecoilMult,
-				KickYawDeg = t.KickYawDeg * Stats.HorizontalRecoilMult,
-				KickRollDeg = t.KickRollDeg * Stats.HorizontalRecoilMult,
+				VerticalDeg = t.VerticalDeg * Stats.VerticalRecoilMult * SkillRecoilMultiplier,
+				HorizontalDeg = t.HorizontalDeg * Stats.HorizontalRecoilMult * SkillRecoilMultiplier,
+				KickPitchDeg = t.KickPitchDeg * Stats.VerticalRecoilMult * SkillRecoilMultiplier,
+				KickBackM = t.KickBackM * Stats.VerticalRecoilMult * SkillRecoilMultiplier,
+				KickYawDeg = t.KickYawDeg * Stats.HorizontalRecoilMult * SkillRecoilMultiplier,
+				KickRollDeg = t.KickRollDeg * Stats.HorizontalRecoilMult * SkillRecoilMultiplier,
+				CameraKickDeg = t.CameraKickDeg * SkillRecoilMultiplier,
 			};
 		}
 	}

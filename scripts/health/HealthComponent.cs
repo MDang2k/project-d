@@ -31,6 +31,13 @@ public partial class HealthComponent : Node
 	/// <summary>0 uses a random seed; any other value makes status-effect rolls repeatable.</summary>
 	[Export] public int Seed { get; set; }
 
+	/// <summary>Maximum HP factor from the Vitality skill, read when the body is built at raid start.</summary>
+	public float MaxHpScale { get; set; } = 1f;
+	/// <summary>Factor on hit damage after armor from the Vitality skill (not bleeding, hunger or thirst).</summary>
+	public float DamageScale { get; set; } = 1f;
+	/// <summary>Factor on medical use time from the First Aid skill.</summary>
+	public float MedTimeScale { get; set; } = 1f;
+
 	public BodyHealth Body => _body ??= CreateBody();
 	public StatusEffects Effects { get { EnsureState(); return _effects!; } }
 	public MedicalController Medical { get { EnsureState(); return _medical!; } }
@@ -43,6 +50,8 @@ public partial class HealthComponent : Node
 	public bool IsDead => Body.IsDead;
 
 	public event Action<HitResult>? HitTaken;
+	/// <summary>A bullet or a melee blow from another character landed (not falls, mines, bleeding or hunger).</summary>
+	public event Action<HitResult>? EnemyHitTaken;
 	public event Action<BodyPart>? LimbDestroyed;
 	public event Action<BodyPart>? Died;
 	public event Action<MedicalSpec, bool>? MedicalFinished;
@@ -54,7 +63,7 @@ public partial class HealthComponent : Node
 
 	private BodyHealth CreateBody()
 	{
-		var body = new BodyHealth(Cfg.ToHealthTuning());
+		var body = new BodyHealth(Cfg.ToHealthTuning().Scaled(MaxHpScale));
 		body.LimbDestroyed += p =>
 		{
 			_effects?.OnLimbDestroyed(p);
@@ -128,18 +137,24 @@ public partial class HealthComponent : Node
 	public HitResult ReceiveHit(BodyPart part, AmmoType ammo)
 	{
 		var result = DamageResolver.Resolve(ammo, part, Armor, Cfg.ToDamageTuning());
-		return Apply(result);
+		var applied = Apply(Scaled(result));
+		EnemyHitTaken?.Invoke(applied);
+		return applied;
 	}
 
 	/// <summary>Damage that skips armor completely (melee): full damage to the part, armor untouched.</summary>
 	public HitResult ReceiveUnarmoredDamage(BodyPart part, float damage)
-		=> Apply(DamageResolver.Unmitigated(part, damage));
+	{
+		var applied = Apply(Scaled(DamageResolver.Unmitigated(part, damage)));
+		EnemyHitTaken?.Invoke(applied);
+		return applied;
+	}
 
 	/// <summary>Non-bullet damage that armor can still stop (falls). Penetration tier 1 means armor mostly stops it.</summary>
 	public HitResult ReceiveDamage(BodyPart part, float damage, int penetrationTier)
 	{
 		var result = DamageResolver.Resolve(damage, penetrationTier, part, Armor, Cfg.ToDamageTuning());
-		return Apply(result);
+		return Apply(Scaled(result));
 	}
 
 	/// <summary>The body, injuries and meters as they are now, for a transit to carry over.</summary>
@@ -157,6 +172,8 @@ public partial class HealthComponent : Node
 		EnsureState();
 		_effects!.Inflict(plan.SteppedLeg, plan.Fracture, plan.HeavyBleed ? BleedLevel.Heavy : BleedLevel.None, Body);
 	}
+
+	private HitResult Scaled(HitResult hit) => DamageScale == 1f ? hit : hit with { Damage = hit.Damage * DamageScale };
 
 	private HitResult Apply(HitResult result)
 	{
@@ -183,6 +200,7 @@ public partial class HealthComponent : Node
 		EnsureState();
 		if (_consumables!.IsBusy)
 			return false;
-		return _medical!.Start(item.ToSpec(), target);
+		var spec = item.ToSpec();
+		return _medical!.Start(MedTimeScale == 1f ? spec : spec with { UseTimeS = spec.UseTimeS * MedTimeScale }, target);
 	}
 }

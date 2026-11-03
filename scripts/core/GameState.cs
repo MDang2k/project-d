@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 namespace ProjectD;
@@ -15,5 +16,36 @@ public partial class GameState : Node
 
 	public RunProgress Run => RunState.Current;
 
-	public override void _Ready() => Instance = this;
+	private const string SkillsDir = "res://data/skills";
+
+	public override void _Ready()
+	{
+		Instance = this;
+		LoadSkills();
+	}
+
+	/// <summary>Registers every skill in data/skills with the profile's skill book; bad numbers are skipped with a warning.</summary>
+	private void LoadSkills()
+	{
+		using var dir = DirAccess.Open(SkillsDir);
+		if (dir is null)
+		{
+			GD.PushWarning($"[Skills] {SkillsDir} not found");
+			return;
+		}
+		dir.ListDirBegin();
+		for (var name = dir.GetNext(); name != ""; name = dir.GetNext())
+		{
+			var file = name.EndsWith(".remap") ? name[..^".remap".Length] : name;
+			if (dir.CurrentIsDir() || !file.EndsWith(".tres") || GD.Load<SkillData>($"{SkillsDir}/{file}") is not { } data)
+				continue;
+			var spec = data.ToSpec();
+			if (spec.Problems() is { Count: > 0 } problems)
+				GD.PushWarning($"[Skills] {file}: {string.Join("; ", problems)}");
+			else
+				Profile.Skills.Register(spec);
+		}
+		dir.ListDirEnd();
+		GD.Print($"SKILLS registered {Profile.Skills.Specs.Count()}");
+	}
 }

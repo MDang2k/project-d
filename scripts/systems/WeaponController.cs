@@ -108,6 +108,9 @@ public sealed class WeaponController
 	/// <summary>True once the Weapon Handling skill gives exact counts (M8).</summary>
 	public bool ExactMagCheck { get; set; }
 
+	/// <summary>Multiplier on reload and check times from the Weapon Handling skill; 1 for the AI.</summary>
+	public float SkillTimeMultiplier { get; set; } = 1f;
+
 	public event Action<MagCheckResult>? MagChecked;
 	public event Action<bool>? ChamberChecked;
 	public event Action<Magazine>? MagazineDropped;
@@ -135,7 +138,7 @@ public sealed class WeaponController
 			return false;
 		_hand = null;
 		_incoming = null;
-		_seq = new ReloadSequence(_t, fast, entry, State.Chamber is null, ReloadTimeMultiplier);
+		_seq = new ReloadSequence(_t, fast, entry, State.Chamber is null, ReloadTimeMultiplier * SkillTimeMultiplier);
 		Action = fast ? WeaponActionKind.FastReload : WeaponActionKind.TacticalReload;
 		ReloadId++;
 		return true;
@@ -173,9 +176,9 @@ public sealed class WeaponController
 			ReloadInterrupted?.Invoke();
 	}
 
-	public bool StartMagCheck() => Begin(WeaponActionKind.MagCheck, _t.MagCheckS);
+	public bool StartMagCheck() => Begin(WeaponActionKind.MagCheck, _t.MagCheckS * SkillTimeMultiplier);
 
-	public bool StartChamberCheck() => Begin(WeaponActionKind.ChamberCheck, _t.ChamberCheckS);
+	public bool StartChamberCheck() => Begin(WeaponActionKind.ChamberCheck, _t.ChamberCheckS * SkillTimeMultiplier);
 
 	public void Update(float delta)
 	{

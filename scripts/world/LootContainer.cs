@@ -20,6 +20,9 @@ public partial class LootContainer : Node3D
 	[Export] public LootTable? Table { get; set; }
 	[Export] public Vector2I GridSize { get; set; } = new(5, 4);
 	[Export] public float SecondsPerItem { get; set; } = 1.2f;
+
+	/// <summary>How fast the search runs; the player's Searching skill sets it while they search.</summary>
+	public float SearchSpeed { get; set; } = 1f;
 	/// <summary>How far a search can be heard, metres (metal lockers are louder than crates).</summary>
 	[Export] public float NoiseRadius { get; set; } = 10f;
 	/// <summary>0 uses a random seed; any other value makes the roll repeatable.</summary>
@@ -110,7 +113,7 @@ public partial class LootContainer : Node3D
 
 	public override void _PhysicsProcess(double delta)
 	{
-		Model.Update((float)delta);
+		Model.Update((float)delta, SearchSpeed);
 		if (!Model.IsSearching)
 		{
 			_noiseTimer = 0f;

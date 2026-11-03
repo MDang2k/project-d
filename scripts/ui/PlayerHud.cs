@@ -50,6 +50,9 @@ public partial class HudCanvas : Control
 	private readonly HudFade _stance = new(1.4f);
 	private readonly HudFade _quick = new(2.5f);
 	private readonly HudFade _message = new(2.2f);
+	private readonly HudFade _levelUp = new(3.0f, 0.2f, 0.8f);
+	private string _levelUpText = "";
+	private SkillBook? _skills;
 	private float _lastStamina = 1f;
 	private float _staminaMoving;
 	private string _messageText = "";
@@ -64,6 +67,22 @@ public partial class HudCanvas : Control
 			_message.Pulse();
 		};
 		Player.QuickUse.Changed += _ => _quick.Pulse();
+		// a skill went up a level (M8a spec s3): a brief line, shown even when the rest of the HUD hides
+		_skills = GameState.Instance?.Profile.Skills;
+		if (_skills is not null)
+			_skills.LevelUp += OnLevelUp;
+	}
+
+	public override void _ExitTree()
+	{
+		if (_skills is not null)
+			_skills.LevelUp -= OnLevelUp;
+	}
+
+	private void OnLevelUp(string skill, int from, int to)
+	{
+		_levelUpText = GameText.Get("skill.levelup", GameText.Get("skill." + skill), to);
+		_levelUp.Pulse();
 	}
 
 	public override void _Process(double deltaD)
@@ -102,6 +121,7 @@ public partial class HudCanvas : Control
 		_stance.Update(delta, false);
 		_quick.Update(delta, QuickWantsVisible());
 		_message.Update(delta, false);
+		_levelUp.Update(delta, false);
 
 		Visible = !Player.InventoryOpen && !Player.IsDead;
 		QueueRedraw();
@@ -162,6 +182,13 @@ public partial class HudCanvas : Control
 		// Quick-use slots bottom centre.
 		if (_quick.Alpha > 0.01f)
 			DrawQuickSlots(new Vector2(size.X * 0.5f, size.Y - 74f), _quick.Alpha, font);
+
+		// A level-up, upper middle, in a warmer colour than the other messages.
+		if (_levelUp.Alpha > 0.01f && _levelUpText.Length > 0)
+		{
+			var gold = new Color(1f, 0.85f, 0.4f, _levelUp.Alpha);
+			DrawString(font, new Vector2(0f, size.Y * 0.2f), _levelUpText, HorizontalAlignment.Center, size.X, 26, gold);
+		}
 
 		// One short message above them.
 		if (_message.Alpha > 0.01f && _messageText.Length > 0)

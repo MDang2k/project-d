@@ -8,7 +8,11 @@ namespace ProjectD;
 /// </summary>
 public sealed class StaminaPool
 {
-	public float MaxValue { get; }
+	private readonly float _baseMax;
+	private float _scale = 1f;
+
+	/// <summary>Maximum, including the skill scale (Endurance).</summary>
+	public float MaxValue => _baseMax * _scale;
 	public float Value { get; private set; }
 	public float ResumeThreshold { get; }
 	public float RecoveryDelayS { get; }
@@ -21,10 +25,23 @@ public sealed class StaminaPool
 
 	public StaminaPool(float maxValue, float resumeThreshold, float recoveryDelayS)
 	{
-		MaxValue = maxValue;
+		_baseMax = maxValue;
 		Value = maxValue;
 		ResumeThreshold = resumeThreshold;
 		RecoveryDelayS = recoveryDelayS;
+	}
+
+	/// <summary>
+	/// Scales the maximum and the recovery speed (Endurance skill). The fill fraction is kept, so a level-up neither
+	/// refills nor drains the pool.
+	/// </summary>
+	public void SetScale(float scale)
+	{
+		if (MathF.Abs(scale - _scale) < 1e-4f || scale <= 0f)
+			return;
+		var fraction = Fraction;
+		_scale = scale;
+		Value = fraction * MaxValue;
 	}
 
 	public void Spend(float amount)
@@ -48,7 +65,7 @@ public sealed class StaminaPool
 			_delayLeft = MathF.Max(0f, _delayLeft - delta);
 			return;
 		}
-		Value = MathF.Min(MaxValue, Value + recoveryRate * delta);
+		Value = MathF.Min(MaxValue, Value + recoveryRate * _scale * delta);
 		if (IsExhausted && Value >= ResumeThreshold)
 		{
 			IsExhausted = false;

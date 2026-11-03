@@ -16,10 +16,10 @@ public partial class RaidResultScreen : CanvasLayer
 
 	public static RaidResultScreen Show(Node parent, RaidOutcome outcome, float elapsedS,
 		IReadOnlyList<ItemInstance> lost, IReadOnlyList<ItemInstance> kept, RunProgress run,
-		InsuranceRaidResult? insurance = null)
+		InsuranceRaidResult? insurance = null, SkillBook? skills = null)
 	{
 		var screen = new RaidResultScreen { Layer = 100, ProcessMode = Node.ProcessModeEnum.Always };
-		screen.Build(outcome, elapsedS, lost, kept, run, insurance);
+		screen.Build(outcome, elapsedS, lost, kept, run, insurance, skills);
 		parent.AddChild(screen);
 		parent.GetTree().Paused = true;
 		Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -41,7 +41,7 @@ public partial class RaidResultScreen : CanvasLayer
 	}
 
 	private void Build(RaidOutcome outcome, float elapsedS, IReadOnlyList<ItemInstance> lost,
-		IReadOnlyList<ItemInstance> kept, RunProgress run, InsuranceRaidResult? insurance)
+		IReadOnlyList<ItemInstance> kept, RunProgress run, InsuranceRaidResult? insurance, SkillBook? skills)
 	{
 		var key = outcome switch
 		{
@@ -95,6 +95,12 @@ public partial class RaidResultScreen : CanvasLayer
 				: "\nNo insured items returned.");
 			if (insurance.Returned.Count > 0)
 				summary.Append(Names(insurance.Returned, 6));
+		}
+		if (skills is not null && SkillSummary.RaidLines(skills, id => GameText.Get("skill." + id)) is { Count: > 0 } trained)
+		{
+			summary.AppendLine("\n" + GameText.Get("raid.skills"));
+			foreach (var line in trained)
+				summary.AppendLine("  " + line);
 		}
 		summary.AppendLine($"\nRun: {run.Raids} raids, {run.Extractions} extracted, {run.Deaths} killed, {run.Mia} MIA");
 		box.AddChild(new Label { Text = summary.ToString() });

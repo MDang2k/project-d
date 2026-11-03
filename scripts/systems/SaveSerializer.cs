@@ -89,7 +89,8 @@ public static class SaveSerializer
 			profile.Quests.Pending.Select(p => new PendingRewardSave(p.ItemId, p.Count)).ToList(),
 			profile.Quests.Reputation.ToDictionary(kv => kv.Key, kv => kv.Value),
 			profile.ExaminedParts.ToList(),
-			profile.Presets.Select(p => new PresetSave(p.Name, p.WeaponId, p.Parts.ToDictionary(kv => kv.Key, kv => kv.Value))).ToList());
+			profile.Presets.Select(p => new PresetSave(p.Name, p.WeaponId, p.Parts.ToDictionary(kv => kv.Key, kv => kv.Value))).ToList(),
+			profile.Skills.Snapshot());
 
 	public static void Apply(SaveFile file, RunProgress run, Func<string, ItemSpec?> lookup, List<string> warnings)
 		=> Apply(file, run, new GameProfile(), lookup, warnings);
@@ -131,6 +132,7 @@ public static class SaveSerializer
 		profile.Presets.Clear();
 		foreach (var preset in file.Presets ?? new List<PresetSave>())
 			profile.Presets.Add(new PartPreset(preset.Name, preset.WeaponId, preset.Parts));
+		profile.Skills.Load(file.Skills ?? new Dictionary<string, float>());
 		profile.InsuranceReturns.Clear();
 		foreach (var ret in file.InsuranceReturns ?? new List<InsuranceReturnSave>())
 		{

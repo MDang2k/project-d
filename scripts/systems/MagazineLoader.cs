@@ -24,6 +24,8 @@ public sealed class MagazineLoader
 
 	/// <summary>Fired for every round unloaded, with its ammo id.</summary>
 	public event Action<string>? RoundUnloaded;
+	/// <summary>Fired for every round loaded into the magazine.</summary>
+	public event Action? RoundLoaded;
 	/// <summary>Fired when a task ends (finished or cancelled).</summary>
 	public event Action? Finished;
 
@@ -90,6 +92,7 @@ public sealed class MagazineLoader
 			}
 			mag.Rounds.Add(ammo.Spec.AmmoId!);
 			ammo.Count--;
+			RoundLoaded?.Invoke();
 			if (ammo.Count <= 0 || mag.Rounds.Count >= mag.Spec.MagazineCapacity)
 				End();
 		}

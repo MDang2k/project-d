@@ -43,6 +43,8 @@ public sealed class SaveMigrator
 		[2] = root => root["traders"] = new JsonObject(),
 		// 3 -> 4: insurance returns queue (item flags default to not insured).
 		[3] = root => root["insuranceReturns"] = new JsonArray(),
+		// 7 -> 8: skill XP (a missing map means no XP yet).
+		[7] = root => root["skills"] = new JsonObject(),
 		// 6 -> 7: examined parts and saved presets (missing lists mean none).
 		[6] = _ => { },
 		// 5 -> 6: attached weapon parts (a missing "parts" map means no parts; defaults fill required slots on load).

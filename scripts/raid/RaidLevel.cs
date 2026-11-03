@@ -46,6 +46,10 @@ public partial class RaidLevel : Node3D
 		AddChild(Raid);
 		Raid.Ended += OnRaidEnded;
 		Raid.Start(Player);
+		if (GameState.Instance?.Profile.Skills is { } skills)
+		{
+			skills.BeginRaid(); // skill XP counts from here until the raid ends
+		}
 		var inv0 = Player.Inventory.Inventory;
 		SaveManager.Instance?.BeginRaid(inv0);
 		GD.Print($"RAIDSTART run={RunState.Current.Raids} items={inv0.AllItems().Count()} " +
@@ -74,6 +78,11 @@ public partial class RaidLevel : Node3D
 		var inv = Player.Inventory.Inventory;
 		var run = RunState.Current;
 		run.Record(outcome, inv);
+		if (GameState.Instance?.Profile.Skills is { } skills)
+		{
+			skills.EndRaid(); // XP is kept whatever the outcome
+			GD.Print($"SKILLS raid xp: {string.Join(", ", skills.RaidGains.Select(g => $"{g.Key} +{g.Value:0.#}"))}");
+		}
 		if (outcome == RaidOutcome.Extracted && Raid.Session.ExtractedZoneId is { } zoneId)
 			_quests.OnExtracted(zoneId);
 		// Insurance rolls for the lost gear and ages the return queue, before the save is written.
@@ -87,7 +96,7 @@ public partial class RaidLevel : Node3D
 		if (outcome == RaidOutcome.Killed)
 			await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
 		var kept = System.Linq.Enumerable.ToList(inv.AllItems());
-		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run, insurance);
+		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run, insurance, GameState.Instance?.Profile.Skills);
 		screen.NewRaidRequested += () => GetTree().ChangeSceneToFile("res://scenes/hub/hub.tscn");
 		if (OS.GetCmdlineUserArgs().Contains("--quitafterraid"))
 		{

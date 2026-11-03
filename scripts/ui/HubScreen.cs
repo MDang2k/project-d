@@ -22,6 +22,7 @@ public partial class HubScreen : CanvasLayer
 	private DragOverlay _drag = null!;
 	private TraderScreen _traders = null!;
 	private GunsmithScreen _gunsmith = null!;
+	private CharacterScreen _character = null!;
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
@@ -64,6 +65,8 @@ public partial class HubScreen : CanvasLayer
 		_root.AddChild(_traders);
 		_gunsmith = new GunsmithScreen(Profile, Rebuild);
 		_root.AddChild(_gunsmith);
+		_character = new CharacterScreen(Profile, Rebuild);
+		_root.AddChild(_character);
 
 		SaveManager.Instance?.SaveInHub();
 		Rebuild();
@@ -72,7 +75,7 @@ public partial class HubScreen : CanvasLayer
 
 	/// <summary>
 	/// Dev args after "--": --side=allied|soviet (pick the side), --equipkit (equip the usual loadout from
-	/// the stash), --deploy, --hubreport (print what the profile holds), --shot=path (screenshot and quit).
+	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --shot=path (screenshot and quit).
 	/// </summary>
 	private async void ApplyDevArgs()
 	{
@@ -167,6 +170,8 @@ public partial class HubScreen : CanvasLayer
 			TradeSelfTest();
 		if (args.Contains("--traders"))
 			_traders.Open();
+		if (args.Contains("--character"))
+			_character.Open();
 		foreach (var a in args)
 		{
 			if (a.StartsWith("--flyout="))
@@ -257,6 +262,7 @@ public partial class HubScreen : CanvasLayer
 		_tooltip.MoveToFront();
 		_traders.MoveToFront();
 		_gunsmith.MoveToFront();
+		_character.MoveToFront();
 	}
 
 	private void BuildSidePicker()
@@ -298,6 +304,9 @@ public partial class HubScreen : CanvasLayer
 		var gunsmith = new Button { Text = "Gunsmith", CustomMinimumSize = new Vector2(140f, 44f) };
 		gunsmith.Pressed += () => _gunsmith.Open();
 		top.AddChild(gunsmith);
+		var characterButton = new Button { Text = GameText.Get("character.title"), CustomMinimumSize = new Vector2(140f, 44f) };
+		characterButton.Pressed += () => _character.Open();
+		top.AddChild(characterButton);
 		var traders = new Button { Text = "Traders", CustomMinimumSize = new Vector2(140f, 44f) };
 		traders.Pressed += () => _traders.Open();
 		top.AddChild(traders);
