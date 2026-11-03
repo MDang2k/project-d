@@ -18,6 +18,7 @@ public partial class RaidLevel : Node3D
 	public RaidManager Raid { get; private set; } = null!;
 	public ProjectileManager Projectiles { get; private set; } = null!;
 	private RaidQuests _quests = null!;
+	private bool _arrivedByTransit;
 
 	public override void _Ready()
 	{
@@ -37,7 +38,10 @@ public partial class RaidLevel : Node3D
 		var dev = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--raidtime="));
 		var cfg = Config ?? new RaidConfig();
 		if (dev is not null && float.TryParse(dev["--raidtime=".Length..], out var seconds))
-			cfg = new RaidConfig { MapId = cfg.MapId, DurationS = seconds, AiCount = cfg.AiCount };
+		{
+			cfg = (RaidConfig)cfg.Duplicate();
+			cfg.DurationS = seconds;
+		}
 		Raid = new RaidManager { Name = "Raid", Config = cfg };
 		AddChild(Raid);
 		Raid.Ended += OnRaidEnded;
@@ -50,6 +54,13 @@ public partial class RaidLevel : Node3D
 		AiHuman.AutoRespawn = false;
 		AiHuman.Paused = false;
 		SpawnPopulation();
+		StartWaves(cfg);
+		var transit = new TransitManager { Name = "Transit" };
+		AddChild(transit);
+		transit.Start(Raid, Player, cfg.MapId, _arrivedByTransit);
+		var boss = new BossSpawner { Name = "Boss", ShowDebug = ShowAiDebug };
+		AddChild(boss);
+		boss.Start(cfg, Player);
 		_quests = new RaidQuests { Name = "Quests", MapId = Config?.MapId ?? "map1" };
 		AddChild(_quests);
 		_quests.Start(Player, Projectiles);
@@ -99,9 +110,13 @@ public partial class RaidLevel : Node3D
 	private void BakeNavigation()
 	{
 		NavigationServer3D.MapSetCellSize(GetWorld3D().NavigationMap, 0.5f);
-		if (GetNodeOrNull<NavigationRegion3D>("Geometry") is { } region)
+		if (NavRegion is { } region)
 			region.BakeNavigationMesh(false);
 	}
+
+	/// <summary>The map's navigation region: "Geometry" under the root, or inside an instanced generated graybox.</summary>
+	private NavigationRegion3D? NavRegion
+		=> GetNodeOrNull<NavigationRegion3D>("Geometry") ?? FindChild("Geometry", true, false) as NavigationRegion3D;
 
 	private void AddEnvironment()
 	{
@@ -140,6 +155,9 @@ public partial class RaidLevel : Node3D
 		var cfg = Config ?? new RaidConfig();
 		var points = GetTree().GetNodesInGroup("ai_spawns").OfType<AiSpawnPoint>()
 			.Where(p => p.GlobalPosition.DistanceTo(Player.GlobalPosition) >= cfg.AiMinDistanceFromPlayer)
+			.ToList();
+		// rolled groups (looters: 4 to 6 of 8) are thinned before the overall cap
+		points = SpawnRoll.Apply(points, p => p.RollGroup, p => p.RollMin, p => p.RollMax, new System.Random((int)GD.Randi()))
 			.OrderBy(_ => GD.Randi())
 			.Take(cfg.AiCount)
 			.ToList();
@@ -172,16 +190,39 @@ public partial class RaidLevel : Node3D
 		}
 	}
 
-	/// <summary>Closest navmesh point, or the point itself when the answer is implausibly far (map not ready).</summary>
-	private static Vector3 Snap(Rid map, Vector3 p)
+	private static Vector3 Snap(Rid map, Vector3 p) => AiSpawner.Snap(map, p);
+
+	/// <summary>Timed waves of the map (none on a map without wave markers). Dev: --waveclock=secs skips the wave clock ahead.</summary>
+	private void StartWaves(RaidConfig cfg)
 	{
-		var snapped = NavigationServer3D.MapGetClosestPoint(map, p);
-		return snapped.DistanceTo(p) < 6f ? snapped : p;
+		var waves = new WaveSpawner { Name = "Waves", ShowDebug = ShowAiDebug };
+		var skip = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--waveclock="));
+		if (skip is not null && float.TryParse(skip["--waveclock=".Length..], out var offset))
+			waves.ClockOffsetS = offset;
+		AddChild(waves);
+		waves.Start(Raid, Player, cfg.ToWaveTuning());
 	}
 
 	/// <summary>Random spawn point from the map's set, facing the middle of the map.</summary>
 	private void PlacePlayer()
 	{
+		// a player who came in by a transit appears at the arrival point for the map they left, carrying their body state
+		var arrivals = GetTree().GetNodesInGroup("transit_arrivals").OfType<ArrivalPoint>().ToList();
+		if (TransitCarry.Pending is { } carried)
+		{
+			_arrivedByTransit = true;
+			Player.Health.Restore(carried);
+			if (arrivals.Count > 0)
+			{
+				var arrival = arrivals.FirstOrDefault(a => a.From == TransitCarry.FromMap) ?? arrivals[0];
+				Player.GlobalPosition = arrival.GlobalPosition + Vector3.Up * 0.1f;
+				Player.Rotation = new Vector3(0f, arrival.GlobalRotation.Y, 0f);
+				GD.Print($"TRANSIT arrived from '{TransitCarry.FromMap}' at {arrival.Name}, thorax={Player.Health.Body.Hp(BodyPart.Thorax):0} leftLeg={Player.Health.Body.Hp(BodyPart.LeftLeg):0} fractured={Player.Health.Effects.IsFractured(BodyPart.LeftLeg)}");
+				TransitCarry.Clear();
+				return;
+			}
+			TransitCarry.Clear();
+		}
 		var points = GetTree().GetNodesInGroup("player_spawns").OfType<PlayerSpawnPoint>().ToList();
 		if (points.Count == 0)
 		{
@@ -213,7 +254,7 @@ public partial class RaidLevel : Node3D
 		GD.Print($"HAND left={Player.Weapon?.LeftHandAction.Position} right={Player.Weapon?.RightHandAction.Position} grip={Player.Weapon?.GripLeft.Position}");
 		GD.Print($"FOOTIK (drop, ankleY L, ankleY R) = {Player.DebugFootIk()}");
 		GD.Print($"GAIT thigh L/R pitch = {Player.DebugThighPitchDeg()} speed={Player.Velocity.Length():0.0}");
-		var polys = GetNodeOrNull<NavigationRegion3D>("Geometry")?.NavigationMesh?.GetPolygonCount() ?? 0;
+		var polys = NavRegion?.NavigationMesh?.GetPolygonCount() ?? 0;
 		GD.Print($"MAP spawns={GetTree().GetNodesInGroup("player_spawns").Count} " +
 			$"ai={GetTree().GetNodesInGroup("ai_spawns").Count} zones={GetTree().GetNodesInGroup("extraction_zones").Count} " +
 			$"loot={GetTree().GetNodesInGroup("loot_containers").Count} navpolys={polys} raid={Raid.IsRunning} " +

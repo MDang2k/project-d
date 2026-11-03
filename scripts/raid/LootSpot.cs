@@ -17,6 +17,7 @@ public partial class LootSpot : Marker3D
 	{
 		if (Engine.IsEditorHint())
 			return;
+		AddToGroup("loot_spots");
 		var (title, table, grid, secs, noise, box, color) = Tier switch
 		{
 			LootTier.High => ("container.weapons_crate", "high_tier", new Vector2I(6, 4), 2.0f, 10f,

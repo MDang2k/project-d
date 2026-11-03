@@ -12,6 +12,8 @@ public partial class LootTable : Resource
 	[Export] public float[] Weights { get; set; } = Array.Empty<float>();
 	[Export] public int[] MinCounts { get; set; } = Array.Empty<int>();
 	[Export] public int[] MaxCounts { get; set; } = Array.Empty<int>();
+	/// <summary>Items that are always dealt on top of the rolls (a boss's key).</summary>
+	[Export] public string[] GuaranteedIds { get; set; } = Array.Empty<string>();
 	[Export] public int MinRolls { get; set; } = 3;
 	[Export] public int MaxRolls { get; set; } = 6;
 

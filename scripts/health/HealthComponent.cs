@@ -142,6 +142,22 @@ public partial class HealthComponent : Node
 		return Apply(result);
 	}
 
+	/// <summary>The body, injuries and meters as they are now, for a transit to carry over.</summary>
+	public CharacterSnapshot Capture() { EnsureState(); return CharacterSnapshot.Capture(Body, _effects!, _vitals!); }
+
+	/// <summary>Restores a snapshot taken on the map the player came from.</summary>
+	public void Restore(CharacterSnapshot snapshot) { EnsureState(); snapshot.Apply(Body, _effects!, _vitals!); }
+
+	/// <summary>A mine blast: each hit goes through armor, then the stepped leg may break and bleed heavily.</summary>
+	public void ReceiveBlast(BlastPlan plan)
+	{
+		foreach (var hit in plan.Hits)
+			if (!IsDead)
+				ReceiveDamage(hit.Part, hit.Damage, hit.PenetrationTier);
+		EnsureState();
+		_effects!.Inflict(plan.SteppedLeg, plan.Fracture, plan.HeavyBleed ? BleedLevel.Heavy : BleedLevel.None, Body);
+	}
+
 	private HitResult Apply(HitResult result)
 	{
 		EnsureState();

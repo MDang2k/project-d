@@ -54,6 +54,11 @@ public partial class AiHuman
 				if (ItemDb.Create(id, count) is { } loot)
 					inv.TryAutoStore(loot);
 			}
+			foreach (var id in table.GuaranteedIds)
+			{
+				if (ItemDb.Create(id, 1) is { } guaranteed)
+					inv.TryAutoStore(guaranteed);
+			}
 		}
 		Gear = inv;
 	}

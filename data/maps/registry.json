@@ -1,0 +1,9 @@
+{
+  // Raid maps the transits can lead to (world map spec s2). A map with no scene or open = false is closed: "the road is blocked".
+  "maps": [
+    { "id": "bunker_entrance", "name": "Bunker Entrance", "scene": "res://scenes/maps/map1.tscn", "open": true },
+    { "id": "border_strip", "name": "Border Strip", "scene": "res://scenes/maps/border_strip.tscn", "open": true },
+    { "id": "kreuzdorf", "name": "Kreuzdorf", "scene": "", "open": false },
+    { "id": "rail_yard", "name": "Rail Yard", "scene": "", "open": false }
+  ]
+}

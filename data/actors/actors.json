@@ -270,6 +270,101 @@
    },
    "links": {},
    "notes": "Migrated from data/ai/soviet_pmc.tres."
+  },
+  {
+   "id": "harker",
+   "parent": "human_base",
+   "name": "Major Dale Harker",
+   "kind": "actor",
+   "faction": "Deserters",
+   "tags": [
+    "faction.deserters",
+    "boss"
+   ],
+   "sets": [
+    "boss_hp_harker"
+   ],
+   "props": {
+    "weapon": "fal_type",
+    "armor": [
+     "flak_vest_t2",
+     "steel_helmet_t2"
+    ],
+    "heal_item": "field_medkit",
+    "rig": "field_rig",
+    "backpack": "field_pack",
+    "pocket_table": "boss_deserter",
+    "loots_corpses": "True",
+    "body_color": [
+     "0.35",
+     "0.38",
+     "0.3"
+    ],
+    "archetypes": [
+     "infiltrator:100"
+    ]
+   },
+   "stats": {
+    "perception.view_distance": 130.0,
+    "awareness.notice_s": 0.7,
+    "aim.accuracy": 0.85,
+    "aim.recoil_control": 0.85,
+    "squad.disciplined": 1.0,
+    "tactics.courage": 0.85,
+    "tactics.aggression": 0.65,
+    "carry.spare_magazines": 4.0
+   },
+   "links": {
+    "boss_row": "harker"
+   },
+   "notes": "Border Strip boss. Placeholders until the items exist: fal_type for the xm177e2 (starlight_night_scope), flak_vest_t2 for aircrew_ceramic_chest_plate; the browning_hi_power sidearm is left out. Carries radio_room_key via the boss_deserter table."
+  },
+  {
+   "id": "harker_squad",
+   "parent": "human_base",
+   "name": "Harker's deserters",
+   "kind": "actor",
+   "faction": "Deserters",
+   "tags": [
+    "faction.deserters",
+    "escort"
+   ],
+   "sets": [],
+   "props": {
+    "weapon_choices": [
+     "ak_type",
+     "fal_type"
+    ],
+    "armor": [
+     "flak_vest_t2",
+     "steel_helmet_t1"
+    ],
+    "heal_item": "bandage",
+    "rig": "light_rig",
+    "backpack": "field_pack",
+    "pocket_table": "body_scav",
+    "loots_corpses": "True",
+    "body_color": [
+     "0.4",
+     "0.38",
+     "0.3"
+    ],
+    "archetypes": [
+     "infiltrator:50",
+     "operator:50"
+    ]
+   },
+   "stats": {
+    "perception.view_distance": 110.0,
+    "aim.accuracy": 0.7,
+    "aim.recoil_control": 0.65,
+    "squad.disciplined": 1.0,
+    "tactics.courage": 0.7
+   },
+   "links": {
+    "boss_row": "harker_squad"
+   },
+   "notes": "Border Strip boss escorts (3). SVD choice from the Bosses sheet left out until svd_dragunov exists."
   }
  ],
  "modifier_sets": {

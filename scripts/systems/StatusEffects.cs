@@ -77,6 +77,23 @@ public sealed class StatusEffects
 	public IReadOnlyCollection<BodyPart> Fractures => _fractures;
 	public IEnumerable<BodyPart> BleedingParts => _bleed.Keys;
 
+	/// <summary>Fractures, bleeds, pain and healing in progress, to carry into another map.</summary>
+	public EffectsState State() => new(_fractures.ToList(), new Dictionary<BodyPart, BleedLevel>(_bleed), Pain, MorphineLeft, _healPool, _healRate);
+
+	public void LoadState(EffectsState state)
+	{
+		_fractures.Clear();
+		foreach (var f in state.Fractures)
+			_fractures.Add(f);
+		_bleed.Clear();
+		foreach (var (part, level) in state.Bleeds)
+			_bleed[part] = level;
+		Pain = state.Pain;
+		MorphineLeft = state.MorphineLeft;
+		_healPool = state.HealPool;
+		_healRate = state.HealRate;
+	}
+
 	/// <summary>Rolls bleed and fracture chances for a resolved hit; adds pain.</summary>
 	public void OnHit(in HitResult hit, Func<double> random)
 	{
@@ -183,6 +200,17 @@ public sealed class StatusEffects
 			}
 		}
 		return false;
+	}
+
+	/// <summary>Breaks and/or makes a part bleed without a roll (a mine blast); a destroyed part has nothing left to injure.</summary>
+	public void Inflict(BodyPart part, bool fracture, BleedLevel bleed, BodyHealth body)
+	{
+		if (body.IsDestroyed(part))
+			return;
+		if (bleed != BleedLevel.None)
+			SetBleed(part, bleed);
+		if (fracture && Array.IndexOf(Limbs, part) >= 0 && _fractures.Add(part))
+			Pain = Math.Min(_t.MaxPain, Pain + _t.PainFromFracture);
 	}
 
 	private void SetBleed(BodyPart part, BleedLevel level)

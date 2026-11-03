@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/LootTable.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "boss_deserter"
+ItemIds = PackedStringArray("banknotes", "morphine", "field_medkit", "ammo_7_62x51", "fal_mag")
+Weights = PackedFloat32Array(3.0, 1.0, 1.0, 2.0, 1.0)
+MinCounts = PackedInt32Array(40, 1, 1, 10, 1)
+MaxCounts = PackedInt32Array(200, 1, 1, 30, 1)
+GuaranteedIds = PackedStringArray("radio_room_key")
+MinRolls = 2
+MaxRolls = 4

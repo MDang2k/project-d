@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "radio_room_key"
+NameKey = "item.radio_room_key"
+Category = 12
+Width = 1
+Height = 1
+WeightKg = 0.05
+MaxStack = 1
+WeaponClass = 0
+IconColor = Color(0.55, 0.5, 0.2, 1)
+IconLabel = "Key"
+BaseValue = 8000
+Insurable = false

@@ -67,6 +67,19 @@ public sealed class BodyHealth
 	public static bool IsVital(BodyPart part) => part is BodyPart.Head or BodyPart.Thorax;
 	public float TotalHp => _hp.Values.Sum();
 
+	/// <summary>Current and maximum HP of every part, to carry the body into another map.</summary>
+	public BodyState State() => new(AllParts.ToDictionary(p => p, p => (_hp[p], _max[p])));
+
+	/// <summary>Puts a saved state back; limbs at 0 HP stay destroyed. Does nothing for a dead body.</summary>
+	public void LoadState(BodyState state)
+	{
+		foreach (var (part, (hp, max)) in state.Parts)
+		{
+			_max[part] = max;
+			_hp[part] = Math.Clamp(hp, 0f, max);
+		}
+	}
+
 	/// <summary>Applies damage to a part (spreading it if the part is already destroyed).</summary>
 	public void TakeDamage(BodyPart part, float amount)
 	{
