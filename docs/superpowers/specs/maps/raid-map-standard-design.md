@@ -2,7 +2,7 @@
 
 Date: 2026-10-17
 
-Status: approved design. Built: `MapLayout` parser and `MapValidator` (spawns, extracts, loot, landmarks, cover, height, buildings, markers, static body budget). Graybox generator built: `GrayboxBuilder` (ground with trench cuts, mounds, building walls with openings, floor slabs, stairs, roofs, props, markers) and `GrayboxTscn`; command `scripts/tools/GenerateMap.cs`. Hand scene for Border Strip built. Mine hazard built for Border Strip. Not built: resting-surface rule. Applies to every raid map. Map 1 applies it in `docs/superpowers/specs/maps/map1-revision-design.md`. Builds on `docs/superpowers/specs/maps/map1-requirements-design.md` (loop pacing, wave, validator) and the marker needs of 7c, 7e, 8c, 8d, 8e and 8f. Numbers marked **(tune)**.
+Status: approved design. Built: `MapLayout` parser and `MapValidator` (spawns, extracts, loot, landmarks, cover, height, buildings, markers, static body budget). Graybox generator built: `GrayboxBuilder` (ground with trench cuts, mounds, building walls with openings, floor slabs, stairs, roofs, props, markers) and `GrayboxTscn`; command `scripts/tools/GenerateMap.cs`. Hand scene for Border Strip built. Mine hazard and key locks built for Border Strip. Not built: resting-surface rule. Applies to every raid map. Map 1 applies it in `docs/superpowers/specs/maps/map1-revision-design.md`. Builds on `docs/superpowers/specs/maps/map1-requirements-design.md` (loop pacing, wave, validator) and the marker needs of 7c, 7e, 8c, 8d, 8e and 8f. Numbers marked **(tune)**.
 
 ## Intent
 

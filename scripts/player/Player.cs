@@ -407,6 +407,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var forward = -_camera.GlobalBasis.Z;
 		LootContainer? container = null;
 		DroppedItem? dropped = null;
+		LockedDoor? door = null;
 		var bestDist = float.MaxValue;
 
 		bool Candidate(Vector3 point, out float dist)
@@ -431,6 +432,17 @@ public partial class Player : CharacterBody3D, IPerceivable
 			{
 				dropped = di;
 				container = null;
+				door = null;
+				bestDist = d;
+			}
+		}
+		foreach (var node in GetTree().GetNodesInGroup("locked_doors"))
+		{
+			if (node is LockedDoor ld && !ld.IsOpen && Candidate(ld.GlobalPosition, out var d))
+			{
+				door = ld;
+				container = null;
+				dropped = null;
 				bestDist = d;
 			}
 		}
@@ -442,15 +454,19 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_prompt.Visible = false;
 			return;
 		}
-		_prompt.Visible = (container is not null || dropped is not null) && !_screen.IsOpen && !Health.IsDead;
+		_prompt.Visible = (container is not null || dropped is not null || door is not null) && !_screen.IsOpen && !Health.IsDead;
 		if (!_prompt.Visible)
 			return;
-		_prompt.Text = dropped is not null
-			? GameText.Get("msg.pickup.prompt", dropped.Title)
-			: GameText.Get("msg.search.prompt", container!.Title);
+		_prompt.Text = door is not null
+			? GameText.Get("lock.prompt", door.Title)
+			: dropped is not null
+				? GameText.Get("msg.pickup.prompt", dropped.Title)
+				: GameText.Get("msg.search.prompt", container!.Title);
 		if (!Input.IsActionJustPressed("interact") || Input.MouseMode != Input.MouseModeEnum.Captured)
 			return;
-		if (dropped is not null)
+		if (door is not null)
+			door.TryOpen(this);
+		else if (dropped is not null)
 			PickUp(dropped);
 		else
 			_screen.OpenWithContainer(container!);
@@ -498,6 +514,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 	}
 
 	private const float InteractReach = 2.4f;
+
+	/// <summary>Shows a short line to the player, like the pickup and magazine messages.</summary>
+	public void NotifyMessage(string text) => WeaponMessage?.Invoke(text);
 
 	/// <summary>Melee on G: windup, then a short ray from the camera hits one hitbox.</summary>
 	private void UpdateMelee(float delta)

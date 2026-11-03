@@ -248,7 +248,8 @@ public static class GrayboxBuilder
 				var pos = World(m.Pos[0], m.Pos[1], m.Type == "playerSpawn" ? m.Height + 0.1f : m.Height);
 				var yaw = float.TryParse(m.Prop("facing"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var f)
 					? f
-					: Mathf.RadToDeg(Mathf.Atan2(pos.X, pos.Z)); // towards the map centre: forward is -Z, so yaw = atan2(-dx, -dz) with d = -pos
+					// spawns and arrivals face the map centre (forward is -Z, so yaw = atan2(-dx, -dz) with d = -pos); boxes stay on the axes
+					: m.Type is "playerSpawn" or "arrival" ? Mathf.RadToDeg(Mathf.Atan2(pos.X, pos.Z)) : 0f;
 				MarkerList.Add(new GrayMarker(Safe(m.Id), m.Type, pos, yaw, m.Props));
 			}
 		}

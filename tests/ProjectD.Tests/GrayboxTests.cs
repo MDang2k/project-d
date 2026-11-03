@@ -103,6 +103,29 @@ public class GrayboxTests
 	}
 
 	[Fact]
+	public void ZoneAndDoorBoxesStayOnTheAxesWhileSpawnsAndArrivalsFaceTheCentre()
+	{
+		var g = Build("\"markers\": [ { \"id\": \"d\", \"type\": \"lock\", \"pos\": [10, 40], \"props\": { \"key\": \"k\" } },"
+			+ " { \"id\": \"z\", \"type\": \"extract\", \"pos\": [10, 40] }, { \"id\": \"a\", \"type\": \"arrival\", \"pos\": [10, 40] } ]");
+		Assert.Equal(0f, g.Markers.Single(m => m.Name == "d").YawDeg);
+		Assert.Equal(0f, g.Markers.Single(m => m.Name == "z").YawDeg);
+		Assert.Equal(-90f, g.Markers.Single(m => m.Name == "a").YawDeg, 2);
+	}
+
+	[Fact]
+	public void ALockBecomesASolidDoorBodyWithItsKeyAndTitle()
+	{
+		var text = GrayboxTscn.Write(Build("\"markers\": [ { \"id\": \"door1\", \"type\": \"lock\", \"pos\": [30, 40],"
+			+ " \"props\": { \"key\": \"radio_room_key\", \"title\": \"radio_room\", \"size\": \"0.3,2.6,3\" } } ]"));
+		Assert.Contains("[node name=\"door1\" type=\"StaticBody3D\" parent=\"Locks\"]", text);
+		Assert.Contains("KeyId = \"radio_room_key\"", text);
+		Assert.Contains("TitleKey = \"lock.radio_room\"", text);
+		Assert.Contains("OpenLift = 2.6", text);
+		Assert.Contains("size = Vector3(0.3, 2.6, 3)", text);
+		Assert.Contains("Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.3, 0)", text);
+	}
+
+	[Fact]
 	public void BuildingTheSameLayoutTwiceGivesIdenticalOutputWithUniqueNames()
 	{
 		var layout = Map(House + ", \"markers\": [ { \"id\": \"a\", \"type\": \"loot\", \"pos\": [25, 25], \"props\": { \"tier\": \"high\" } } ]");
