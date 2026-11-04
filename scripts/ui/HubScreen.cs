@@ -23,6 +23,7 @@ public partial class HubScreen : CanvasLayer
 	private TraderScreen _traders = null!;
 	private GunsmithScreen _gunsmith = null!;
 	private CharacterScreen _character = null!;
+	private NemesisScreen _nemeses = null!;
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
@@ -67,6 +68,8 @@ public partial class HubScreen : CanvasLayer
 		_root.AddChild(_gunsmith);
 		_character = new CharacterScreen(Profile, Rebuild);
 		_root.AddChild(_character);
+		_nemeses = new NemesisScreen(Profile, Rebuild);
+		_root.AddChild(_nemeses);
 
 		SaveManager.Instance?.SaveInHub();
 		Rebuild();
@@ -75,8 +78,29 @@ public partial class HubScreen : CanvasLayer
 
 	/// <summary>
 	/// Dev args after "--": --side=allied|soviet (pick the side), --equipkit (equip the usual loadout from
-	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --rep=target:hundredths,... (set reputation in memory), --shot=path (screenshot and quit).
+	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --nemeses (open the Nemeses tab), --nemseed=faction (add a demo nemesis in memory), --rep=target:hundredths,... (set reputation in memory), --shot=path (screenshot and quit).
 	/// </summary>
+	/// <summary>Dev: puts a demo nemesis in the roster, in memory only (a --shot or headless run never saves).</summary>
+	private void DevNemesis(string factionName)
+	{
+		if (!System.Enum.TryParse<Faction>(factionName, true, out var faction))
+			faction = Faction.Bandits;
+		var gear = new CharacterInventory();
+		gear.TryEquip(ItemDb.Create("fal_type")!, EquipSlot.Primary);
+		gear.TryEquip(ItemDb.Create("prototype_vest_t4")!, EquipSlot.Vest);
+		gear.TryEquip(ItemDb.Create("steel_helmet_t2")!, EquipSlot.Head);
+		gear.TryEquip(ItemDb.Create("field_pack")!, EquipSlot.Backpack);
+		gear.TryAutoStore(ItemDb.Create("bandage", 3)!);
+		var names = NemesisNames.Parse(FileAccess.GetFileAsString("res://data/ai/nemesis_names.json"));
+		var kills = gear.EquippedItems.Select(kv => new LostItem(kv.Value, kv.Key)).ToList();
+		var first = Profile.Nemeses.RegisterKill(null, faction, faction == Profile.Side?.ToFaction(), new NemesisKill(2, "border_strip", 100f, 40f, "landmark.water_tower"),
+			kills, names, spec => ItemDb.Data(spec.Id)?.Payload is ArmorData a ? a.Tier : 0, new System.Random(5));
+		Profile.Nemeses.RegisterKill(first.Nemesis.Id, faction, false, new NemesisKill(5, "map1", 0f, 70f, "landmark.gate"),
+			System.Array.Empty<LostItem>(), names, _ => 0, new System.Random(5));
+		Profile.Nemeses.Remove(Profile.Nemeses.RegisterKill(null, Faction.Looters, false, new NemesisKill(6, "border_strip", 0f, 0f), System.Array.Empty<LostItem>(), names, _ => 0, new System.Random(9)).Nemesis.Id, "Soviet PMCs", 6);
+		Rebuild();
+	}
+
 	private async void ApplyDevArgs()
 	{
 		var args = OS.GetCmdlineUserArgs();
@@ -182,6 +206,10 @@ public partial class HubScreen : CanvasLayer
 			_traders.Open();
 		if (args.Contains("--character"))
 			_character.Open();
+		if (args.FirstOrDefault(a => a.StartsWith("--nemseed="))?["--nemseed=".Length..] is { } nemFaction)
+			DevNemesis(nemFaction);
+		if (args.Contains("--nemeses"))
+			_nemeses.Open();
 		foreach (var a in args)
 		{
 			if (a.StartsWith("--flyout="))
@@ -273,6 +301,7 @@ public partial class HubScreen : CanvasLayer
 		_traders.MoveToFront();
 		_gunsmith.MoveToFront();
 		_character.MoveToFront();
+		_nemeses.MoveToFront();
 	}
 
 	private void BuildSidePicker()
@@ -317,6 +346,13 @@ public partial class HubScreen : CanvasLayer
 		var characterButton = new Button { Text = GameText.Get("character.title"), CustomMinimumSize = new Vector2(140f, 44f) };
 		characterButton.Pressed += () => _character.Open();
 		top.AddChild(characterButton);
+		var nemesisButton = new Button
+		{
+			Text = GameText.Get("nemesis.title") + (Profile.Nemeses.All.Count + Profile.Nemeses.Fallen.Count > 0 ? $" ({Profile.Nemeses.All.Count})" : ""),
+			CustomMinimumSize = new Vector2(140f, 44f),
+		};
+		nemesisButton.Pressed += () => _nemeses.Open();
+		top.AddChild(nemesisButton);
 		var traders = new Button { Text = "Traders", CustomMinimumSize = new Vector2(140f, 44f) };
 		traders.Pressed += () => _traders.Open();
 		top.AddChild(traders);

@@ -1,4 +1,4 @@
-[gd_scene load_steps=303 format=3]
+[gd_scene load_steps=304 format=3]
 
 [ext_resource type="Script" path="res://scripts/raid/RaidLevel.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/raid/PlayerSpawnPoint.cs" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/raid/ExtractionZone.cs" id="5"]
 [ext_resource type="Script" path="res://scripts/raid/QuestZone.cs" id="6"]
 [ext_resource type="Resource" path="res://data/raid/map1.tres" id="9"]
+[ext_resource type="Script" path="res://scripts/raid/MapLandmark.cs" id="lmk"]
 
 [sub_resource type="NavigationMesh" id="nav"]
 cell_size = 0.5
@@ -4425,3 +4426,25 @@ script = ExtResource("6")
 ZoneId = "plaza_zone"
 MapId = "map1"
 Size = Vector3(12, 4, 12)
+
+[node name="Landmarks" type="Node3D" parent="."]
+
+[node name="Portal" type="Marker3D" parent="Landmarks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -76)
+script = ExtResource("lmk")
+NameKey = "landmark.portal"
+
+[node name="Gate" type="Marker3D" parent="Landmarks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 76)
+script = ExtResource("lmk")
+NameKey = "landmark.gate"
+
+[node name="Breach" type="Marker3D" parent="Landmarks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76, 0, 16)
+script = ExtResource("lmk")
+NameKey = "landmark.breach"
+
+[node name="Culvert" type="Marker3D" parent="Landmarks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76, 0, -26)
+script = ExtResource("lmk")
+NameKey = "landmark.culvert"

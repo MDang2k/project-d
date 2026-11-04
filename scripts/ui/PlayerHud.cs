@@ -52,6 +52,8 @@ public partial class HudCanvas : Control
 	private readonly HudFade _message = new(2.2f);
 	private readonly HudFade _levelUp = new(3.0f, 0.2f, 0.8f);
 	private readonly HudFade _hostile = new(4.0f, 0.2f, 1.0f);
+	private readonly HudFade _nemesis = new(4.0f, 0.2f, 1.0f);
+	private string _nemesisText = "";
 	private string _hostileText = "";
 	private string _levelUpText = "";
 	private SkillBook? _skills;
@@ -74,6 +76,13 @@ public partial class HudCanvas : Control
 		if (_skills is not null)
 			_skills.LevelUp += OnLevelUp;
 		RaidStanding.FactionTurnedHostile += OnFactionHostile;
+		RaidNemesis.PlayerKilledNemesis += OnNemesisKilled;
+	}
+
+	private void OnNemesisKilled(Nemesis nemesis)
+	{
+		_nemesisText = NemesisSummary.KilledLine(nemesis, k => GameText.Get(k));
+		_nemesis.Pulse();
 	}
 
 	private void OnFactionHostile(Faction faction)
@@ -87,6 +96,7 @@ public partial class HudCanvas : Control
 		if (_skills is not null)
 			_skills.LevelUp -= OnLevelUp;
 		RaidStanding.FactionTurnedHostile -= OnFactionHostile;
+		RaidNemesis.PlayerKilledNemesis -= OnNemesisKilled;
 	}
 
 	private void OnLevelUp(string skill, int from, int to)
@@ -133,6 +143,7 @@ public partial class HudCanvas : Control
 		_message.Update(delta, false);
 		_levelUp.Update(delta, false);
 		_hostile.Update(delta, false);
+		_nemesis.Update(delta, false);
 
 		Visible = !Player.InventoryOpen && !Player.IsDead;
 		QueueRedraw();
@@ -206,6 +217,13 @@ public partial class HudCanvas : Control
 		{
 			var red = new Color(0.95f, 0.35f, 0.3f, _hostile.Alpha);
 			DrawString(font, new Vector2(0f, size.Y * 0.26f), _hostileText, HorizontalAlignment.Center, size.X, 22, red);
+		}
+
+		// You killed a nemesis: a gold line, under the other warnings.
+		if (_nemesis.Alpha > 0.01f && _nemesisText.Length > 0)
+		{
+			var gold = new Color(1f, 0.85f, 0.4f, _nemesis.Alpha);
+			DrawString(font, new Vector2(0f, size.Y * 0.32f), _nemesisText, HorizontalAlignment.Center, size.X, 24, gold);
 		}
 
 		// One short message above them.

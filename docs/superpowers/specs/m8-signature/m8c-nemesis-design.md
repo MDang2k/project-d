@@ -2,7 +2,7 @@
 
 Date: 2026-10-17
 
-Status: approved design, not implemented. Third of six M8 sub-projects (8a skills and 8b reputation: specs approved; 8c this; 8d knowledge and journal; 8e Ewigstein; 8f bosses, added by the designer). Implements GDD §15 (Nemesis) and the pillar "what you lost can be hunted down".
+Status: built, playtest pending (step 4: `MapLandmark`, `NemesisSummary`, `NemesisScreen`, the kill place saved in `NemesisKill.Place`, the death-screen line, `RaidNemesis.PlayerKilledNemesis` for the HUD line; dev flags `--nemeses` and `--nemseed=` in the hub). Steps 1 to 3 built (`RaidNemesis.SpawnFromRoster`, `AiHuman.Nemesis` / `HostileToPlayer`, `AiHuman.SyncNemesisArmor`, `AiSpawner.WaitForNavigation`; a nemesis uses the player's armor with its wear, the best weapon and its real inventory; a friendly-origin nemesis is hostile to the player only; a too-close kill position keeps it away that raid). Steps 1 and 2 built (`RaidNemesis`, `RaidManager.LostSlots`, `AiHuman.NemesisId`; a nemesis is created or grown when the raid ends in a death with a known killer; it is not yet spawned). Step 1 built (pure core and save: `KillAttribution`, `NemesisRoster`, `NemesisGear`, `NemesisNames`, `InsuranceRaidResult.ReturnedOriginals` so a returned insured item is never also on the nemesis, save version 9 with the `nemeses` list and an 8 to 9 migration, 28 tests; the fallen list is not saved). Third of six M8 sub-projects (8a skills and 8b reputation: specs approved; 8c this; 8d knowledge and journal; 8e Ewigstein; 8f bosses, added by the designer). Implements GDD §15 (Nemesis) and the pillar "what you lost can be hunted down".
 
 ## Intent
 

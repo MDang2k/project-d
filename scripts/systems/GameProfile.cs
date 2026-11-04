@@ -44,6 +44,9 @@ public sealed class GameProfile
 	/// <summary>What the skill levels do (stamina, weight, handling, recoil, medicine, searching, health).</summary>
 	public SkillEffects SkillEffects { get; }
 
+	/// <summary>Nemeses holding gear they took from the player (M8c).</summary>
+	public NemesisRoster Nemeses { get; } = new();
+
 	public GameProfile()
 	{
 		Skills = new SkillBook();

@@ -61,13 +61,47 @@ public partial class AiHuman
 			}
 		}
 		Gear = inv;
+		ApplyNemesisGear();
+	}
+
+	private readonly System.Collections.Generic.List<ItemInstance> _nemesisArmorItems = new();
+
+	/// <summary>
+	/// A nemesis fights in what it took from the player (M8c spec s2): the worn armor and helmet with their wear, the best
+	/// weapon (primary, then secondary, then pistol; none keeps the preset's), and the real inventory becomes its body.
+	/// </summary>
+	private void ApplyNemesisGear()
+	{
+		if (Nemesis is not { } n)
+			return;
+		Gear = n.Gear;
+		_nemesisArmorItems.Clear();
+		var worn = new System.Collections.Generic.List<(ArmorSpec, float)>();
+		foreach (var slot in new[] { EquipSlot.Vest, EquipSlot.Head })
+		{
+			if (Gear.InSlot(slot) is not { } item || ItemDb.Data(item.Spec.Id)?.Payload is not ArmorData armor)
+				continue;
+			var spec = armor.ToSpec();
+			worn.Add((spec, item.Durability < 0f ? spec.MaxDurability : item.Durability));
+			_nemesisArmorItems.Add(item);
+		}
+		Health.SetArmor(worn);
+		if (NemesisGear.BestWeapon(Gear) is { } weapon && ItemDb.Data(weapon.Spec.Id)?.Payload is WeaponData data)
+			_weaponData = data;
+	}
+
+	/// <summary>Writes the armor wear it took this raid back onto the items, so the nemesis keeps it (and the save has it).</summary>
+	public void SyncNemesisArmor()
+	{
+		for (var i = 0; i < _nemesisArmorItems.Count && i < Health.Armor.Count; i++)
+			_nemesisArmorItems[i].Durability = Health.Armor[i].Durability;
 	}
 
 	/// <summary>On death the weapon in the gear gets the magazine and chamber it really had left.</summary>
 	private void SyncGearWithWeapon()
 	{
-		if (Weapon is not { } live || _weaponData is not { } data)
-			return;
+		if (Nemesis is not null || Weapon is not { } live || _weaponData is not { } data)
+			return; // a nemesis's weapon is the player's real one, with its own magazine
 		var slot = data.Ammo is null ? EquipSlot.Primary : (Gear.InSlot(EquipSlot.Primary) is not null ? EquipSlot.Primary : EquipSlot.Pistol);
 		if (Gear.InSlot(slot) is not { } item)
 			return;

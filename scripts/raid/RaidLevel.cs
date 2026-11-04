@@ -19,6 +19,7 @@ public partial class RaidLevel : Node3D
 	public ProjectileManager Projectiles { get; private set; } = null!;
 	private RaidQuests _quests = null!;
 	private bool _arrivedByTransit;
+	private RaidNemesis _nemesis = null!;
 
 	public override void _Ready()
 	{
@@ -59,6 +60,9 @@ public partial class RaidLevel : Node3D
 		AiHuman.Paused = false;
 		SpawnPopulation();
 		StartWaves(cfg);
+		_nemesis = new RaidNemesis { Name = "Nemesis" };
+		AddChild(_nemesis);
+		_nemesis.Start(Player, Projectiles, Raid, cfg);
 		var friendlyFire = new RaidFriendlyFire { Name = "FriendlyFire" };
 		AddChild(friendlyFire);
 		friendlyFire.Start(Player, Projectiles);
@@ -93,13 +97,14 @@ public partial class RaidLevel : Node3D
 		var insurance = InsuranceService.OnRaidEnd(outcome, lost, profile, inv, SaveManager.LevelOf,
 			System.Random.Shared.NextDouble);
 		InsuranceService.TryDeliver(profile);
+		_nemesis.OnRaidEnded(outcome, lost, insurance); // a killer becomes a nemesis before the profile is saved
 		SaveManager.Instance?.EndRaid();
 		GD.Print($"RAID {outcome} lost={lost.Count} runs={run.Raids} extracted={run.Extractions}");
 		// Let the death play out for a moment; everything else shows at once.
 		if (outcome == RaidOutcome.Killed)
 			await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
 		var kept = System.Linq.Enumerable.ToList(inv.AllItems());
-		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run, insurance, GameState.Instance?.Profile.Skills);
+		var screen = RaidResultScreen.Show(this, outcome, Raid.Session.ElapsedS, lost, kept, run, insurance, GameState.Instance?.Profile.Skills, _nemesis.Result);
 		screen.NewRaidRequested += () => GetTree().ChangeSceneToFile("res://scenes/hub/hub.tscn");
 		if (OS.GetCmdlineUserArgs().Contains("--quitafterraid"))
 		{

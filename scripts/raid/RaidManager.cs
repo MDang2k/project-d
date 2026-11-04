@@ -16,6 +16,10 @@ public partial class RaidManager : Node
 	private RaidSession? _session;
 	private Player? _player;
 
+	/// <summary>The slot each lost item was worn in, captured just before a death or MIA took the gear (a nemesis puts it back on).</summary>
+	public System.Collections.Generic.IReadOnlyDictionary<ItemInstance, EquipSlot> LostSlots { get; private set; }
+		= new System.Collections.Generic.Dictionary<ItemInstance, EquipSlot>();
+
 	public RaidSession Session => _session ?? throw new InvalidOperationException("Raid not started");
 	public bool IsRunning => _session?.IsActive ?? false;
 
@@ -43,6 +47,8 @@ public partial class RaidManager : Node
 		// A paid extract takes its cost from carried banknotes (not the secure container) before the outcome rules run.
 		if (outcome == RaidOutcome.Extracted && _session?.PaidCost > 0)
 			MoneyLedger.Remove(_player.Inventory.Inventory.StorageGrids.ToList(), _session.PaidCost);
+		LostSlots = _player.Inventory.Inventory.EquippedItems.Where(kv => kv.Key != EquipSlot.SecureContainer)
+			.ToDictionary(kv => kv.Value, kv => kv.Key);
 		var lost = RaidOutcomeRules.Apply(outcome, _player.Inventory.Inventory);
 		_player.Inventory.NotifyChanged();
 		Ended?.Invoke(outcome, lost);

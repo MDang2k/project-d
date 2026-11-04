@@ -70,6 +70,15 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	// --- IPerceivable ----------------------------------------------------------------------
 
+	/// <summary>Id of the nemesis this AI is (M8c), or null for an ordinary AI; set by the spawner before it enters the tree.</summary>
+	public string? NemesisId { get; set; }
+
+	/// <summary>The nemesis this AI is (M8c): it fights in the player's gear and its body drops exactly that.</summary>
+	public Nemesis? Nemesis { get; set; }
+
+	/// <summary>Hostile to the player whatever its faction says (a nemesis that was a friendly PMC when it killed the player).</summary>
+	public bool HostileToPlayer { get; set; }
+
 	public Faction Faction => Actor is null ? Faction.Looters : ActorTuning.ParseFaction(Actor.Def.Faction);
 	public bool IsAlive => !Health.IsDead;
 	public Stance PerceivedStance => _prone ? Stance.Prone : IsCrouching ? Stance.Crouch : Stance.Stand;
@@ -554,7 +563,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	/// <summary>The normal faction relations, plus a faction the player has made hostile for this raid (friendly fire, bad standing).</summary>
 	private bool HostileTo(IPerceivable other)
-		=> FactionRelations.IsHostile(Faction, other.Faction) || (other is Player && RaidStanding.IsHostileToPlayer(Faction));
+		=> FactionRelations.IsHostile(Faction, other.Faction) || (other is Player && (HostileToPlayer || RaidStanding.IsHostileToPlayer(Faction)));
 
 	private void PerceiveTick(float dt)
 	{

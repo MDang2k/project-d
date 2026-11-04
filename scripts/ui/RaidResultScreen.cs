@@ -16,10 +16,10 @@ public partial class RaidResultScreen : CanvasLayer
 
 	public static RaidResultScreen Show(Node parent, RaidOutcome outcome, float elapsedS,
 		IReadOnlyList<ItemInstance> lost, IReadOnlyList<ItemInstance> kept, RunProgress run,
-		InsuranceRaidResult? insurance = null, SkillBook? skills = null)
+		InsuranceRaidResult? insurance = null, SkillBook? skills = null, NemesisKillResult? nemesis = null)
 	{
 		var screen = new RaidResultScreen { Layer = 100, ProcessMode = Node.ProcessModeEnum.Always };
-		screen.Build(outcome, elapsedS, lost, kept, run, insurance, skills);
+		screen.Build(outcome, elapsedS, lost, kept, run, insurance, skills, nemesis);
 		parent.AddChild(screen);
 		parent.GetTree().Paused = true;
 		Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -45,7 +45,7 @@ public partial class RaidResultScreen : CanvasLayer
 	}
 
 	private void Build(RaidOutcome outcome, float elapsedS, IReadOnlyList<ItemInstance> lost,
-		IReadOnlyList<ItemInstance> kept, RunProgress run, InsuranceRaidResult? insurance, SkillBook? skills)
+		IReadOnlyList<ItemInstance> kept, RunProgress run, InsuranceRaidResult? insurance, SkillBook? skills, NemesisKillResult? nemesis)
 	{
 		var key = outcome switch
 		{
@@ -76,6 +76,18 @@ public partial class RaidResultScreen : CanvasLayer
 			HorizontalAlignment = HorizontalAlignment.Center,
 			AutowrapMode = TextServer.AutowrapMode.WordSmart,
 		});
+
+		if (outcome == RaidOutcome.Killed && nemesis is not null)
+		{
+			var killer = new Label
+			{
+				Text = NemesisSummary.KilledBy(nemesis.Nemesis, k => GameText.Get(k)),
+				HorizontalAlignment = HorizontalAlignment.Center,
+				AutowrapMode = TextServer.AutowrapMode.WordSmart,
+				Modulate = new Color(1f, 0.85f, 0.4f),
+			};
+			box.AddChild(killer);
+		}
 
 		var minutes = (int)(elapsedS / 60f);
 		var summary = new StringBuilder();

@@ -1,0 +1,179 @@
+// Name lists for nemeses (M8c). Each faction id has first names, last names and nicknames; add freely.
+{
+  "allied_pmc": {
+    "first": [
+      "Jack",
+      "Tom",
+      "Ray",
+      "Dale",
+      "Frank",
+      "Hank",
+      "Walt",
+      "Gus",
+      "Neil",
+      "Ed"
+    ],
+    "last": [
+      "Harlan",
+      "Brewer",
+      "Cole",
+      "Mercer",
+      "Tanner",
+      "Briggs",
+      "Doyle",
+      "Keane",
+      "Sutter",
+      "Vance"
+    ],
+    "nicknames": [
+      "Ghost",
+      "Old Hands",
+      "Deadeye",
+      "the Contractor",
+      "Ironsides",
+      "Slim",
+      "Doc",
+      "the Quiet One"
+    ]
+  },
+  "soviet_pmc": {
+    "first": [
+      "Viktor",
+      "Boris",
+      "Pavel",
+      "Nikolai",
+      "Anton",
+      "Gleb",
+      "Oleg",
+      "Yuri",
+      "Leonid",
+      "Maxim"
+    ],
+    "last": [
+      "Orlov",
+      "Volkov",
+      "Sokolov",
+      "Petrenko",
+      "Kuznetsov",
+      "Morozov",
+      "Belov",
+      "Gromov",
+      "Zaitsev",
+      "Rudenko"
+    ],
+    "nicknames": [
+      "the Wolf",
+      "Frostbite",
+      "Iron Hand",
+      "the Bear",
+      "Silent",
+      "Kolya",
+      "the Surveyor",
+      "Comrade Death"
+    ]
+  },
+  "bandits": {
+    "first": [
+      "Karl",
+      "Jan",
+      "Werner",
+      "Piotr",
+      "Stefan",
+      "Dieter",
+      "Tomasz",
+      "Rolf",
+      "Marek",
+      "Horst"
+    ],
+    "last": [
+      "Kowal",
+      "Brandt",
+      "Lenz",
+      "Nowak",
+      "Vogel",
+      "Krause",
+      "Wrona",
+      "Heinz",
+      "Dudek",
+      "Mohr"
+    ],
+    "nicknames": [
+      "the Butcher",
+      "Gold Tooth",
+      "Knuckles",
+      "the Magpie",
+      "Crowbar",
+      "Blacksmith",
+      "the Hound"
+    ]
+  },
+  "looters": {
+    "first": [
+      "Hans",
+      "Fritz",
+      "Otto",
+      "Emil",
+      "Gerd",
+      "Lutz",
+      "Berthold",
+      "Anselm",
+      "Kuno",
+      "Egon"
+    ],
+    "last": [
+      "Becker",
+      "Schulz",
+      "Hartmann",
+      "Lang",
+      "Reuter",
+      "Pohl",
+      "Kessler",
+      "Wendt",
+      "Fink",
+      "Roth"
+    ],
+    "nicknames": [
+      "Old Mattes",
+      "the Scavenger",
+      "Rattle",
+      "the Gravedigger",
+      "Lucky",
+      "Two Fingers",
+      "the Farmer"
+    ]
+  },
+  "deserters": {
+    "first": [
+      "Dale",
+      "Mikhail",
+      "Jonas",
+      "Sam",
+      "Ilya",
+      "Cord",
+      "Will",
+      "Anatol",
+      "Reese",
+      "Emmett"
+    ],
+    "last": [
+      "Harker",
+      "Lindqvist",
+      "Ward",
+      "Dragan",
+      "Pruitt",
+      "Held",
+      "Sorokin",
+      "Maddox",
+      "Kline",
+      "Vesely"
+    ],
+    "nicknames": [
+      "the Turncoat",
+      "No Flag",
+      "Stripes",
+      "the Deserter",
+      "Half Rations",
+      "the Ghost Major"
+    ]
+  }
+}

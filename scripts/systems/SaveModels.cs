@@ -41,6 +41,14 @@ public sealed record TraderSave(int Level = 1, long Spent = 0);
 
 public sealed record PresetSave(string Name, string WeaponId, Dictionary<string, string> Parts);
 
+/// <summary>One nemesis kill in a nemesis's record (v9).</summary>
+public sealed record NemesisKillSave(int Raid, string MapId, float X, float Z, string? Place = null);
+
+/// <summary>A nemesis (v9): who it is, where it waits and the gear it carries, stored like a character.</summary>
+public sealed record NemesisSave(
+	string Id, string Name, string Nickname, string Faction, string MapId, float X, float Z, int Rank, int RaidCreated,
+	bool FriendlyOrigin, List<NemesisKillSave> Kills, CharacterSave Gear);
+
 public sealed record CountersSave(int Raids, int Extractions, int Deaths, int Mia);
 
 /// <summary>The single autosave (GDD s15). Bump <see cref="CurrentVersion"/> with a migration when the shape changes.</summary>
@@ -63,7 +71,9 @@ public sealed record SaveFile(
 	List<string>? Examined = null,
 	List<PresetSave>? Presets = null,
 	/// <summary>Total XP per skill; levels come from the skill data (v8).</summary>
-	Dictionary<string, float>? Skills = null)
+	Dictionary<string, float>? Skills = null,
+	/// <summary>Nemeses that hold gear they took from the player (v9).</summary>
+	List<NemesisSave>? Nemeses = null)
 {
-	public const int CurrentVersion = 8;
+	public const int CurrentVersion = 9;
 }

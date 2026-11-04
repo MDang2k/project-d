@@ -90,7 +90,9 @@ public static class SaveSerializer
 			profile.Quests.Reputation.ToDictionary(kv => kv.Key, kv => kv.Value),
 			profile.ExaminedParts.ToList(),
 			profile.Presets.Select(p => new PresetSave(p.Name, p.WeaponId, p.Parts.ToDictionary(kv => kv.Key, kv => kv.Value))).ToList(),
-			profile.Skills.Snapshot());
+			profile.Skills.Snapshot(),
+			profile.Nemeses.All.Select(n => new NemesisSave(n.Id, n.Name, n.Nickname, n.Faction.ToString(), n.MapId, n.X, n.Z, n.Rank,
+				n.RaidCreated, n.FriendlyOrigin, n.Kills.Select(k => new NemesisKillSave(k.Raid, k.MapId, k.X, k.Z, k.Place)).ToList(), ToSave(n.Gear))).ToList());
 
 	public static void Apply(SaveFile file, RunProgress run, Func<string, ItemSpec?> lookup, List<string> warnings)
 		=> Apply(file, run, new GameProfile(), lookup, warnings);
@@ -133,6 +135,19 @@ public static class SaveSerializer
 		foreach (var preset in file.Presets ?? new List<PresetSave>())
 			profile.Presets.Add(new PartPreset(preset.Name, preset.WeaponId, preset.Parts));
 		profile.Skills.Load(file.Skills ?? new Dictionary<string, float>());
+		profile.Nemeses.Clear();
+		foreach (var n in file.Nemeses ?? new List<NemesisSave>())
+		{
+			if (!Enum.TryParse<Faction>(n.Faction, out var faction))
+			{
+				warnings.Add($"nemesis '{n.Name}' has an unknown faction '{n.Faction}' and was dropped");
+				continue;
+			}
+			var nemesis = new Nemesis(n.Id, n.Name, n.Nickname, faction, n.MapId, n.X, n.Z, n.RaidCreated, n.FriendlyOrigin,
+				LoadCharacter(n.Gear, lookup, warnings)) { Rank = Math.Clamp(n.Rank, 1, profile.Nemeses.Tuning.MaxRank) };
+			nemesis.Kills.AddRange((n.Kills ?? new List<NemesisKillSave>()).Select(k => new NemesisKill(k.Raid, k.MapId, k.X, k.Z, k.Place ?? "")));
+			profile.Nemeses.Add(nemesis);
+		}
 		profile.InsuranceReturns.Clear();
 		foreach (var ret in file.InsuranceReturns ?? new List<InsuranceReturnSave>())
 		{

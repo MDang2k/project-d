@@ -213,7 +213,7 @@ public class SkillTests
 		const string v7 = """{"version":7,"raidInProgress":false,"counters":{"raids":2,"extractions":1,"deaths":1,"mia":0},"quickUse":[]}""";
 		var file = SaveSerializer.Parse(v7);
 		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.Equal(8, SaveFile.CurrentVersion);
+		Assert.True(SaveFile.CurrentVersion >= 8);
 		Assert.NotNull(file.Skills);
 		Assert.Empty(file.Skills!);
 		var profile = new GameProfile();

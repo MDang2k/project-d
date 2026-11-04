@@ -27,6 +27,9 @@ public sealed record InsureResult(InsureFailure Failure, int Premium = 0)
 /// <summary>What the insurance roll did at the end of a raid. The nemesis (M8) takes only NotReturned.</summary>
 public sealed record InsuranceRaidResult(List<ItemInstance> Returned, List<ItemInstance> NotReturned)
 {
+	/// <summary>The lost originals whose copies are coming back; a nemesis must not keep them too.</summary>
+	public List<ItemInstance> ReturnedOriginals { get; } = new();
+
 	public static InsuranceRaidResult Empty => new(new List<ItemInstance>(), new List<ItemInstance>());
 }
 
@@ -154,6 +157,7 @@ public static class InsuranceService
 					{
 						var copy = StrippedCopy(item);
 						result.Returned.Add(copy);
+						result.ReturnedOriginals.Add(item);
 						profile.InsuranceReturns.Add(new PendingReturn(copy, 1));
 					}
 					else
