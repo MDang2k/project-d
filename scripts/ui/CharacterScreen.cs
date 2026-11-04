@@ -12,6 +12,7 @@ public partial class CharacterScreen : Control
 	private readonly GameProfile _profile;
 	private readonly Action _closed;
 	private VBoxContainer _list = null!;
+	private VBoxContainer _reputation = null!;
 
 	public CharacterScreen(GameProfile profile, Action closed)
 	{
@@ -71,6 +72,18 @@ public partial class CharacterScreen : Control
 		_list = new VBoxContainer();
 		_list.AddThemeConstantOverride("separation", 8);
 		root.AddChild(_list);
+		var repTitle = new Label { Text = GameText.Get("character.reputation") };
+		repTitle.AddThemeFontSizeOverride("font_size", 22);
+		root.AddChild(repTitle);
+		root.AddChild(new Label
+		{
+			Text = GameText.Get("character.reputation.hint"),
+			AutowrapMode = TextServer.AutowrapMode.WordSmart,
+			Modulate = new Color(0.8f, 0.8f, 0.75f),
+		});
+		_reputation = new VBoxContainer();
+		_reputation.AddThemeConstantOverride("separation", 4);
+		root.AddChild(_reputation);
 	}
 
 	private void Rebuild()
@@ -90,6 +103,27 @@ public partial class CharacterScreen : Control
 			});
 			line.AddChild(new Label { Text = row.XpText, Modulate = new Color(0.8f, 0.8f, 0.75f) });
 			_list.AddChild(line);
+		}
+		foreach (var child in _reputation.GetChildren())
+			child.QueueFree();
+		foreach (var row in ReputationSummary.Rows(_profile.Reputation, RaidResultScreen.RepName))
+		{
+			var line = new HBoxContainer();
+			line.AddThemeConstantOverride("separation", 12);
+			line.AddChild(new Label { Text = row.Name, CustomMinimumSize = new Vector2(200f, 0f) });
+			line.AddChild(new Label
+			{
+				Text = row.Text,
+				CustomMinimumSize = new Vector2(70f, 0f),
+				Modulate = row.Tone switch
+				{
+					StandingTone.Hostile => new Color(1f, 0.45f, 0.4f),
+					StandingTone.Wary => new Color(1f, 0.8f, 0.45f),
+					StandingTone.Friendly => new Color(0.55f, 0.95f, 0.6f),
+					_ => new Color(0.9f, 0.9f, 0.85f),
+				},
+			});
+			_reputation.AddChild(line);
 		}
 	}
 

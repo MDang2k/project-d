@@ -26,6 +26,10 @@ public partial class RaidResultScreen : CanvasLayer
 		return screen;
 	}
 
+	/// <summary>Display name of a reputation target: a faction or a trader.</summary>
+	public static string RepName(string target)
+		=> ReputationSummary.Factions.Contains(target) ? GameText.Get("faction." + target) : GameText.Get("trader." + target);
+
 	private static string Names(IEnumerable<ItemInstance> items, int max)
 	{
 		var groups = items.GroupBy(i => i.Spec.NameKey)
@@ -100,6 +104,12 @@ public partial class RaidResultScreen : CanvasLayer
 		{
 			summary.AppendLine("\n" + GameText.Get("raid.skills"));
 			foreach (var line in trained)
+				summary.AppendLine("  " + line);
+		}
+		if (ReputationSummary.RaidLines(RaidStanding.Changes, RepName) is { Count: > 0 } reputation)
+		{
+			summary.AppendLine("\n" + GameText.Get("rep.raid.title"));
+			foreach (var line in reputation)
 				summary.AppendLine("  " + line);
 		}
 		summary.AppendLine($"\nRun: {run.Raids} raids, {run.Extractions} extracted, {run.Deaths} killed, {run.Mia} MIA");

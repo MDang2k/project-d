@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="QuestData" load_steps=20 format=3]
+[gd_resource type="Resource" script_class="QuestData" load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/quests/QuestData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/quests/QuestObjectiveData.cs" id="2"]
@@ -42,6 +42,15 @@ TraderId = ""
 Level = 0
 Target = ""
 
+[sub_resource type="Resource" id="rep0"]
+script = ExtResource("3")
+Kind = 4
+Amount = 8
+ItemId = ""
+TraderId = ""
+Level = 0
+Target = "medic"
+
 [resource]
 script = ExtResource("1")
 Id = "q02_medical"
@@ -52,4 +61,4 @@ MinTraderLevel = 1
 RequiresQuestIds = PackedStringArray()
 RequiresSide = ""
 Objectives = Array[ExtResource("2")]([SubResource("o0"), SubResource("o1")])
-Rewards = Array[ExtResource("3")]([SubResource("r0"), SubResource("r1")])
+Rewards = Array[ExtResource("3")]([SubResource("r0"), SubResource("r1"), SubResource("rep0")])

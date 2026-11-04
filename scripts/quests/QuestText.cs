@@ -40,7 +40,16 @@ public static class QuestText
 		RewardKind.Item => r.Amount > 1 ? $"{GameText.ItemName(r.ItemId ?? "?")} x{r.Amount}" : GameText.ItemName(r.ItemId ?? "?"),
 		RewardKind.TraderLevel => GameText.Get("quest.reward.level", TraderName(r.TraderId), r.Level),
 		RewardKind.UnlockTrader => GameText.Get("quest.reward.unlock", TraderName(r.TraderId)),
-		_ => GameText.Get("quest.reward.reputation", r.Target ?? "?", r.Amount),
+		_ => GameText.Get("quest.reward.reputation", ReputationTarget(r.Target), ReputationSummary.Format(r.Amount)),
+	};
+
+	/// <summary>Name for a reputation reward target: "side_qm", "opposite_qm", "side_faction", a faction id or a trader id.</summary>
+	private static string ReputationTarget(string? target) => target switch
+	{
+		null => "?",
+		QuestEngine.SideFaction => GameText.Get("quest.your_faction"),
+		_ when ReputationSummary.Factions.Contains(target) => GameText.Get("faction." + target),
+		_ => TraderName(target),
 	};
 
 	private static string TraderName(string? id) => id switch

@@ -41,6 +41,9 @@ public partial class ProjectileManager : Node3D
 
 	public event Action<BulletImpact>? Impact;
 
+	/// <summary>A bullet landed on a living body: victim health, whether it died of it, shooter body Rid (friendly fire uses it).</summary>
+	public event Action<HealthComponent, bool, Rid>? Hit;
+
 	/// <summary>A bullet dealt the killing damage to a body (victim health, shooter body Rid); quests use it.</summary>
 	public event Action<HealthComponent, Rid>? Killed;
 
@@ -106,6 +109,8 @@ public partial class ProjectileManager : Node3D
 				var area = collider as HitboxArea;
 				var wasAlive = area?.Health is { IsDead: false };
 				var result = area?.ReceiveBullet(b.Ammo);
+				if (wasAlive && area?.Health is { } struck)
+					Hit?.Invoke(struck, struck.IsDead, b.Shooter);
 				if (wasAlive && area?.Health is { IsDead: true } victim)
 					Killed?.Invoke(victim, b.Shooter);
 				Impact?.Invoke(new BulletImpact(pos, hit["normal"].AsVector3(), collider,

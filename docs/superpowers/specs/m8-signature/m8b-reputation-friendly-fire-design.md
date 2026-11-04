@@ -2,7 +2,7 @@
 
 Date: 2026-10-17
 
-Status: approved design, not implemented. Second of five M8 sub-projects (8a skills, spec approved; 8b this; 8c nemesis; 8d knowledge and journal; 8e Ewigstein). Implements GDD §5 (reputation, friendly PMCs, friendly fire).
+Status: built, playtest pending (step 3: the HUD line comes from `RaidStanding.FactionTurnedHostile`, the result screen lists `ReputationSummary.RaidLines`, the Character tab and trader screen use `ReputationSummary.Rows` and `TraderLine`, refused traders have disabled buttons, quest rewards show readable names; dev flag `--rep=target:hundredths,...` in the hub). Steps 1 and 2 built (`ProjectileManager.Hit`, `Player.MeleeHitOn`, `RaidFriendlyFire`, `RaidStanding`, `AiHuman.HostileTo`; hostility only affects AI-versus-player vision, AI-versus-AI is untouched; a hostile message is a plain line until the HUD pulse; dev flags `--ffside=` and `--ffhits=N[:kill]`). Step 1 built (pure `ReputationBook` and `FriendlyFireTracker`; reputation in `TradeEngine`, `InsuranceService` and `QuestEngine.Accept`; `TraderState.Id`; reputation rewards in the six quest .tres files with the targets `side_qm`, `side_faction`, trader ids; trader screen shows adjusted prices and the refusal text; 38 tests). Second of five M8 sub-projects (8a skills, spec approved; 8b this; 8c nemesis; 8d knowledge and journal; 8e Ewigstein). Implements GDD §5 (reputation, friendly PMCs, friendly fire).
 
 ## Intent
 

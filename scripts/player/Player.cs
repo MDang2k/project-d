@@ -51,6 +51,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	/// <summary>The player's melee strike dealt the killing damage to this body (quests use it).</summary>
 	public event Action<HealthComponent>? MeleeKilled;
+	/// <summary>A melee blow landed on a living body: victim health and whether it died of it.</summary>
+	public event Action<HealthComponent, bool>? MeleeHitOn;
 
 	/// <summary>Short player-facing feedback (mag/chamber check results, empty click).</summary>
 	public event Action<string>? WeaponMessage;
@@ -594,6 +596,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 			var key = !result.ArmorHit ? "msg.melee.hit" : result.Penetrated ? "msg.melee.hit_armor" : "msg.melee.hit_stopped";
 			WeaponMessage?.Invoke(GameText.Get(key, area.Part, result.Damage.ToString("0.#")));
 			MeleeHit?.Invoke(result);
+			if (wasAlive)
+				MeleeHitOn?.Invoke(target, target.IsDead);
 			if (wasAlive && target.IsDead)
 				MeleeKilled?.Invoke(target);
 			return;

@@ -27,7 +27,7 @@ Last updated: 2026-11-01, checked against the code on `main` at `4f0d645`.
 | M5 Human AI | **Done, being reworked** | see AI combat v2 below |
 | M6 Raid loop | **Done on a test map** | spawns, timer, extraction, death and MIA. Map 1 is still a test blockout |
 | M7 Hub | **Done** | stash, six traders, barter, insurance, six quests, autosave (save version 8 with skills) |
-| **M8 Skills, reputation, signature systems** | **Current; 8a built, 8b to 8e not started** | table below |
+| **M8 Skills, reputation, signature systems** | **Current; 8a and 8b built, 8c to 8e not started** | table below |
 | M9 Night raids | **Not started, no spec yet** | AI light zones are ready for a time-of-day value |
 | M10 Slice polish | Not started | |
 
@@ -38,7 +38,7 @@ All six specs are written; no system is built.
 | Part | Status | Spec |
 |---|---|---|
 | 8a Skills, including Vitality | **Built (steps 1-4):** `SkillSpec`, `SkillBook`, `SkillEffects`, the seven `data/skills/*.tres`, save version 8 with the `skills` map; XP reporters (`PlayerSkills` feeds every skill from sprint, mantle, carry, shots, reloads, checks, loading, medical use, searching and enemy hits; the raid starts and ends the book; a level-up shows as a message). effect hooks (`Player.ApplySkillEffects` hands the levels to the leg stamina pool, weight tiers, reload and check times, exact mag check, recoil, medical use time, search speed, hit damage and, at raid start, max HP). level-up line on the HUD, a skills section on the raid result screen, and a Character tab in the hub. **8a is built; playtest pending** | [m8a](docs/superpowers/specs/m8-signature/m8a-skills-design.md) |
-| 8b Reputation and friendly fire | Not started; quests only store reputation numbers that nothing reads | [m8b](docs/superpowers/specs/m8-signature/m8b-reputation-friendly-fire-design.md) |
+| 8b Reputation and friendly fire | **Built (steps 1-3):** `ReputationBook` (hundredths, clamped, price factors, refusal, raid-start hostility), `FriendlyFireTracker`, reputation in `TradeEngine`, `InsuranceService` and quest acceptance, the opposite-quartermaster trade penalty, reputation rewards on the six slice quests, trader screen prices and refusal text. raid side (`RaidFriendlyFire` feeds the player's bullet and melee hits on own-faction AI to the tracker and the reputation book; `RaidStanding` makes a hostile faction attack the player on sight through `AiHuman.HostileTo`; a low-standing own faction starts the raid hostile). HUD line when a faction turns hostile, reputation changes on the raid result screen, every trader and faction standing on the Character tab, standing and price effect on the trader screen (buttons disabled when refused), readable reputation rewards in quests. **8b is built; playtest pending** | [m8b](docs/superpowers/specs/m8-signature/m8b-reputation-friendly-fire-design.md) |
 | 8c Nemesis | Not started | [m8c](docs/superpowers/specs/m8-signature/m8c-nemesis-design.md) |
 | 8d Knowledge and journal | Not started | [m8d](docs/superpowers/specs/m8-signature/m8d-knowledge-journal-design.md) |
 | 8e Ewigstein and exposure | Not started | [m8e](docs/superpowers/specs/m8-signature/m8e-ewigstein-design.md) |

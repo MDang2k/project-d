@@ -17,7 +17,7 @@ public sealed class PendingReturn
 	public int RaidsRemaining { get; set; }
 }
 
-public enum InsureFailure { None, NotInsurable, AlreadyInsured, NotEnoughMoney, NotCarried, TraderLocked }
+public enum InsureFailure { None, NotInsurable, AlreadyInsured, NotEnoughMoney, NotCarried, TraderLocked, Refused }
 
 public sealed record InsureResult(InsureFailure Failure, int Premium = 0)
 {
@@ -98,21 +98,24 @@ public static class InsuranceService
 		}
 	}
 
-	public static int Premium(InsuranceTerms terms, ItemInstance item)
-		=> (int)Math.Ceiling(WeaponBuild.TotalValue(item) * terms.PremiumFraction); // a weapon is insured with its parts
+	/// <summary>Premium; <paramref name="reputationFactor"/> is the trader's buy factor (dearer when disliked), rounded up.</summary>
+	public static int Premium(InsuranceTerms terms, ItemInstance item, float reputationFactor = 1f)
+		=> (int)Math.Ceiling(WeaponBuild.TotalValue(item) * terms.PremiumFraction * reputationFactor); // a weapon is insured with its parts
 
 	public static InsureResult Insure(GameProfile profile, CharacterInventory character, TraderSpec trader,
 		ItemInstance item)
 	{
 		if (!profile.IsTraderAvailable(trader) || trader.LevelSpec(profile.Trader(trader.Id).Level).Insurance is not { } terms)
 			return new InsureResult(InsureFailure.TraderLocked);
+		if (profile.Reputation.Refuses(trader.Id))
+			return new InsureResult(InsureFailure.Refused);
 		if (!item.Spec.Insurable || item.Spec.BaseValue <= 0)
 			return new InsureResult(InsureFailure.NotInsurable);
 		if (item.Insured)
 			return new InsureResult(InsureFailure.AlreadyInsured);
 		if (!CarriedItems(character).Contains(item))
 			return new InsureResult(InsureFailure.NotCarried);
-		var premium = Premium(terms, item);
+		var premium = Premium(terms, item, profile.Reputation.BuyFactor(trader.Id));
 		var grids = new[] { profile.Stash }.Concat(character.AllGrids).ToList();
 		if (MoneyLedger.Count(grids) < premium)
 			return new InsureResult(InsureFailure.NotEnoughMoney);
@@ -120,6 +123,7 @@ public static class InsuranceService
 		item.Insured = true;
 		item.InsuredWith = trader.Id;
 		profile.Trader(trader.Id).Spent += premium;
+		profile.Reputation.OnTrade(trader.Id, profile.Side);
 		return new InsureResult(InsureFailure.None, premium);
 	}
 

@@ -75,7 +75,7 @@ public partial class HubScreen : CanvasLayer
 
 	/// <summary>
 	/// Dev args after "--": --side=allied|soviet (pick the side), --equipkit (equip the usual loadout from
-	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --shot=path (screenshot and quit).
+	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --rep=target:hundredths,... (set reputation in memory), --shot=path (screenshot and quit).
 	/// </summary>
 	private async void ApplyDevArgs()
 	{
@@ -87,6 +87,16 @@ public partial class HubScreen : CanvasLayer
 				ChooseSide(a.EndsWith("soviet") ? PlayerSide.Soviet : PlayerSide.Allied);
 			else if (a.StartsWith("--shot="))
 				shot = a["--shot=".Length..];
+			else if (a.StartsWith("--rep="))
+			{
+				// dev: --rep=medic:-60,allied_pmc:40 sets reputation in memory (a --shot or headless run never saves)
+				foreach (var pair in a["--rep=".Length..].Split(',', System.StringSplitOptions.RemoveEmptyEntries))
+				{
+					var kv = pair.Split(':');
+					if (kv.Length == 2 && int.TryParse(kv[1], out var value))
+						Profile.Quests.SetReputation(kv[0], value);
+				}
+			}
 		}
 		if (args.Contains("--equipkit") && Run.Inventory is { } c)
 		{

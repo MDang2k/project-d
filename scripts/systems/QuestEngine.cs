@@ -58,10 +58,17 @@ public static class QuestEngine
 		return true;
 	}
 
-	public static bool Accept(QuestLog log, QuestSpec spec)
+	/// <summary>Whether the quest giver refuses to hand out new quests because of reputation.</summary>
+	public static bool GiverRefuses(QuestSpec spec, GameProfile profile)
+		=> ResolveTrader(spec.GiverTraderId, profile.Side) is { } giver && profile.Reputation.Refuses(giver);
+
+	/// <summary>Accepts an available quest; with the profile, a giver who refuses you (reputation below -0.50) blocks it.</summary>
+	public static bool Accept(QuestLog log, QuestSpec spec, GameProfile? profile = null)
 	{
 		var entry = log.Entry(spec);
 		if (entry.State != QuestState.Available)
+			return false;
+		if (profile is not null && GiverRefuses(spec, profile))
 			return false;
 		entry.State = QuestState.Active;
 		log.TrackedId = spec.Id; // the most recently accepted quest is tracked
@@ -225,6 +232,12 @@ public static class QuestEngine
 		}
 	}
 
+	public const string SideFaction = "side_faction";
+
+	/// <summary>A reputation reward target: a trader id, "side_qm", "opposite_qm", "side_faction" (your own faction) or a faction id.</summary>
+	public static string? ResolveReputationTarget(string target, PlayerSide? side)
+		=> target == SideFaction ? (side is { } s ? ReputationBook.FactionId(s.ToFaction()) : null) : ResolveTrader(target, side);
+
 	// --- rewards ----------------------------------------------------------------------------
 
 	private static void Grant(QuestLog log, GameProfile profile, RewardSpec r)
@@ -244,8 +257,8 @@ public static class QuestEngine
 			case RewardKind.UnlockTrader when r.TraderId is not null && ResolveTrader(r.TraderId, profile.Side) is { } unlocked:
 				profile.UnlockTrader(unlocked);
 				break;
-			case RewardKind.Reputation when r.Target is not null:
-				log.AddReputation(r.Target, r.Amount);
+			case RewardKind.Reputation when r.Target is not null && ResolveReputationTarget(r.Target, profile.Side) is { } target:
+				log.AddReputation(target, r.Amount);
 				break;
 		}
 	}

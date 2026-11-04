@@ -51,6 +51,8 @@ public partial class HudCanvas : Control
 	private readonly HudFade _quick = new(2.5f);
 	private readonly HudFade _message = new(2.2f);
 	private readonly HudFade _levelUp = new(3.0f, 0.2f, 0.8f);
+	private readonly HudFade _hostile = new(4.0f, 0.2f, 1.0f);
+	private string _hostileText = "";
 	private string _levelUpText = "";
 	private SkillBook? _skills;
 	private float _lastStamina = 1f;
@@ -71,12 +73,20 @@ public partial class HudCanvas : Control
 		_skills = GameState.Instance?.Profile.Skills;
 		if (_skills is not null)
 			_skills.LevelUp += OnLevelUp;
+		RaidStanding.FactionTurnedHostile += OnFactionHostile;
+	}
+
+	private void OnFactionHostile(Faction faction)
+	{
+		_hostileText = GameText.Get("rep.hostile", GameText.Get("faction." + faction.ToString().ToLowerInvariant()));
+		_hostile.Pulse();
 	}
 
 	public override void _ExitTree()
 	{
 		if (_skills is not null)
 			_skills.LevelUp -= OnLevelUp;
+		RaidStanding.FactionTurnedHostile -= OnFactionHostile;
 	}
 
 	private void OnLevelUp(string skill, int from, int to)
@@ -122,6 +132,7 @@ public partial class HudCanvas : Control
 		_quick.Update(delta, QuickWantsVisible());
 		_message.Update(delta, false);
 		_levelUp.Update(delta, false);
+		_hostile.Update(delta, false);
 
 		Visible = !Player.InventoryOpen && !Player.IsDead;
 		QueueRedraw();
@@ -188,6 +199,13 @@ public partial class HudCanvas : Control
 		{
 			var gold = new Color(1f, 0.85f, 0.4f, _levelUp.Alpha);
 			DrawString(font, new Vector2(0f, size.Y * 0.2f), _levelUpText, HorizontalAlignment.Center, size.X, 26, gold);
+		}
+
+		// A faction turned on the player: a warning line under the level-up line, in red.
+		if (_hostile.Alpha > 0.01f && _hostileText.Length > 0)
+		{
+			var red = new Color(0.95f, 0.35f, 0.3f, _hostile.Alpha);
+			DrawString(font, new Vector2(0f, size.Y * 0.26f), _hostileText, HorizontalAlignment.Center, size.X, 22, red);
 		}
 
 		// One short message above them.

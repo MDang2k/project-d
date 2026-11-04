@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="QuestData" load_steps=20 format=3]
+[gd_resource type="Resource" script_class="QuestData" load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/quests/QuestData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/quests/QuestObjectiveData.cs" id="2"]
@@ -23,6 +23,24 @@ TraderId = ""
 Level = 0
 Target = ""
 
+[sub_resource type="Resource" id="rep0"]
+script = ExtResource("3")
+Kind = 4
+Amount = 8
+ItemId = ""
+TraderId = ""
+Level = 0
+Target = "side_qm"
+
+[sub_resource type="Resource" id="rep1"]
+script = ExtResource("3")
+Kind = 4
+Amount = 5
+ItemId = ""
+TraderId = ""
+Level = 0
+Target = "side_faction"
+
 [resource]
 script = ExtResource("1")
 Id = "q01_looters"
@@ -33,4 +51,4 @@ MinTraderLevel = 1
 RequiresQuestIds = PackedStringArray()
 RequiresSide = ""
 Objectives = Array[ExtResource("2")]([SubResource("o0")])
-Rewards = Array[ExtResource("3")]([SubResource("r0")])
+Rewards = Array[ExtResource("3")]([SubResource("r0"), SubResource("rep0"), SubResource("rep1")])

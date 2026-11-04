@@ -552,6 +552,10 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		return walls;
 	}
 
+	/// <summary>The normal faction relations, plus a faction the player has made hostile for this raid (friendly fire, bad standing).</summary>
+	private bool HostileTo(IPerceivable other)
+		=> FactionRelations.IsHostile(Faction, other.Faction) || (other is Player && RaidStanding.IsHostileToPlayer(Faction));
+
 	private void PerceiveTick(float dt)
 	{
 		var eye = GlobalPosition + Vector3.Up * EyeHeight;
@@ -569,7 +573,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		foreach (var node in visionPoints == 0 ? System.Array.Empty<Node>() : Perceivables())
 		{
 			if (!IsInstanceValid(node) || node is not IPerceivable other || ReferenceEquals(node, this) || !other.IsAlive
-				|| !FactionRelations.IsHostile(Faction, other.Faction))
+				|| !HostileTo(other))
 				continue;
 			if (node is Node3D far && far.GlobalPosition.DistanceTo(GlobalPosition) > _tuning.ViewDistance * 1.5f)
 				continue; // cheap cull before any array or ray

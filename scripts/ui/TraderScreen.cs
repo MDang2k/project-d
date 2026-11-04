@@ -151,6 +151,9 @@ public partial class TraderScreen : Control
 	{
 		var state = _profile.Trader(trader.Id);
 		_page.AddChild(new Label { Text = $"{GameText.Get(trader.NameKey)}    level {state.Level}" });
+		var standing = new Label { Text = ReputationSummary.TraderLine(_profile.Reputation, trader.Id, k => GameText.Get(k)) };
+		standing.Modulate = _profile.Reputation.Refuses(trader.Id) ? new Color(1f, 0.5f, 0.4f) : new Color(0.8f, 0.8f, 0.75f);
+		_page.AddChild(standing);
 		if (_profile.LockReasonKey(trader) is { } reason)
 		{
 			_page.AddChild(new Label { Text = GameText.Get(reason) });
@@ -210,7 +213,7 @@ public partial class TraderScreen : Control
 				Modulate = state == QuestState.ReadyToTurnIn ? new Color(0.6f, 1f, 0.6f) : Colors.White,
 			});
 			if (state == QuestState.Available)
-				head.AddChild(ActionButton("Accept", () => FinishQuest(QuestEngine.Accept(log, q) ? "Task accepted." : "Cannot accept.")));
+				head.AddChild(ActionButton("Accept", () => FinishQuest(QuestEngine.Accept(log, q, _profile) ? "Task accepted." : (QuestEngine.GiverRefuses(q, _profile) ? GameText.Get("rep.refuses") : "Cannot accept."))));
 			if (state is QuestState.Active or QuestState.ReadyToTurnIn && log.TrackedId != q.Id)
 				head.AddChild(ActionButton("Track", () => FinishQuest(QuestEngine.Track(log, q) ? "Tracking." : "Cannot track.")));
 			if (state == QuestState.ReadyToTurnIn)
@@ -278,11 +281,11 @@ public partial class TraderScreen : Control
 			list.AddChild(new Label { Text = "You carry nothing that can be insured (equip gear from the stash first)." });
 		foreach (var item in items)
 		{
-			var premium = InsuranceService.Premium(terms, item);
+			var premium = InsuranceService.Premium(terms, item, _profile.Reputation.BuyFactor(trader.Id));
 			var text = ItemLine(item) + (item.Insured ? "   [INSURED]" : "");
 			list.AddChild(Row(text, $"{premium:N0} {unit}", item.Insured ? "Insured" : "Insure",
 				() => FinishInsure(InsuranceService.Insure(_profile, Character, trader, item)),
-				!item.Insured && engine.Money >= premium));
+				!item.Insured && engine.Money >= premium && !_profile.Reputation.Refuses(trader.Id)));
 		}
 		return scroll;
 	}
@@ -297,6 +300,7 @@ public partial class TraderScreen : Control
 				InsureFailure.AlreadyInsured => "Already insured.",
 				InsureFailure.NotInsurable => "That cannot be insured.",
 				InsureFailure.NotCarried => "Only carried items can be insured.",
+				InsureFailure.Refused => GameText.Get("rep.refuses"),
 				_ => "This trader does not insure you.",
 			};
 		if (result.Ok)
@@ -335,9 +339,9 @@ public partial class TraderScreen : Control
 			// seen in a trader list: the gunsmith sandbox may use it
 			if (ItemDb.Data(listing.ItemId)?.Payload is PartData)
 				_profile.ExaminedParts.Add(listing.ItemId);
-			var price = engine.BuyPrice(level, listing);
+			var price = engine.BuyPrice(level, listing, state);
 			var unit = GameText.Get("currency.unit");
-			var canAfford = engine.Money >= price;
+			var canAfford = engine.Money >= price && !engine.Refuses(state);
 			list.AddChild(Row(GameText.ItemName(listing.ItemId), $"{price:N0} {unit}", "Buy",
 				() => Finish(engine.Buy(level, state, listing), "Bought"), canAfford));
 		}
@@ -352,9 +356,9 @@ public partial class TraderScreen : Control
 			list.AddChild(new Label { Text = "You have nothing this trader wants (empty containers first)." });
 		foreach (var item in items)
 		{
-			var payout = engine.SellPayout(level, item);
+			var payout = engine.SellPayout(level, item, state);
 			list.AddChild(Row(ItemLine(item), $"{payout:N0} {GameText.Get("currency.unit")}", "Sell",
-				() => Finish(engine.Sell(level, state, item), "Sold")));
+				() => Finish(engine.Sell(level, state, item), "Sold"), !engine.Refuses(state)));
 		}
 		return scroll;
 	}
@@ -369,7 +373,7 @@ public partial class TraderScreen : Control
 				: GameText.ItemName(g.ItemId)));
 			var get = offer.GetCount > 1 ? $"{GameText.ItemName(offer.GetId)} x{offer.GetCount}" : GameText.ItemName(offer.GetId);
 			list.AddChild(Row($"{give}   ->   {get}", "", "Barter",
-				() => Finish(engine.Barter(level, state, offer), "Bartered")));
+				() => Finish(engine.Barter(level, state, offer), "Bartered"), !engine.Refuses(state)));
 		}
 		return scroll;
 	}
@@ -396,6 +400,7 @@ public partial class TraderScreen : Control
 				TradeFailure.StashFull => "Your stash is full.",
 				TradeFailure.HasContents => "Empty it first.",
 				TradeFailure.MissingBarterItems => "You do not have the items for that barter.",
+				TradeFailure.Refused => GameText.Get("rep.refuses"),
 				TradeFailure.NotSellableHere => "This trader will not buy that.",
 				_ => "Not possible.",
 			};

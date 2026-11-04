@@ -7,6 +7,8 @@ namespace ProjectD;
 public enum TradeFailure
 {
 	None, NotEnoughMoney, StashFull, NotBuyableHere, NotSellableHere, HasContents, MissingBarterItems,
+	/// <summary>The trader dislikes you too much to deal (reputation below -0.50).</summary>
+	Refused,
 }
 
 /// <summary>Outcome of a trade; <see cref="Money"/> is the price paid or the payout received.</summary>
@@ -47,10 +49,25 @@ public sealed class TradeEngine
 
 	// --- prices -----------------------------------------------------------------------------
 
-	public int BuyPrice(TraderLevelSpec level, ListingSpec listing)
+	/// <summary>Buy price; with the trader's state the reputation factor applies (dearer when disliked), rounded up.</summary>
+	public int BuyPrice(TraderLevelSpec level, ListingSpec listing, TraderState? trader = null)
 	{
 		var value = _spec(listing.ItemId)?.BaseValue ?? 0;
-		return (int)Math.Ceiling(value * level.BuyMultiplier * listing.PriceMultiplier);
+		return (int)Math.Ceiling(value * level.BuyMultiplier * listing.PriceMultiplier * BuyFactor(trader));
+	}
+
+	private float BuyFactor(TraderState? trader) => trader is { Id.Length: > 0 } ? _profile.Reputation.BuyFactor(trader.Id) : 1f;
+
+	private float SellFactor(TraderState? trader) => trader is { Id.Length: > 0 } ? _profile.Reputation.SellFactor(trader.Id) : 1f;
+
+	/// <summary>Whether this trader refuses to deal because of reputation.</summary>
+	public bool Refuses(TraderState? trader) => trader is { Id.Length: > 0 } && _profile.Reputation.Refuses(trader.Id);
+
+	/// <summary>A completed trade with the other side's quartermaster costs a little standing with your own faction.</summary>
+	private void AfterTrade(TraderState trader)
+	{
+		if (trader.Id.Length > 0)
+			_profile.Reputation.OnTrade(trader.Id, _profile.Side);
 	}
 
 	/// <summary>
@@ -73,8 +90,9 @@ public sealed class TradeEngine
 			? Math.Clamp(item.Durability / item.Spec.MaxDurability, 0f, 1f)
 			: 1f;
 
-	public int SellPayout(TraderLevelSpec level, ItemInstance item)
-		=> (int)Math.Floor(WorthOf(item) * level.SellFraction * Condition(item));
+	/// <summary>Sell payout; with the trader's state the reputation factor applies, rounded down.</summary>
+	public int SellPayout(TraderLevelSpec level, ItemInstance item, TraderState? trader = null)
+		=> (int)Math.Floor(WorthOf(item) * level.SellFraction * Condition(item) * SellFactor(trader));
 
 	/// <summary>Why this trader will not buy the item, or None.</summary>
 	public TradeFailure CanSell(TraderLevelSpec level, ItemInstance item)
@@ -90,24 +108,29 @@ public sealed class TradeEngine
 
 	public TradeResult Buy(TraderLevelSpec level, TraderState state, ListingSpec listing, int count = 1)
 	{
+		if (Refuses(state))
+			return new TradeResult(TradeFailure.Refused);
 		if (!level.Sells.Contains(listing) || _spec(listing.ItemId) is null)
 			return new TradeResult(TradeFailure.NotBuyableHere);
-		var price = BuyPrice(level, listing) * Math.Max(1, count);
+		var price = BuyPrice(level, listing, state) * Math.Max(1, count);
 		if (Money < price)
 			return new TradeResult(TradeFailure.NotEnoughMoney);
 		if (!TryPlaceInStash(listing.ItemId, Math.Max(1, count)))
 			return new TradeResult(TradeFailure.StashFull);
 		MoneyLedger.Remove(MoneyGrids(), price);
 		state.Spent += price;
+		AfterTrade(state);
 		return new TradeResult(TradeFailure.None, price);
 	}
 
 	public TradeResult Sell(TraderLevelSpec level, TraderState state, ItemInstance item)
 	{
+		if (Refuses(state))
+			return new TradeResult(TradeFailure.Refused);
 		var reason = CanSell(level, item);
 		if (reason != TradeFailure.None)
 			return new TradeResult(reason);
-		var payout = SellPayout(level, item);
+		var payout = SellPayout(level, item, state);
 		var moneySpec = _spec(MoneyLedger.MoneyId);
 		if (moneySpec is null)
 			return new TradeResult(TradeFailure.NotSellableHere);
@@ -131,11 +154,14 @@ public sealed class TradeEngine
 			return new TradeResult(TradeFailure.NotSellableHere);
 		}
 		state.Spent += payout;
+		AfterTrade(state);
 		return new TradeResult(TradeFailure.None, payout);
 	}
 
 	public TradeResult Barter(TraderLevelSpec level, TraderState state, BarterSpec offer)
 	{
+		if (Refuses(state))
+			return new TradeResult(TradeFailure.Refused);
 		if (!level.Barters.Contains(offer))
 			return new TradeResult(TradeFailure.NotBuyableHere);
 		foreach (var (id, count) in offer.Give)
@@ -149,6 +175,7 @@ public sealed class TradeEngine
 			Consume(id, count);
 		var value = (_spec(offer.GetId)?.BaseValue ?? 0) * offer.GetCount;
 		state.Spent += value;
+		AfterTrade(state);
 		return new TradeResult(TradeFailure.None, value);
 	}
 

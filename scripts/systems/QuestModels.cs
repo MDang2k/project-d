@@ -74,7 +74,7 @@ public sealed class QuestLog
 	public IReadOnlyDictionary<string, QuestEntry> Entries => _entries;
 	public IReadOnlyList<PendingReward> Pending => _pending;
 
-	/// <summary>Reputation deltas earned so far; nothing reads them until M8.</summary>
+	/// <summary>Reputation in hundredths (-100 to 100) per trader and faction; <see cref="ReputationBook"/> reads it.</summary>
 	public IReadOnlyDictionary<string, int> Reputation => _reputation;
 
 	public event Action? Changed;
@@ -95,9 +95,9 @@ public sealed class QuestLog
 	public bool RemovePending(PendingReward reward) => _pending.Remove(reward);
 
 	public void AddReputation(string target, int delta)
-		=> _reputation[target] = _reputation.GetValueOrDefault(target) + delta;
+		=> _reputation[target] = Math.Clamp(_reputation.GetValueOrDefault(target) + delta, ReputationBook.Min, ReputationBook.Max);
 
-	public void SetReputation(string target, int value) => _reputation[target] = value;
+	public void SetReputation(string target, int value) => _reputation[target] = Math.Clamp(value, ReputationBook.Min, ReputationBook.Max);
 
 	public void NotifyChanged() => Changed?.Invoke();
 

@@ -32,6 +32,9 @@ public sealed class GameProfile
 	/// <summary>Quest states, progress, tracking and pending rewards (GDD s14).</summary>
 	public QuestLog Quests { get; } = new();
 
+	/// <summary>Reputation with traders and factions (M8b), kept in the quest log's map.</summary>
+	public ReputationBook Reputation { get; }
+
 	/// <summary>Part item ids the player has owned or seen; the workshop sandbox may use them (weapon modding v2 s6).</summary>
 	public HashSet<string> ExaminedParts { get; } = new();
 
@@ -45,6 +48,7 @@ public sealed class GameProfile
 	{
 		Skills = new SkillBook();
 		SkillEffects = new SkillEffects(Skills);
+		Reputation = new ReputationBook(Quests);
 	}
 
 	/// <summary>Saved named builds.</summary>
@@ -57,7 +61,7 @@ public sealed class GameProfile
 	public TraderState Trader(string id)
 	{
 		if (!_traders.TryGetValue(id, out var state))
-			_traders[id] = state = new TraderState();
+			_traders[id] = state = new TraderState { Id = id };
 		return state;
 	}
 
@@ -84,7 +88,10 @@ public sealed class GameProfile
 	{
 		_traders.Clear();
 		foreach (var (id, state) in traders)
+		{
+			state.Id = id;
 			_traders[id] = state;
+		}
 	}
 
 	/// <summary>Replaces the stash (loading a save).</summary>

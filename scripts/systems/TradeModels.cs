@@ -42,6 +42,9 @@ public sealed record TraderSpec(
 /// <summary>Per-trader progress kept in the profile and the save.</summary>
 public sealed class TraderState
 {
+	/// <summary>The trader's id, set when the profile creates or loads the state; the reputation rules use it.</summary>
+	public string Id { get; set; } = "";
+
 	public int Level { get; set; } = 1;
 
 	/// <summary>Money traded with this trader in total (drives level-ups later).</summary>

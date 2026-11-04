@@ -59,6 +59,9 @@ public partial class RaidLevel : Node3D
 		AiHuman.Paused = false;
 		SpawnPopulation();
 		StartWaves(cfg);
+		var friendlyFire = new RaidFriendlyFire { Name = "FriendlyFire" };
+		AddChild(friendlyFire);
+		friendlyFire.Start(Player, Projectiles);
 		var transit = new TransitManager { Name = "Transit" };
 		AddChild(transit);
 		transit.Start(Raid, Player, cfg.MapId, _arrivedByTransit);
