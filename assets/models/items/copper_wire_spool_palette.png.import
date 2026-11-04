@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1mnw0nuonqlc"
-path="res://.godot/imported/copper_wire_spool_palette.png-06bd75ef2afad057ca0a45a47a4e851d.ctex"
+path.s3tc="res://.godot/imported/copper_wire_spool_palette.png-06bd75ef2afad057ca0a45a47a4e851d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0097d9a5bcc5128ab9c8665d9bf3890c"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/items/copper_wire_spool_palette.png"
-dest_files=["res://.godot/imported/copper_wire_spool_palette.png-06bd75ef2afad057ca0a45a47a4e851d.ctex"]
+dest_files=["res://.godot/imported/copper_wire_spool_palette.png-06bd75ef2afad057ca0a45a47a4e851d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
