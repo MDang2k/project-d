@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dtyc1n7igk3j4"
-path="res://.godot/imported/bundeswehr_frag_grenade.glb-94cbefc612f70664f412c71d41433f20.scn"
+uid="uid://cpg4bqapq6xuc"
+path="res://.godot/imported/egg_grenade.glb-39de6e42daf80deac3c5afedf58ff2ff.scn"
 
 [deps]
 
-source_file="res://assets/models/items/bundeswehr_frag_grenade.glb"
-dest_files=["res://.godot/imported/bundeswehr_frag_grenade.glb-94cbefc612f70664f412c71d41433f20.scn"]
+source_file="res://assets/models/items/egg_grenade.glb"
+dest_files=["res://.godot/imported/egg_grenade.glb-39de6e42daf80deac3c5afedf58ff2ff.scn"]
 
 [params]
 

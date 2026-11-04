@@ -2,11 +2,11 @@ Id,Name,Real basis,Type,Side / Origin,Fuse s,Damage radius m,Fragments,Weight kg
 defensive_frag_grenade,Defensive frag grenade,F-1,Frag,East,3.5,15,Many,0.6,6000,Soviet QM,Post-slice,"Heavy, wide radius"
 offensive_frag_grenade,Offensive frag grenade,RGD-5,Frag,East,3.5,8,Medium,0.31,4500,Soviet QM,Post-slice,Light
 frag_grenade,Frag grenade (West),M26 / M67,Frag,West,4.5,12,Many,0.4,5500,Allied QM,Post-slice,
-bundeswehr_frag_grenade,Bundeswehr frag grenade,DM51,Frag,West,4,10,Many,0.45,5500,Allied QM,Post-slice,
+egg_grenade,Egg grenade,Model 39 Eihandgranate,Frag,Relic,4,10,Many,0.45,5500,Allied QM,Post-slice,
 stick_grenade,Stick grenade,M24,Frag,Relic,4.5,10,Few,0.6,4000,,Post-slice,Long throw
 concussion_grenade,Concussion grenade,MK3,Blast,West,4,6,None,0.4,4000,Allied QM,Post-slice,Blast only
-smoke_grenade,Smoke grenade (East),RDG-2,Smoke,East,2,0,None,0.5,2500,Soviet QM,Post-slice,Blocks vision incl. AI
-smoke_grenade,Smoke grenade (West),M18 colored,Smoke,West,2,0,None,0.54,2500,Allied QM,Post-slice,Colored smoke
+smoke_grenade_east,Smoke grenade (East),RDG-2,Smoke,East,2,0,None,0.5,2500,Soviet QM,Post-slice,Blocks vision incl. AI
+smoke_grenade_west,Smoke grenade (West),M18 colored,Smoke,West,2,0,None,0.54,2500,Allied QM,Post-slice,Colored smoke
 tear_gas_grenade,Tear gas grenade,CS police,Gas,West,2,0,None,0.4,3000,Smuggler,Post-slice,Sway and blur in cloud
 stun_grenade_prototype,Stun grenade prototype,Alt-history flashbang,Stun,Proto,1.5,5,None,0.35,8000,Smuggler,Post-slice,Blind and deafen
 signal_flare,Signal flare,,Utility,Any,,,None,0.3,800,Engineer,Post-slice,Also on Keys & Special
