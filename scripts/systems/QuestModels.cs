@@ -44,7 +44,9 @@ public sealed record QuestSpec(
 	IReadOnlyList<string> RequiresQuestIds,
 	PlayerSide? RequiresSide,
 	IReadOnlyList<ObjectiveSpec> Objectives,
-	IReadOnlyList<RewardSpec> Rewards);
+	IReadOnlyList<RewardSpec> Rewards,
+	/// <summary>Knowledge that must be usable (unlocked and translated) before the quest becomes available (M8d).</summary>
+	IReadOnlyList<string>? RequiresKnowledgeIds = null);
 
 public enum QuestState { Locked, Available, Active, ReadyToTurnIn, Completed }
 

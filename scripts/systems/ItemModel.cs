@@ -9,6 +9,8 @@ public enum ItemCategory
 	Weapon, Magazine, Ammo, Armor, Helmet, Rig, Backpack, Medical, Food, Drink, Melee, SecureContainer, Misc,
 	/// <summary>A weapon part (scope, muzzle device, stock, ...) that attaches to a weapon's slot tree.</summary>
 	WeaponPart,
+	/// <summary>A document, note or log that carries knowledge (M8d); only the Scientist buys it.</summary>
+	Knowledge,
 }
 
 /// <summary>Primary weapons go in the primary or secondary slot, pistols only in the pistol slot.</summary>

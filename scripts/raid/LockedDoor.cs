@@ -18,7 +18,15 @@ public partial class LockedDoor : StaticBody3D
 	/// <summary>Name shown in the prompt, for example "radio room".</summary>
 	[Export] public string TitleKey { get; set; } = "lock.door";
 
+	/// <summary>Knowledge effect id (lock.&lt;id&gt;) of this door's code; when known, the door opens by code with no key (M8d).</summary>
+	[Export] public string CodeKnowledgeId { get; set; } = "";
+
+	/// <summary>Seconds to key in a known code.</summary>
+	public const float CodeEntryS = 2f;
+
 	private LockModel _lock = null!;
+	private float _codeLeft;
+	private Player? _codePlayer;
 
 	public bool IsOpen => _lock.State == LockState.Open;
 
@@ -32,6 +40,8 @@ public partial class LockedDoor : StaticBody3D
 			return;
 		AddToGroup("locked_doors");
 		var args = OS.GetCmdlineUserArgs();
+		if (args.FirstOrDefault(a => a.StartsWith("--doorcode="))?["--doorcode=".Length..] is { } devCode)
+			CodeKnowledgeId = devCode; // dev: make any door a code door
 		if (args.Any(a => a.StartsWith("--opendoor=" + Name)))
 			DevOpen(args);
 	}
@@ -39,6 +49,16 @@ public partial class LockedDoor : StaticBody3D
 	/// <summary>Tries the player's key; the player gets the outcome as a message.</summary>
 	public UnlockResult TryOpen(Player player)
 	{
+		if (!IsOpen && CodeKnowledgeId != "" && GameState.Instance?.Profile.Knowledge.Opens(CodeKnowledgeId) == true)
+		{
+			if (_codeLeft <= 0f)
+			{
+				_codeLeft = CodeEntryS;
+				_codePlayer = player;
+				player.NotifyMessage(GameText.Get("lock.code.entering", Title));
+			}
+			return UnlockResult.EnteringCode;
+		}
 		var inv = player.Inventory.Inventory;
 		var result = _lock.TryOpen(
 			id => inv.AllItems().Any(i => i.Spec.Id == id),
@@ -54,6 +74,27 @@ public partial class LockedDoor : StaticBody3D
 			player.NotifyMessage(message);
 		GD.Print($"LOCK {Name}: {result}");
 		return result;
+	}
+
+	public override void _Process(double delta)
+	{
+		if (_codeLeft <= 0f || _codePlayer is not { } player)
+			return;
+		if (!IsInstanceValid(player) || player.GlobalPosition.DistanceTo(GlobalPosition) > 3.5f || player.IsDead)
+		{
+			_codeLeft = 0f; // walked away
+			_codePlayer = null;
+			return;
+		}
+		_codeLeft -= (float)delta;
+		if (_codeLeft > 0f)
+			return;
+		_codePlayer = null;
+		if (_lock.OpenWithCode() == UnlockResult.Opened)
+		{
+			player.NotifyMessage(GameText.Get("lock.code.opened", Title));
+			GD.Print($"LOCK {Name}: opened by code {CodeKnowledgeId}");
+		}
 	}
 
 	private void OnOpened()
@@ -73,6 +114,8 @@ public partial class LockedDoor : StaticBody3D
 			return;
 		if (args.FirstOrDefault(a => a.StartsWith("--givekey="))?["--givekey=".Length..] is { } id && ItemDb.Create(id, 1) is { } key)
 			player.Inventory.Inventory.TryAutoStore(key);
+		if (CodeKnowledgeId != "")
+			player.GlobalPosition = GlobalPosition + Vector3.Up * 0.2f + Vector3.Back * 2f; // within reach to key in the code
 		TryOpen(player);
 		TryOpen(player); // a second try finds it open and says nothing
 	}

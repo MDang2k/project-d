@@ -166,6 +166,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	private ItemInstance? _pendingUse;
 	private int? _heldWeaponUid;
 	private MagazineLoader _loader = null!;
+	private readonly ReadTimer _read = new();
 	private readonly PlayerSkills _skills = new(() => GameState.Instance?.Profile.Skills);
 	private readonly System.Collections.Generic.HashSet<LootContainer> _searchTracked = new();
 	private ItemInstance? _loadAmmo;
@@ -223,6 +224,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 		AddChild(_pain);
 		_loader = new MagazineLoader(_cfg.MagLoadSecondsPerRound);
 		_loader.Finished += OnLoaderFinished;
+		_read.Finished += OnReadFinished;
+		_read.Cancelled += () => NotifyMessage(GameText.Get("knowledge.read.broken"));
+		Health.HitTaken += _ => _read.Cancel(); // a hit breaks the read
 		_loader.RoundLoaded += _skills.RoundLoaded;
 		Health.EnemyHitTaken += hit => _skills.HitTaken(hit.Damage);
 		_loader.RoundUnloaded += OnRoundUnloaded;
@@ -556,6 +560,38 @@ public partial class Player : CharacterBody3D, IPerceivable
 	}
 
 	private const float InteractReach = 2.4f;
+
+	/// <summary>The knowledge item being read: 0 to 1, or -1 when not reading (the HUD draws a bar).</summary>
+	public float ReadProgress => _read.IsReading ? _read.Progress : -1f;
+
+	/// <summary>The player finished reading a document and learned from it.</summary>
+	public event Action<KnowledgeSpec>? KnowledgeRead;
+
+	/// <summary>
+	/// Starts reading a knowledge item (M8d spec s2): four seconds, broken by damage. Something you already know says so
+	/// and takes no time.
+	/// </summary>
+	public void StartRead(ItemInstance item)
+	{
+		var book = GameState.Instance?.Profile.Knowledge;
+		if (book?.ForItem(item.Spec.Id) is not { } spec || IsDead)
+			return;
+		if (book.IsUnlocked(spec.Id))
+		{
+			NotifyMessage(GameText.Get("knowledge.read.known"));
+			return;
+		}
+		if (_read.Start(item.Spec.Id))
+			NotifyMessage(GameText.Get("knowledge.read.start", GameText.Get(spec.TitleKey)));
+	}
+
+	private void OnReadFinished(string itemId)
+	{
+		if (GameState.Instance?.Profile.Knowledge.UnlockFromItem(itemId) is not { } spec)
+			return;
+		NotifyMessage(GameText.Get("knowledge.read.done", GameText.Get(spec.TitleKey)));
+		KnowledgeRead?.Invoke(spec);
+	}
 
 	/// <summary>Shows a short line to the player, like the pickup and magazine messages.</summary>
 	public void NotifyMessage(string text) => WeaponMessage?.Invoke(text);
@@ -972,6 +1008,9 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	private void UpdateLoader(float delta)
 	{
+		if (IsDead)
+			_read.Cancel();
+		_read.Update(delta); // a document being read keeps counting whatever the loader is doing
 		if (!_loader.IsBusy)
 			return;
 		// Cancel if the magazine left the inventory (moved to the ground or into a weapon).

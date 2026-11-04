@@ -380,7 +380,7 @@ public class NemesisTests
 		const string v8 = """{"version":8,"raidInProgress":false,"counters":{"raids":2,"extractions":1,"deaths":1,"mia":0},"quickUse":[]}""";
 		var file = SaveSerializer.Parse(v8);
 		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.Equal(9, SaveFile.CurrentVersion);
+		Assert.True(SaveFile.CurrentVersion >= 9);
 		Assert.NotNull(file.Nemeses);
 		Assert.Empty(file.Nemeses!);
 	}

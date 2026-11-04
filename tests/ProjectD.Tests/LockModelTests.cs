@@ -64,4 +64,26 @@ public class LockModelTests
 		Assert.Equal(UnlockResult.MissingKey, l.TryOpen(_ => true, _ => false));
 		Assert.Equal(LockState.Locked, l.State);
 	}
+
+	[Fact]
+	public void ADoorCodeOpensTheLockWithoutUsingAnythingUp()
+	{
+		var l = new LockModel("k");
+		var opened = 0;
+		l.Opened += () => opened++;
+		Assert.Equal(UnlockResult.Opened, l.OpenWithCode());
+		Assert.Equal(LockState.Open, l.State);
+		Assert.Equal(UnlockResult.AlreadyOpen, l.OpenWithCode());
+		Assert.Equal(1, opened);
+	}
+
+	[Fact]
+	public void AKeyDoesNothingOnceACodeOpenedTheLock()
+	{
+		var l = new LockModel("k");
+		l.OpenWithCode();
+		var consumed = 0;
+		Assert.Equal(UnlockResult.AlreadyOpen, l.TryOpen(_ => true, _ => { consumed++; return true; }));
+		Assert.Equal(0, consumed); // the key stays in the pocket
+	}
 }

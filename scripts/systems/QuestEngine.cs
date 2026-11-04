@@ -49,6 +49,8 @@ public static class QuestEngine
 			return false;
 		if (profile.Trader(giver).Level < spec.MinTraderLevel)
 			return false;
+		if (spec.RequiresKnowledgeIds is { } knowledge && knowledge.Any(k => !profile.Knowledge.IsActive(k)))
+			return false;
 		foreach (var required in spec.RequiresQuestIds)
 		{
 			var other = catalog.FirstOrDefault(q => q.Id == required);

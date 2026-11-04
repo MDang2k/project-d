@@ -24,6 +24,7 @@ public partial class HubScreen : CanvasLayer
 	private GunsmithScreen _gunsmith = null!;
 	private CharacterScreen _character = null!;
 	private NemesisScreen _nemeses = null!;
+	private JournalScreen _journal = null!;
 	private readonly List<GridView> _grids = new();
 	private readonly List<SlotView> _slots = new();
 
@@ -70,6 +71,8 @@ public partial class HubScreen : CanvasLayer
 		_root.AddChild(_character);
 		_nemeses = new NemesisScreen(Profile, Rebuild);
 		_root.AddChild(_nemeses);
+		_journal = new JournalScreen(Profile, Rebuild);
+		_root.AddChild(_journal);
 
 		SaveManager.Instance?.SaveInHub();
 		Rebuild();
@@ -78,7 +81,7 @@ public partial class HubScreen : CanvasLayer
 
 	/// <summary>
 	/// Dev args after "--": --side=allied|soviet (pick the side), --equipkit (equip the usual loadout from
-	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --nemeses (open the Nemeses tab), --nemseed=faction (add a demo nemesis in memory), --rep=target:hundredths,... (set reputation in memory), --shot=path (screenshot and quit).
+	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --nemeses (open the Nemeses tab), --journal (open the Journal tab), --hubknow=id,id (unlock knowledge in memory), --nemseed=faction (add a demo nemesis in memory), --rep=target:hundredths,... (set reputation in memory), --shot=path (screenshot and quit).
 	/// </summary>
 	/// <summary>Dev: puts a demo nemesis in the roster, in memory only (a --shot or headless run never saves).</summary>
 	private void DevNemesis(string factionName)
@@ -208,6 +211,11 @@ public partial class HubScreen : CanvasLayer
 			_character.Open();
 		if (args.FirstOrDefault(a => a.StartsWith("--nemseed="))?["--nemseed=".Length..] is { } nemFaction)
 			DevNemesis(nemFaction);
+		if (args.FirstOrDefault(a => a.StartsWith("--hubknow="))?["--hubknow=".Length..] is { } know)
+			foreach (var id in know.Split(','))
+				Profile.Knowledge.Unlock(id);
+		if (args.Contains("--journal"))
+			_journal.Open();
 		if (args.Contains("--nemeses"))
 			_nemeses.Open();
 		foreach (var a in args)
@@ -302,6 +310,7 @@ public partial class HubScreen : CanvasLayer
 		_gunsmith.MoveToFront();
 		_character.MoveToFront();
 		_nemeses.MoveToFront();
+		_journal.MoveToFront();
 	}
 
 	private void BuildSidePicker()
@@ -353,6 +362,9 @@ public partial class HubScreen : CanvasLayer
 		};
 		nemesisButton.Pressed += () => _nemeses.Open();
 		top.AddChild(nemesisButton);
+		var journalButton = new Button { Text = GameText.Get("journal.title"), CustomMinimumSize = new Vector2(140f, 44f) };
+		journalButton.Pressed += () => _journal.Open();
+		top.AddChild(journalButton);
 		var traders = new Button { Text = "Traders", CustomMinimumSize = new Vector2(140f, 44f) };
 		traders.Pressed += () => _traders.Open();
 		top.AddChild(traders);

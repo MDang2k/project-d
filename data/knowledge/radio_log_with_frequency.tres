@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="KnowledgeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/knowledge/KnowledgeData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "radio_log_with_frequency"
+Kind = 3
+TitleKey = "knowledge.radio_log_with_frequency.title"
+TextKey = "knowledge.radio_log_with_frequency.text"
+ItemId = "radio_log_with_frequency"
+TranslationRaids = 0
+Unlocks = PackedStringArray()

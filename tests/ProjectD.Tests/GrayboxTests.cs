@@ -177,4 +177,20 @@ public class GrayboxTests
 		Assert.Contains("[node name=\"Geometry\" type=\"NavigationRegion3D\" parent=\".\"]", text);
 		Assert.StartsWith("[gd_scene", text);
 	}
+
+	[Fact]
+	public void KnowledgeSpotsCodeLocksAndHiddenCachesCarryTheirKnowledgeLinks()
+	{
+		var text = GrayboxTscn.Write(Build(
+			"\"markers\": ["
+			+ " { \"id\": \"ks\", \"type\": \"knowledgeSpot\", \"pos\": [10, 40], \"props\": { \"item\": \"tower_cache_note\" } },"
+			+ " { \"id\": \"cache\", \"type\": \"loot\", \"pos\": [20, 40], \"props\": { \"tier\": \"mid\", \"requires\": \"stash.tower_cache\" } },"
+			+ " { \"id\": \"plain\", \"type\": \"loot\", \"pos\": [30, 40], \"props\": { \"tier\": \"low\" } },"
+			+ " { \"id\": \"door\", \"type\": \"lock\", \"pos\": [40, 40], \"props\": { \"key\": \"k\", \"code\": \"lock.bunker_side_room\" } } ]"));
+		Assert.Contains("[node name=\"ks\" type=\"Marker3D\" parent=\"Markers\"]", text);
+		Assert.Contains("ItemId = \"tower_cache_note\"", text);
+		Assert.Contains("RequiresKnowledgeId = \"stash.tower_cache\"", text);
+		Assert.Equal(1, text.Split("RequiresKnowledgeId").Length - 1); // only the cache, not the plain loot
+		Assert.Contains("CodeKnowledgeId = \"lock.bunker_side_room\"", text);
+	}
 }

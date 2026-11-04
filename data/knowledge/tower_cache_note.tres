@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="KnowledgeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/knowledge/KnowledgeData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "tower_cache_note"
+Kind = 2
+TitleKey = "knowledge.tower_cache_note.title"
+TextKey = "knowledge.tower_cache_note.text"
+ItemId = "tower_cache_note"
+TranslationRaids = 0
+Unlocks = PackedStringArray("stash.tower_cache")
+LandmarkKey = "landmark.allied_tower"

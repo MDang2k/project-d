@@ -13,6 +13,9 @@ public partial class DroppedItem : RigidBody3D
 
 	public ItemInstance Item { get; private set; } = null!;
 
+	/// <summary>A planted item (a knowledge document at its spot) is not tidied away after ten minutes.</summary>
+	public bool Persistent { get; set; }
+
 	public string Title => GameText.ItemName(Item.Spec.Id) + (Item.Count > 1 ? $" x{Item.Count}" : "");
 
 	/// <summary>Creates the physical item at a position with an initial velocity.</summary>
@@ -40,6 +43,7 @@ public partial class DroppedItem : RigidBody3D
 			Mesh = new BoxMesh { Size = size },
 			MaterialOverride = new StandardMaterial3D { AlbedoColor = color },
 		});
-		GetTree().CreateTimer(LifetimeS).Timeout += QueueFree;
+		if (!Persistent)
+			GetTree().CreateTimer(LifetimeS).Timeout += QueueFree;
 	}
 }

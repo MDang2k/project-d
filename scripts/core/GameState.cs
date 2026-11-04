@@ -22,6 +22,12 @@ public partial class GameState : Node
 	{
 		Instance = this;
 		LoadSkills();
+		foreach (var spec in KnowledgeCatalog.All)
+			Profile.Knowledge.Register(spec);
+		GD.Print($"KNOWLEDGE registered {Profile.Knowledge.Specs.Count()}");
+		// dev: --knowcode=id unlocks knowledge at boot, before any scene reads it (a headless or --shot run never saves)
+		if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--knowcode="))?["--knowcode=".Length..] is { } know)
+			Profile.Knowledge.Unlock(know);
 	}
 
 	/// <summary>Registers every skill in data/skills with the profile's skill book; bad numbers are skipped with a warning.</summary>

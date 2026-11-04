@@ -43,6 +43,8 @@ public sealed class SaveMigrator
 		[2] = root => root["traders"] = new JsonObject(),
 		// 3 -> 4: insurance returns queue (item flags default to not insured).
 		[3] = root => root["insuranceReturns"] = new JsonArray(),
+		// 9 -> 10: knowledge (a missing map means nothing known yet).
+		[9] = root => root["knowledge"] = new JsonObject(),
 		// 8 -> 9: nemeses (a missing list means none).
 		[8] = root => root["nemeses"] = new JsonArray(),
 		// 7 -> 8: skill XP (a missing map means no XP yet).

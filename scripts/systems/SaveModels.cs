@@ -49,6 +49,9 @@ public sealed record NemesisSave(
 	string Id, string Name, string Nickname, string Faction, string MapId, float X, float Z, int Rank, int RaidCreated,
 	bool FriendlyOrigin, List<NemesisKillSave> Kills, CharacterSave Gear);
 
+/// <summary>The state of one piece of knowledge (v10): unlocked, translating or translated, and the raids a translation has left.</summary>
+public sealed record KnowledgeSave(string State, int RaidsLeft);
+
 public sealed record CountersSave(int Raids, int Extractions, int Deaths, int Mia);
 
 /// <summary>The single autosave (GDD s15). Bump <see cref="CurrentVersion"/> with a migration when the shape changes.</summary>
@@ -73,7 +76,9 @@ public sealed record SaveFile(
 	/// <summary>Total XP per skill; levels come from the skill data (v8).</summary>
 	Dictionary<string, float>? Skills = null,
 	/// <summary>Nemeses that hold gear they took from the player (v9).</summary>
-	List<NemesisSave>? Nemeses = null)
+	List<NemesisSave>? Nemeses = null,
+	/// <summary>Knowledge by id (v10).</summary>
+	Dictionary<string, KnowledgeSave>? Knowledge = null)
 {
-	public const int CurrentVersion = 9;
+	public const int CurrentVersion = 10;
 }

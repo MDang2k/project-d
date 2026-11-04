@@ -44,6 +44,9 @@ public sealed class GameProfile
 	/// <summary>What the skill levels do (stamina, weight, handling, recoil, medicine, searching, health).</summary>
 	public SkillEffects SkillEffects { get; }
 
+	/// <summary>What the player knows: door codes, stash locations, lab notes (M8d). Survives death.</summary>
+	public KnowledgeBook Knowledge { get; } = new();
+
 	/// <summary>Nemeses holding gear they took from the player (M8c).</summary>
 	public NemesisRoster Nemeses { get; } = new();
 

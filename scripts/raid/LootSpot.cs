@@ -13,10 +13,15 @@ public partial class LootSpot : Marker3D
 {
 	[Export] public LootTier Tier { get; set; } = LootTier.Low;
 
+	/// <summary>A hidden cache (M8d): spawns only when this knowledge effect (stash.&lt;id&gt;) is known. Empty means always.</summary>
+	[Export] public string RequiresKnowledgeId { get; set; } = "";
+
 	public override void _Ready()
 	{
 		if (Engine.IsEditorHint())
 			return;
+		if (RequiresKnowledgeId != "" && GameState.Instance?.Profile.Knowledge.Opens(RequiresKnowledgeId) != true)
+			return; // the cache is there, but you do not know about it yet
 		AddToGroup("loot_spots");
 		var (title, table, grid, secs, noise, box, color) = Tier switch
 		{

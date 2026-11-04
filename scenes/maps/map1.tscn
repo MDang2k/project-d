@@ -1,4 +1,4 @@
-[gd_scene load_steps=304 format=3]
+[gd_scene load_steps=305 format=3]
 
 [ext_resource type="Script" path="res://scripts/raid/RaidLevel.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/raid/PlayerSpawnPoint.cs" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/raid/QuestZone.cs" id="6"]
 [ext_resource type="Resource" path="res://data/raid/map1.tres" id="9"]
 [ext_resource type="Script" path="res://scripts/raid/MapLandmark.cs" id="lmk"]
+[ext_resource type="Script" path="res://scripts/raid/KnowledgeSpot.cs" id="ksp"]
 
 [sub_resource type="NavigationMesh" id="nav"]
 cell_size = 0.5
@@ -4448,3 +4449,35 @@ NameKey = "landmark.breach"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76, 0, -26)
 script = ExtResource("lmk")
 NameKey = "landmark.culvert"
+
+[node name="KnowledgeSpots" type="Node3D" parent="."]
+
+[node name="DoorCode" type="Marker3D" parent="KnowledgeSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, 0, -10)
+script = ExtResource("ksp")
+ItemId = "bunker_side_room_door_code"
+
+[node name="TowerCacheNote" type="Marker3D" parent="KnowledgeSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0, -32)
+script = ExtResource("ksp")
+ItemId = "tower_cache_note"
+
+[node name="LabNote" type="Marker3D" parent="KnowledgeSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, 0, -38)
+script = ExtResource("ksp")
+ItemId = "german_lab_note_probe_7"
+
+[node name="RadioLog" type="Marker3D" parent="KnowledgeSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, -36)
+script = ExtResource("ksp")
+ItemId = "radio_log_with_frequency"
+
+[node name="GuardDiary" type="Marker3D" parent="KnowledgeSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38, 0, -12)
+script = ExtResource("ksp")
+ItemId = "guard_s_diary_march_1965"
+
+[node name="EvacuationOrder" type="Marker3D" parent="KnowledgeSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0, -16)
+script = ExtResource("ksp")
+ItemId = "evacuation_order_1965"

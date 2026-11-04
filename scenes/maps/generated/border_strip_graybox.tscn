@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/raid/ArrivalPoint.cs" id="ar"]
 [ext_resource type="Script" path="res://scripts/raid/LockedDoor.cs" id="ld"]
 [ext_resource type="Script" path="res://scripts/raid/MapLandmark.cs" id="lk"]
+[ext_resource type="Script" path="res://scripts/raid/KnowledgeSpot.cs" id="ks"]
 
 [sub_resource type="NavigationMesh" id="nav"]
 cell_size = 0.5
@@ -11367,6 +11368,15 @@ Tier = 0
 metadata/layout_type = "loot"
 metadata/tier = "low"
 
+[node name="loot_tower_cache" type="Marker3D" parent="LootSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0, -58)
+script = ExtResource("lt")
+Tier = 1
+RequiresKnowledgeId = "stash.tower_cache"
+metadata/layout_type = "loot"
+metadata/requires = "stash.tower_cache"
+metadata/tier = "mid"
+
 [node name="loot_radio_room" type="Marker3D" parent="LootSpots"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 118, 0, -31)
 script = ExtResource("lt")
@@ -12158,6 +12168,7 @@ metadata/wave = "bandit"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 112, 1.3, -32.5)
 script = ExtResource("ld")
 KeyId = "radio_room_key"
+CodeKnowledgeId = "lock.bunker_side_room"
 OpenLift = 2.6
 TitleKey = "lock.radio_room"
 metadata/layout_type = "lock"
@@ -12254,18 +12265,51 @@ metadata/from = "rail_yard"
 
 [node name="know_tunnel_note" type="Marker3D" parent="Markers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -103, 0, 43)
+script = ExtResource("ks")
+ItemId = "german_lab_note_probe_7"
 metadata/layout_type = "knowledgeSpot"
 metadata/id = "tunnel_note"
+metadata/item = "german_lab_note_probe_7"
 
 [node name="know_guard_diary" type="Marker3D" parent="Markers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -24)
+script = ExtResource("ks")
+ItemId = "guard_s_diary_march_1965"
 metadata/layout_type = "knowledgeSpot"
 metadata/id = "guard_diary"
+metadata/item = "guard_s_diary_march_1965"
 
 [node name="know_minefield_map" type="Marker3D" parent="Markers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85, 0, 40)
+script = ExtResource("ks")
+ItemId = "evacuation_order_1965"
 metadata/layout_type = "knowledgeSpot"
 metadata/id = "minefield_map"
+metadata/item = "evacuation_order_1965"
+
+[node name="know_door_code" type="Marker3D" parent="Markers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108, 0, -24)
+script = ExtResource("ks")
+ItemId = "bunker_side_room_door_code"
+metadata/layout_type = "knowledgeSpot"
+metadata/id = "door_code"
+metadata/item = "bunker_side_room_door_code"
+
+[node name="know_tower_note" type="Marker3D" parent="Markers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 95, 0, 116)
+script = ExtResource("ks")
+ItemId = "tower_cache_note"
+metadata/layout_type = "knowledgeSpot"
+metadata/id = "tower_note"
+metadata/item = "tower_cache_note"
+
+[node name="know_radio_log" type="Marker3D" parent="Markers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, -150)
+script = ExtResource("ks")
+ItemId = "radio_log_with_frequency"
+metadata/layout_type = "knowledgeSpot"
+metadata/id = "radio_log"
+metadata/item = "radio_log_with_frequency"
 
 [node name="landmark_canopy" type="Marker3D" parent="Markers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28)

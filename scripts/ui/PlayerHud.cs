@@ -226,6 +226,15 @@ public partial class HudCanvas : Control
 			DrawString(font, new Vector2(0f, size.Y * 0.32f), _nemesisText, HorizontalAlignment.Center, size.X, 24, gold);
 		}
 
+		// Reading a document: a bar and the word, low centre.
+		if (Player.ReadProgress >= 0f)
+		{
+			var barBack = new Rect2(size.X * 0.5f - 110f, size.Y - 150f, 220f, 6f);
+			DrawRect(barBack, new Color(0f, 0f, 0f, 0.55f));
+			DrawRect(new Rect2(barBack.Position, new Vector2(barBack.Size.X * Player.ReadProgress, barBack.Size.Y)), new Color(0.85f, 0.8f, 0.55f));
+			DrawString(font, new Vector2(0f, size.Y - 156f), GameText.Get("knowledge.reading"), HorizontalAlignment.Center, size.X, 16, Ink);
+		}
+
 		// One short message above them.
 		if (_message.Alpha > 0.01f && _messageText.Length > 0)
 		{

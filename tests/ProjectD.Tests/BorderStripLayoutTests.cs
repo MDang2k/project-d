@@ -53,7 +53,7 @@ public class BorderStripLayoutTests
 		var actors = ActorCatalog.Parse(File.ReadAllText(RepoFile("data/actors/actors.json")));
 		foreach (var m in l.OfType("aiSpawn").Concat(l.OfType("waveSpawn")))
 			Assert.True(actors.Has(m.Prop("preset")), $"{m.Id}: unknown actor '{m.Prop("preset")}'");
-		var keys = File.ReadAllText(RepoFile("docs/design/catalog/keys_special.csv"));
+		var keys = File.ReadAllText(RepoFile("docs/design/catalog/keys_special.csv")) + File.ReadAllText(RepoFile("docs/design/catalog/documents.csv"));
 		foreach (var item in l.Markers.SelectMany(m => new[] { m.Prop("item"), m.Prop("key"), m.Prop("gives") }).Where(i => i != ""))
 			Assert.Contains(item + ",", keys);
 	}

@@ -5,7 +5,7 @@ namespace ProjectD;
 public enum LockState { Locked, Open }
 
 /// <summary>Result of trying a key on a lock.</summary>
-public enum UnlockResult { Opened, MissingKey, AlreadyOpen }
+public enum UnlockResult { Opened, MissingKey, AlreadyOpen, EnteringCode }
 
 /// <summary>
 /// A locked door or container (GDD s8f): opened with a key item, which a single-use key loses when it works. Pure logic;
@@ -24,6 +24,16 @@ public sealed class LockModel
 	public LockState State { get; private set; } = LockState.Locked;
 
 	public event Action? Opened;
+
+	/// <summary>A known door code opens the lock (M8d); the code is knowledge, so nothing is used up.</summary>
+	public UnlockResult OpenWithCode()
+	{
+		if (State == LockState.Open)
+			return UnlockResult.AlreadyOpen;
+		State = LockState.Open;
+		Opened?.Invoke();
+		return UnlockResult.Opened;
+	}
 
 	/// <summary>
 	/// Tries the key. <paramref name="consumeKey"/> takes the key item away and says whether it did; it is only called

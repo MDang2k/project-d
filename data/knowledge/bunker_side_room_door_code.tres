@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="KnowledgeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/knowledge/KnowledgeData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "bunker_side_room_door_code"
+Kind = 1
+TitleKey = "knowledge.bunker_side_room_door_code.title"
+TextKey = "knowledge.bunker_side_room_door_code.text"
+ItemId = "bunker_side_room_door_code"
+TranslationRaids = 0
+Unlocks = PackedStringArray("lock.bunker_side_room")

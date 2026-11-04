@@ -2,7 +2,7 @@
 
 Date: 2026-10-17
 
-Status: approved design, not implemented. Fourth M8 sub-project in build order (8a skills, 8b reputation, 8c nemesis, 8f bosses: specs approved; 8d this; 8e Ewigstein). Implements GDD §15 "Persistent knowledge" and resolves its open question (read in raid or extract: both unlock; GDD updated in the same commit).
+Status: built (steps 1 to 3). Steps 1 and 2 built (`Player.StartRead`, `RaidKnowledge`, `KnowledgeSpot`, `LockedDoor.CodeKnowledgeId`, `LockModel.OpenWithCode`, `LootSpot.RequiresKnowledgeId`, `DroppedItem.Persistent`, result-screen lines; the read action is a right-click in the inventory, a call of mine). Step 1 built (pure `KnowledgeBook`, `ReadTimer`, `KnowledgeRules.OnExtracted`; `KnowledgeData`, `KnowledgeCatalog` and the six slice entries; item category `Knowledge` instead of Misc so only the Scientist buys them, a call of mine; `QuestSpec.RequiresKnowledgeIds`; save version 10 with a `knowledge` map and a 9 to 10 migration; 23 tests). Step 3 built: Journal tab, Scientist Translate tab, `KnowledgeSpec.LandmarkKey` for stash entries, Border Strip placement of all six documents; my call: the "bunker side room" is the Border Strip radio room, which now also opens by the door code (map 1 has no such room; its six spots stay placeholders). Fourth M8 sub-project in build order (8a skills, 8b reputation, 8c nemesis, 8f bosses: specs approved; 8d this; 8e Ewigstein). Implements GDD §15 "Persistent knowledge" and resolves its open question (read in raid or extract: both unlock; GDD updated in the same commit).
 
 ## Intent
 

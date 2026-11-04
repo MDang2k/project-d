@@ -183,6 +183,8 @@ public partial class TraderScreen : Control
 			tabs.AddChild(InsurancePage(trader, terms, engine));
 		if (quests.Count > 0)
 			tabs.AddChild(TasksPage(quests));
+		if (trader.Id == "scientist")
+			tabs.AddChild(TranslatePage());
 		if (_debugTab is not null)
 		{
 			for (var i = 0; i < tabs.GetChildCount(); i++)
@@ -234,6 +236,25 @@ public partial class TraderScreen : Control
 		var done = quests.Count(q => log.StateOf(q) == QuestState.Completed);
 		if (done > 0)
 			list.AddChild(new Label { Text = $"{done} task(s) completed", Modulate = new Color(0.6f, 0.6f, 0.65f) });
+		return scroll;
+	}
+
+	/// <summary>Translate tab (M8d spec s4): one lab note at a time, free, done after a few raids.</summary>
+	private ScrollContainer TranslatePage()
+	{
+		var scroll = Scroll(GameText.Get("translate.tab"), out var list);
+		var book = _profile.Knowledge;
+		if (book.ActiveTranslation is { } active && book.Spec(active) is { } running)
+			list.AddChild(new Label { Text = GameText.Get("translate.busy", GameText.Get(running.TitleKey), book.RaidsLeft(active)), Modulate = new Color(0.6f, 0.9f, 1f) });
+		var waiting = KnowledgeSummary.Untranslated(book);
+		if (waiting.Count == 0 && book.ActiveTranslation is null)
+			list.AddChild(new Label { Text = GameText.Get("translate.none") });
+		foreach (var spec in waiting)
+		{
+			var id = spec.Id;
+			list.AddChild(Row(GameText.Get(spec.TitleKey), GameText.Get("trader.raids", spec.TranslationRaids), GameText.Get("translate.button"),
+				() => FinishQuest(book.StartTranslation(id) ? GameText.Get("translate.started") : ""), book.ActiveTranslation is null));
+		}
 		return scroll;
 	}
 

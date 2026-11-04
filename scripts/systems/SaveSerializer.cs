@@ -92,7 +92,8 @@ public static class SaveSerializer
 			profile.Presets.Select(p => new PresetSave(p.Name, p.WeaponId, p.Parts.ToDictionary(kv => kv.Key, kv => kv.Value))).ToList(),
 			profile.Skills.Snapshot(),
 			profile.Nemeses.All.Select(n => new NemesisSave(n.Id, n.Name, n.Nickname, n.Faction.ToString(), n.MapId, n.X, n.Z, n.Rank,
-				n.RaidCreated, n.FriendlyOrigin, n.Kills.Select(k => new NemesisKillSave(k.Raid, k.MapId, k.X, k.Z, k.Place)).ToList(), ToSave(n.Gear))).ToList());
+				n.RaidCreated, n.FriendlyOrigin, n.Kills.Select(k => new NemesisKillSave(k.Raid, k.MapId, k.X, k.Z, k.Place)).ToList(), ToSave(n.Gear))).ToList(),
+			profile.Knowledge.Snapshot().ToDictionary(kv => kv.Key, kv => new KnowledgeSave(kv.Value.State.ToString(), kv.Value.RaidsLeft)));
 
 	public static void Apply(SaveFile file, RunProgress run, Func<string, ItemSpec?> lookup, List<string> warnings)
 		=> Apply(file, run, new GameProfile(), lookup, warnings);
@@ -135,6 +136,8 @@ public static class SaveSerializer
 		foreach (var preset in file.Presets ?? new List<PresetSave>())
 			profile.Presets.Add(new PartPreset(preset.Name, preset.WeaponId, preset.Parts));
 		profile.Skills.Load(file.Skills ?? new Dictionary<string, float>());
+		profile.Knowledge.Load((file.Knowledge ?? new Dictionary<string, KnowledgeSave>()).Select(kv => new KeyValuePair<string, KnowledgeEntry>(kv.Key,
+			new KnowledgeEntry(Enum.TryParse<KnowledgeState>(kv.Value.State, out var ks) ? ks : KnowledgeState.Unlocked, Math.Max(0, kv.Value.RaidsLeft)))));
 		profile.Nemeses.Clear();
 		foreach (var n in file.Nemeses ?? new List<NemesisSave>())
 		{

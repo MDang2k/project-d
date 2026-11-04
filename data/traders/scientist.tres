@@ -7,23 +7,27 @@
 
 [sub_resource type="Resource" id="lv0"]
 script = ExtResource("4")
+BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.25
-SellFraction = 0.0
+SellFraction = 0.8
 
 [sub_resource type="Resource" id="lv1"]
 script = ExtResource("4")
+BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.2
-SellFraction = 0.0
+SellFraction = 0.8
 
 [sub_resource type="Resource" id="lv2"]
 script = ExtResource("4")
+BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.15
-SellFraction = 0.0
+SellFraction = 0.8
 
 [sub_resource type="Resource" id="lv3"]
 script = ExtResource("4")
+BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.1
-SellFraction = 0.0
+SellFraction = 0.8
 
 [resource]
 script = ExtResource("1")
