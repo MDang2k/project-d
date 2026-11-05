@@ -159,17 +159,8 @@ public partial class RaidLevel : Node3D
 	{
 		if (GetNodeOrNull<WorldEnvironment>("WorldEnvironment") is not null)
 			return;
-		AddChild(new DirectionalLight3D { RotationDegrees = new Vector3(-50f, 30f, 0f), ShadowEnabled = true });
-		AddChild(new WorldEnvironment
-		{
-			Environment = new Godot.Environment
-			{
-				BackgroundMode = Godot.Environment.BGMode.Color,
-				BackgroundColor = new Color(0.62f, 0.72f, 0.85f),
-				AmbientLightSource = Godot.Environment.AmbientSource.Color,
-				AmbientLightColor = new Color(0.6f, 0.6f, 0.65f),
-			},
-		});
+		MapDresser.AddEnvironment(this);
+		MapDresser.Dress(this); // textures, trees, vehicles, bushes; visual only
 	}
 
 	/// <summary>Shows AI cones and labels (dev); off in a normal raid.</summary>

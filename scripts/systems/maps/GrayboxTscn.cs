@@ -73,7 +73,7 @@ public static class GrayboxTscn
 		foreach (var m in materials)
 		{
 			var c = Colors.TryGetValue(m, out var col) ? col : new Color(0.6f, 0.6f, 0.6f);
-			sb.Append($"[sub_resource type=\"StandardMaterial3D\" id=\"mat_{m}\"]\nalbedo_color = Color({F(c.R)}, {F(c.G)}, {F(c.B)}, 1)\n\n");
+			sb.Append($"[sub_resource type=\"StandardMaterial3D\" id=\"mat_{m}\"]\nresource_name = \"{m}\"\nalbedo_color = Color({F(c.R)}, {F(c.G)}, {F(c.B)}, 1)\n\n");
 		}
 		var foliage = g.Markers.Where(m => m.Type == "foliage").Select(m => SizeProp(m, FoliageDefault)).Distinct().ToList();
 		if (foliage.Count > 0)

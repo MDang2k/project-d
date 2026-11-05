@@ -80,6 +80,7 @@ public partial class PlayerDebugMenu : CanvasLayer
 		}));
 		_hitboxBox = Toggle("Show NPC hitboxes", false, SetHitboxes);
 		box.AddChild(_hitboxBox);
+		box.AddChild(Toggle("Show zone volumes (foliage, quests, transits)", false, on => MapDresser.SetVolumesVisible(GetTree(), on)));
 		box.AddChild(Toggle("Freeze all bots", AiHuman.Paused, on => AiHuman.Paused = on));
 
 		box.AddChild(new Label { Text = "Teleport to:" });

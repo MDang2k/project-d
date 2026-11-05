@@ -28,39 +28,51 @@ agent_max_slope = 45.0
 geometry_parsed_geometry_type = 1
 
 [sub_resource type="StandardMaterial3D" id="mat_ground"]
+resource_name = "ground"
 albedo_color = Color(0.33, 0.36, 0.26, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_cutfloor"]
+resource_name = "cutfloor"
 albedo_color = Color(0.25, 0.22, 0.18, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_mound"]
+resource_name = "mound"
 albedo_color = Color(0.42, 0.38, 0.27, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_wall"]
+resource_name = "wall"
 albedo_color = Color(0.55, 0.55, 0.53, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_stair"]
+resource_name = "stair"
 albedo_color = Color(0.5, 0.5, 0.47, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_slab"]
+resource_name = "slab"
 albedo_color = Color(0.45, 0.45, 0.44, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_roof"]
+resource_name = "roof"
 albedo_color = Color(0.32, 0.32, 0.33, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_vehicle"]
+resource_name = "vehicle"
 albedo_color = Color(0.3, 0.34, 0.25, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_prop"]
+resource_name = "prop"
 albedo_color = Color(0.5, 0.42, 0.32, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_fence"]
+resource_name = "fence"
 albedo_color = Color(0.4, 0.4, 0.42, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_cover"]
+resource_name = "cover"
 albedo_color = Color(0.45, 0.4, 0.28, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_tree"]
+resource_name = "tree"
 albedo_color = Color(0.2, 0.35, 0.18, 1)
 
 [sub_resource type="StandardMaterial3D" id="mat_foliage"]
