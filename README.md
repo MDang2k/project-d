@@ -89,7 +89,7 @@ Each spec has a detailed "Implementation status" table.
 1. **Playtest AI combat v2.** Under-fire reaction, aim, cover, personalities and squads are all waiting on this. Removing the old AI presets waits on it too.
 2. **Playtest the turning, stance and prone work.**
 3. **Run the benchmark on your weakest machine.** This closes M0 and settles the renderer.
-4. **Decide how the player reads raid time.** The wristwatch was removed from the model because it did not bend with the hand, so raids currently have no readout. GDD §15 still names the watch and needs updating once you decide.
+4. **Raid time readout** is decided (press O, [spec](docs/superpowers/specs/ui/raid-time-readout-design.md)); not built yet.
 5. **Choose the next step:** build M8, or get the M9 night raids spec written.
 
 ## Housekeeping

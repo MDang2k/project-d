@@ -318,7 +318,7 @@ Each ending needs its own final mission(s). A fourth, hidden ending exists (see 
 - **Spawns:** random spawn point from a set per map.
 - **Extraction points:** 3–4 per map. Types: always open, conditional (requires item or payment), and possibly chance-based (TBD). Extracting takes a few seconds standing in the zone.
 - **Timer expires:** counts as MIA = death outcome.
-- **Reading the time:** no on-screen timer. The player checks an analog wristwatch (held key); raids start at a fixed clock time and the deploy screen states the deadline (character visuals spec).
+- **Reading the time:** no permanent timer. Pressing O (rebindable) shows the raid time left for a few seconds (raid time readout spec, `docs/superpowers/specs/ui/raid-time-readout-design.md`).
 - **Death:** lose everything except secure container contents.
 - **Insurance:** flat return chance per insured item, based on the trader's level **(tune)**. Returned items arrive in the hub after the next raid. Not all items can be insured (e.g. quest items).
 - **Time of day:** fixed per raid, chosen when deploying: **noon** or **night**. No day/night cycle within a raid. Night raids: dark with moonlight, flashlights and night optics matter, AI vision is strongly reduced in darkness but flashlights make the player very visible. Night raids could offer better loot or quest conditions (TBD).

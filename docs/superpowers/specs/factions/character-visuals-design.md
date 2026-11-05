@@ -198,7 +198,7 @@ Full looks are in the Bosses sheet (`Look` column). The one hook each boss is re
 
 ## Open items
 
-- How the player reads raid time now that the wristwatch is gone (decision 11). The GDD (§ raid timer) still names the analog wristwatch.
+- Raid time: resolved 2026-11-05 by the O-key readout (`docs/superpowers/specs/ui/raid-time-readout-design.md`); the wristwatch stays removed.
 - Headgear items (caps per side, helmets) on the head bone, hidden locally like the head.
 
 - 3D character preview in the hub loadout screen.
