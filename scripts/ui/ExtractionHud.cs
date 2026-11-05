@@ -67,7 +67,11 @@ public partial class ExtractionHud : CanvasLayer
 			Visible = true;
 			_title.Text = "CANNOT EXTRACT HERE";
 			_title.Modulate = new Color(1f, 0.55f, 0.4f);
-			_time.Text = s.Blocked == ExtractBlock.MissingItem
+			_time.Text = s.Blocked == ExtractBlock.NeedsFlare
+				? GameText.Get("flare.needs")
+				: s.Blocked == ExtractBlock.HelicopterComing
+				? GameText.Get("flare.coming")
+				: s.Blocked == ExtractBlock.MissingItem
 				? $"needs {GameText.ItemName(spec.RequiredItemId ?? "?")}"
 				: $"needs {spec.Cost:N0} {GameText.Get("currency.unit")} on you";
 			_time.Modulate = new Color(1f, 0.85f, 0.7f);

@@ -70,6 +70,12 @@ public partial class RaidLevel : Node3D
 			AddChild(debugMenu);
 			debugMenu.Start(Player, Projectiles, this);
 		}
+		if (OS.GetCmdlineUserArgs().Contains("--perf"))
+		{
+			var probe = new RaidPerfProbe { Name = "Perf" };
+			AddChild(probe);
+			probe.Start(Player);
+		}
 		var exposure = new RaidExposure { Name = "Exposure" };
 		AddChild(exposure);
 		exposure.Start(Player);

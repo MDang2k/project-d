@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace ProjectD;
@@ -142,7 +143,30 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		JoinSquad();
 		StaggerTicks();
 		_pivot.Reset(Mathf.RadToDeg(Rotation.Y));
-		Health.HitTaken += _ => Wake();
+		Health.HitTaken += _ =>
+		{
+			_ambushHit = true;
+			Wake();
+		};
+	}
+
+	/// <summary>Set for an ambusher (the boss squad): it holds its fire and ignores the player until the gate springs.</summary>
+	public AmbushGate? Ambush { get; set; }
+
+	private bool _ambushHit;
+	private Player? _ambushPlayer;
+
+	/// <summary>While the trap is not sprung the brain sees nothing; the gate watches the player and the squad instead.</summary>
+	private AiSenses TickAmbush(AiSenses real)
+	{
+		_ambushPlayer ??= GetTree().GetNodesInGroup("perceivables").OfType<Player>().FirstOrDefault();
+		var distance = _ambushPlayer is null ? float.MaxValue : GlobalPosition.DistanceTo(_ambushPlayer.GlobalPosition);
+		var squadFighting = Members.Values.Any(m => !ReferenceEquals(m, this) && m.IsAlive && m.Faction == Faction
+			&& m.Brain.State == AiState.Combat && m.GlobalPosition.DistanceTo(GlobalPosition) < 60f);
+		if (!Ambush!.Update(distance, real.SeesTarget, squadFighting, _ambushHit))
+			return new AiSenses(AwarenessLevel.Unaware, false, null, 99f);
+		GD.Print($"AMBUSH sprung on {Name} at {distance:0} m");
+		return real;
 	}
 
 	public override void _ExitTree()
@@ -317,6 +341,8 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		}
 		var senses = new AiSenses(Perception.Level, Perception.SeesTarget, Perception.InterestPoint,
 			Perception.SecondsSinceCue, FindLootPoint(delta));
+		if (Ambush is { Sprung: false })
+			senses = TickAmbush(senses);
 		Brain.Update(delta, senses, _arrived, false);
 		Move(delta);
 		UpdateLooting();
@@ -335,7 +361,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		var speed = Brain.State == AiState.Patrol ? S(Stats.Move.WalkSpeed) : S(Stats.Move.RunSpeed) * 0.75f;
 		float? faceYaw = null;
 
-		var crouch = false;
+		var crouch = Ambush is { Sprung: false } && Brain.Destination is null; // waiting in the dark, low
 		var inCombat = Brain.State == AiState.Combat;
 		CheckFledAway(delta);
 		if (_fleeing && !inCombat)

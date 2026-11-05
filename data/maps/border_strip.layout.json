@@ -310,7 +310,7 @@
     {"id": "ext_east_siding", "type": "extract", "pos": [292.0, 235.0], "props": {"kind": "open", "side": "east", "size": "6,3,12"}},
     {"id": "tunnel_west", "type": "tunnel", "pos": [66.0, 247.0], "props": {"pair": "tunnel_east", "cost": "3000", "seconds": "4", "side": "west", "size": "4,3,4"}},
     {"id": "tunnel_east", "type": "tunnel", "pos": [228.0, 274.0], "props": {"pair": "tunnel_west", "cost": "3000", "seconds": "4", "side": "east", "size": "4,3,4"}},
-    {"id": "ext_flare_lz", "type": "extract", "pos": [150.0, 14.0], "props": {"kind": "item", "item": "signal_flare", "seconds": "8", "size": "12,4,12"}},
+    {"id": "ext_flare_lz", "type": "extract", "pos": [150.0, 14.0], "props": {"kind": "flare", "seconds": "8", "size": "12,4,12"}},
     {"id": "transit_kreuzdorf", "type": "transit", "pos": [18.0, 392.0], "props": {"to": "kreuzdorf", "cost": "0", "size": "8,3,8"}},
     {"id": "transit_rail_yard", "type": "transit", "pos": [290.0, 385.0], "props": {"to": "rail_yard", "cost": "2000", "size": "8,3,8"}},
     {"id": "arrival_kreuzdorf", "type": "arrival", "pos": [30.0, 380.0], "props": {"from": "kreuzdorf"}},

@@ -7,13 +7,13 @@ namespace ProjectD;
 public enum RaidOutcome { None, Extracted, Killed, Mia }
 
 /// <summary>Extraction point type (GDD s15). Payment arrives with the economy in M7.</summary>
-public enum ExtractKind { AlwaysOpen, RequiresItem, RequiresPayment }
+public enum ExtractKind { AlwaysOpen, RequiresItem, RequiresPayment, RequiresFlare }
 
 /// <summary>One extraction point: how long you must stand in it and what it needs.</summary>
 public sealed record ExtractionSpec(string Id, ExtractKind Kind, float Seconds, string? RequiredItemId = null, int Cost = 0);
 
 /// <summary>Why standing in a zone is not progressing.</summary>
-public enum ExtractBlock { None, MissingItem, CannotPay }
+public enum ExtractBlock { None, MissingItem, CannotPay, NeedsFlare, HelicopterComing }
 
 /// <summary>
 /// One raid from deploy to outcome (GDD s15): the countdown, extraction progress and the result
@@ -65,7 +65,8 @@ public sealed class RaidSession
 	/// <param name="zoneId">Zone the player stands in right now (null if none).</param>
 	/// <param name="hasItem">Whether the player carries an item id (for conditional zones).</param>
 	/// <param name="carriedMoney">Banknotes in carried storage grids (not the secure container); paid zones need the cost.</param>
-	public void Update(float delta, string? zoneId, Func<string, bool> hasItem, Func<int>? carriedMoney = null)
+	/// <param name="heli">State of the helicopter at a flare zone (null: none called anywhere).</param>
+	public void Update(float delta, string? zoneId, Func<string, bool> hasItem, Func<int>? carriedMoney = null, Func<string, HeliState>? heli = null)
 	{
 		if (!IsActive)
 			return;
@@ -84,6 +85,12 @@ public sealed class RaidSession
 			&& (spec.RequiredItemId is null || !hasItem(spec.RequiredItemId)))
 		{
 			block = ExtractBlock.MissingItem;
+			blockedBy = spec;
+			spec = null;
+		}
+		else if (spec is { Kind: ExtractKind.RequiresFlare } && (heli?.Invoke(spec.Id) ?? HeliState.NotCalled) != HeliState.Landed)
+		{
+			block = (heli?.Invoke(spec.Id) ?? HeliState.NotCalled) == HeliState.Coming ? ExtractBlock.HelicopterComing : ExtractBlock.NeedsFlare;
 			blockedBy = spec;
 			spec = null;
 		}

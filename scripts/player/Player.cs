@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 using Godot.Collections;
 
@@ -583,6 +584,23 @@ public partial class Player : CharacterBody3D, IPerceivable
 
 	/// <summary>Harvesting an Ewigstein deposit: 0 to 1, or -1 when not (the HUD draws a bar). Set by the deposit.</summary>
 	public float HarvestProgress { get; set; } = -1f;
+
+	/// <summary>
+	/// Right-click a signal flare in the inventory: fires it if you stand in a flare landing zone (the flare is used up),
+	/// else says where it has to be fired.
+	/// </summary>
+	public void UseFlare(ItemInstance flare)
+	{
+		var zone = GetTree().GetNodesInGroup("extraction_zones").OfType<ExtractionZone>()
+			.FirstOrDefault(z => z.Kind == ExtractKind.RequiresFlare && z.Contains(GlobalPosition));
+		if (IsDead || zone is null || !zone.TryFireFlare(this))
+		{
+			NotifyMessage(GameText.Get("flare.notzone"));
+			return;
+		}
+		Inventory.Inventory.Remove(flare);
+		Inventory.NotifyChanged();
+	}
 
 	/// <summary>The knowledge item being read: 0 to 1, or -1 when not reading (the HUD draws a bar).</summary>
 	public float ReadProgress => _read.IsReading ? _read.Progress : -1f;

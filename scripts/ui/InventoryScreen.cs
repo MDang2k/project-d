@@ -149,6 +149,11 @@ public partial class InventoryScreen : CanvasLayer
 				_player.StartRead(read.Item); // right-click a document to read it
 				GetViewport().SetInputAsHandled();
 				break;
+			case InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true } when _held is null
+				&& ItemAt(GetViewport().GetMousePosition()) is { } flare && flare.Item.Spec.Id == "signal_flare":
+				_player.UseFlare(flare.Item); // right-click a flare to fire it
+				GetViewport().SetInputAsHandled();
+				break;
 			case InputEventMouseButton { ButtonIndex: MouseButton.Left } mb:
 				if (mb.Pressed)
 					OnPress(mb.GlobalPosition, mb.DoubleClick);

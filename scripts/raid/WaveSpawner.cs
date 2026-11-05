@@ -50,9 +50,19 @@ public partial class WaveSpawner : Node
 		_director.Telegraphed += e =>
 		{
 			GD.Print($"WAVE telegraph {e.Kind} {e.PointId} at {e.AtS / 60f:0.#} min");
+			PlayCue(e, points.First(p => p.Name == e.PointId), tuning.LeadS(e.Kind));
 			WaveTelegraphed?.Invoke(e);
 		};
 		_director.Arrived += e => _pending.Add(new Pending { Entry = e, Point = points.First(p => p.Name == e.PointId) });
+	}
+
+	/// <summary>The warning sounds (and for bandits a flare) at the entry point until the wave arrives.</summary>
+	private void PlayCue(WaveEntry entry, WaveSpawnPoint point, float leadS)
+	{
+		var cue = new WaveTelegraphCue { Name = $"Cue_{entry.PointId}" };
+		AddChild(cue);
+		cue.GlobalPosition = point.GlobalPosition;
+		cue.Start(entry.Kind == "bandit", leadS);
 	}
 
 	public override void _PhysicsProcess(double delta)

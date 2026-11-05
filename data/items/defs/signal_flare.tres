@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "signal_flare"
+NameKey = "item.signal_flare"
+Category = 12
+Width = 1
+Height = 1
+WeightKg = 0.3
+MaxStack = 1
+WeaponClass = 0
+IconColor = Color(0.85, 0.2, 0.15, 1)
+IconLabel = "Flare"
+BaseValue = 800
+Insurable = true

@@ -157,3 +157,52 @@ public class RaidOutcomeRulesTests
 		Assert.Empty(inv.StorageGrids.SelectMany(g => g.Items));
 	}
 }
+
+public class FlareZoneTests
+{
+	private static readonly ExtractionSpec Lz = new("lz", ExtractKind.RequiresFlare, 8f);
+
+	[Fact]
+	public void HeliCallLandsAfterTheDelayAndOnlyOneFlareCounts()
+	{
+		var h = new HeliCall(10f);
+		Assert.Equal(HeliState.NotCalled, h.State);
+		Assert.True(h.Fire());
+		Assert.False(h.Fire());
+		h.Update(9f);
+		Assert.Equal(HeliState.Coming, h.State);
+		var landed = false;
+		h.Landed += () => landed = true;
+		h.Update(1f);
+		Assert.Equal(HeliState.Landed, h.State);
+		Assert.True(landed);
+		Assert.False(h.Fire());
+	}
+
+	[Fact]
+	public void FlareZoneIsBlockedUntilTheHelicopterLandsThenExtractsAfterItsTime()
+	{
+		var s = new RaidSession(100f, new[] { Lz });
+		var state = HeliState.NotCalled;
+		s.Update(1f, "lz", _ => false, null, _ => state);
+		Assert.Equal(ExtractBlock.NeedsFlare, s.Blocked);
+		state = HeliState.Coming;
+		s.Update(1f, "lz", _ => false, null, _ => state);
+		Assert.Equal(ExtractBlock.HelicopterComing, s.Blocked);
+		Assert.Null(s.ExtractingZoneId);
+		state = HeliState.Landed;
+		s.Update(4f, "lz", _ => false, null, _ => state);
+		Assert.Equal(ExtractBlock.None, s.Blocked);
+		Assert.Equal("lz", s.ExtractingZoneId);
+		s.Update(4.1f, "lz", _ => false, null, _ => state);
+		Assert.Equal(RaidOutcome.Extracted, s.Outcome);
+	}
+
+	[Fact]
+	public void WithoutAHeliCallbackAFlareZoneNeverOpens()
+	{
+		var s = new RaidSession(100f, new[] { Lz });
+		s.Update(20f, "lz", _ => true);
+		Assert.Equal(ExtractBlock.NeedsFlare, s.Blocked);
+	}
+}

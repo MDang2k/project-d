@@ -7,7 +7,7 @@ namespace ProjectD;
 /// <summary>
 /// Raid debug menu (dev aid, debug builds only): F1 opens it. God mode, noclip, heal, give an item by id, teleport to
 /// documents, deposits, exits and the spawn, exposure, bots frozen or killed, game speed, and switches for the hit log
-/// and the debug map. Dev flags: <c>--debugmenu</c> opens it at start, <c>--debugmap</c> shows the map. Plain buttons over existing Player and node dev hooks; nothing here saves to the profile.
+/// and the debug map. Dev flags: <c>--debugmenu</c> opens it at start, <c>--debugmap</c> shows the map, <c>--debughitboxes</c> shows NPC hitboxes. Plain buttons over existing Player and node dev hooks; nothing here saves to the profile.
 /// </summary>
 public partial class PlayerDebugMenu : CanvasLayer
 {
@@ -19,10 +19,14 @@ public partial class PlayerDebugMenu : CanvasLayer
 	private CheckButton _god = null!;
 	private CheckButton _noclip = null!;
 	private CheckButton _mapBox = null!;
+	private CheckButton _hitboxBox = null!;
 	private OptionButton _targets = null!;
 	private LineEdit _itemId = null!;
 	private readonly List<Vector3> _targetPositions = new();
 	private float _infoLeft;
+	private float _hitboxScanLeft;
+	private bool _showHitboxes;
+	private const string HitboxMarker = "DebugShape";
 
 	public void Start(Player player, ProjectileManager projectiles, RaidLevel level)
 	{
@@ -38,6 +42,8 @@ public partial class PlayerDebugMenu : CanvasLayer
 		var args = OS.GetCmdlineUserArgs();
 		if (args.Contains("--debugmenu"))
 			ToggleMenu();
+		if (args.Contains("--debughitboxes"))
+			_hitboxBox.ButtonPressed = true;
 		if (args.Contains("--debugmap"))
 			_mapBox.ButtonPressed = true;
 	}
@@ -72,6 +78,8 @@ public partial class PlayerDebugMenu : CanvasLayer
 			foreach (var ai in Bots())
 				ai.ShowDebug = on;
 		}));
+		_hitboxBox = Toggle("Show NPC hitboxes", false, SetHitboxes);
+		box.AddChild(_hitboxBox);
 		box.AddChild(Toggle("Freeze all bots", AiHuman.Paused, on => AiHuman.Paused = on));
 
 		box.AddChild(new Label { Text = "Teleport to:" });
@@ -188,8 +196,60 @@ public partial class PlayerDebugMenu : CanvasLayer
 			RefreshTargets();
 	}
 
+	/// <summary>Draws every NPC hitbox as a translucent shape (head red, torso orange, limbs blue) so you can see what a shot can hit.</summary>
+	private void SetHitboxes(bool on)
+	{
+		_showHitboxes = on;
+		_hitboxScanLeft = 0f;
+		if (!on)
+		{
+			foreach (var area in GetTree().GetNodesInGroup("hitboxes").OfType<HitboxArea>())
+				area.GetNodeOrNull(HitboxMarker)?.QueueFree();
+		}
+	}
+
+	private void AddHitboxShapes()
+	{
+		var added = 0;
+		foreach (var area in GetTree().GetNodesInGroup("hitboxes").OfType<HitboxArea>())
+		{
+			if (area.Health?.GetParent() is not AiHuman || area.HasNode(HitboxMarker))
+				continue;
+			var shape = area.GetChildren().OfType<CollisionShape3D>().FirstOrDefault()?.Shape;
+			if (shape?.GetDebugMesh() is not { } mesh)
+				continue;
+			var color = area.Part switch
+			{
+				BodyPart.Head => new Color(1f, 0.2f, 0.2f, 0.55f),
+				BodyPart.Thorax or BodyPart.Stomach => new Color(1f, 0.6f, 0.15f, 0.45f),
+				_ => new Color(0.3f, 0.6f, 1f, 0.4f),
+			};
+			area.AddChild(new MeshInstance3D
+			{
+				Name = HitboxMarker,
+				Mesh = mesh,
+				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+				MaterialOverride = new StandardMaterial3D
+				{
+					ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+					Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+					AlbedoColor = color,
+					NoDepthTest = false,
+				},
+			});
+			added++;
+		}
+		if (added > 0)
+			GD.Print($"HITBOXES shown on {added} new hitboxes");
+	}
+
 	public override void _Process(double delta)
 	{
+		if (_showHitboxes && (_hitboxScanLeft -= (float)delta) <= 0f)
+		{
+			_hitboxScanLeft = 0.5f; // bots that spawn later get their shapes within half a second
+			AddHitboxShapes();
+		}
 		if (!_panel.Visible || (_infoLeft -= (float)delta) > 0f)
 			return;
 		_infoLeft = 0.25f;

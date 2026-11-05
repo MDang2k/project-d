@@ -70,6 +70,7 @@ public partial class RaidManager : Node
 		}
 		var inv = _player.Inventory.Inventory;
 		session.Update((float)delta, zoneId, id => inv.AllItems().Any(i => i.Spec.Id == id),
-			() => MoneyLedger.Count(inv.StorageGrids));
+			() => MoneyLedger.Count(inv.StorageGrids),
+			id => GetTree().GetNodesInGroup("extraction_zones").OfType<ExtractionZone>().FirstOrDefault(z => z.ZoneId == id)?.Heli.State ?? HeliState.NotCalled);
 	}
 }

@@ -11414,13 +11414,11 @@ metadata/size = "6,3,12"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -186)
 script = ExtResource("ex")
 ZoneId = "ext_flare_lz"
-Kind = 1
+Kind = 3
 Seconds = 8
-RequiredItemId = "signal_flare"
 Size = Vector3(12, 4, 12)
 metadata/layout_type = "extract"
-metadata/item = "signal_flare"
-metadata/kind = "item"
+metadata/kind = "flare"
 metadata/seconds = "8"
 metadata/size = "12,4,12"
 

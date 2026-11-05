@@ -208,7 +208,7 @@ public static class GrayboxTscn
 					sb.Append($"RequiresKnowledgeId = {Q(Prop(m, "requires"))}\n");
 				break;
 			case "extract":
-				var kind = Prop(m, "kind") switch { "item" => 1, "paid" => 2, _ => 0 };
+				var kind = Prop(m, "kind") switch { "item" => 1, "paid" => 2, "flare" => 3, _ => 0 };
 				var size = SizeProp(m, new Vector3(6f, 3f, 6f));
 				sb.Append($"script = ExtResource(\"ex\")\nZoneId = {Q(m.Name)}\nKind = {kind}\nSeconds = {Prop(m, "seconds", "6")}\n");
 				if (kind == 1) sb.Append($"RequiredItemId = {Q(Prop(m, "item"))}\n");

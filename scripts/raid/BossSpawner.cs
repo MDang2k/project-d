@@ -40,7 +40,8 @@ public partial class BossSpawner : Node
 		{
 			var preset = i == 0 ? cfg.BossActorId : cfg.BossEscortId;
 			var name = i == 0 ? cfg.BossActorId : $"{cfg.BossEscortId}_{i}";
-			var ai = AiSpawner.Spawn(GetParent(), preset, name, AiSpawner.Snap(map, patrol[0] + offsets[i]), patrol, ShowDebug);
+			var ai = AiSpawner.Spawn(GetParent(), preset, name, AiSpawner.Snap(map, patrol[0] + offsets[i]), patrol, ShowDebug,
+				a => a.Ambush = new AmbushGate()); // Harker's deserters let the player come close before they open fire
 			if (i == 0 && ai is not null)
 				GD.Print($"BOSS gear: {string.Join(", ", ai.Gear.AllItems().Select(it => it.Spec.Id))}");
 		}

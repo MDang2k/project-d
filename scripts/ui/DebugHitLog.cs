@@ -34,6 +34,7 @@ public partial class DebugHitLog : Control
 		if (bot is not null)
 		{
 			_player.DebugTeleport(bot.GlobalPosition + new Vector3(0f, 0f, 12f));
+			_player.DebugTurnTo(0f); // face the bot (it is toward -Z)
 			for (var i = 0; i < 4; i++)
 			{
 				_player.DebugShootAt(bot.GlobalPosition + Vector3.Up * 1.3f, "7_62x51");
