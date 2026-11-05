@@ -5,6 +5,7 @@ german_lab_note_probe_7,German lab note Probe 7,LabNote,2,8e Ewigstein delivery 
 radio_log_with_frequency,Radio log with frequency,Frequency,0,Story mission hook,Tower radio,No,Yes,Slice,
 guard_s_diary_march_1965,"Guard's diary, March 1965",Lore,0,Journal,Checkpoint,No,Yes,Slice,
 evacuation_order_1965,"Evacuation order, 1965",Lore,0,Journal,Trench,No,Yes,Slice,
+minefield_map,Minefield map (Border Strip),Lore,0,Journal: safe lanes through the Border Strip minefields,Border Strip (Soviet side),No,Yes,Slice,Border Strip spec s5: the journal shows the safe lanes; the mines on them stay
 contractor_briefing,Contractor briefing (Allied),Lore,0,Journal,Allied PMC bodies,No,Yes,Post-slice,
 contractor_briefing,Contractor briefing (Soviet),Lore,0,Journal,Soviet PMC bodies,No,Yes,Post-slice,
 smuggler_s_route_map,Smuggler's route map,StashLocation,0,Smuggler cache (later map),Bandit camp,No,Yes,Post-slice,

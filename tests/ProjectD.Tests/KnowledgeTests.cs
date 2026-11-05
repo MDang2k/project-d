@@ -347,7 +347,7 @@ public class KnowledgeTests
 	{
 		var documents = File.ReadAllLines(RepoFile("docs/design/catalog/documents.csv"));
 		var texts = File.ReadAllText(RepoFile("scripts/core/GameText.cs"));
-		Assert.Equal(7, KnowledgeCatalog.Order.Length); // six documents plus the 8e quest-reward lore entry
+		Assert.Equal(8, KnowledgeCatalog.Order.Length); // seven documents plus the 8e quest-reward lore entry
 		foreach (var id in KnowledgeCatalog.Order.Where(i => i != "first_delivery"))
 		{
 			var data = File.ReadAllText(RepoFile($"data/knowledge/{id}.tres"));

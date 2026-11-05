@@ -12292,9 +12292,17 @@ metadata/item = "guard_s_diary_march_1965"
 [node name="know_minefield_map" type="Marker3D" parent="Markers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85, 0, 40)
 script = ExtResource("ks")
-ItemId = "evacuation_order_1965"
+ItemId = "minefield_map"
 metadata/layout_type = "knowledgeSpot"
 metadata/id = "minefield_map"
+metadata/item = "minefield_map"
+
+[node name="know_evac_order" type="Marker3D" parent="Markers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -53)
+script = ExtResource("ks")
+ItemId = "evacuation_order_1965"
+metadata/layout_type = "knowledgeSpot"
+metadata/id = "evac_order"
 metadata/item = "evacuation_order_1965"
 
 [node name="know_door_code" type="Marker3D" parent="Markers"]

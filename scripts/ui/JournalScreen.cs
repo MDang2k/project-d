@@ -85,6 +85,15 @@ public partial class JournalScreen : Control
 			_list.AddChild(new Label { Text = GameText.Get("journal.empty"), AutowrapMode = TextServer.AutowrapMode.WordSmart });
 			return;
 		}
+		if (_profile.Knowledge.Opens(MinefieldMap.EffectId("border_strip"))
+			&& FileAccess.FileExists("res://data/maps/border_strip.layout.json"))
+		{
+			var head = new Label { Text = GameText.Get("knowledge.minefield_map.title") };
+			head.AddThemeFontSizeOverride("font_size", 20);
+			head.Modulate = new Color(1f, 0.85f, 0.4f);
+			_list.AddChild(head);
+			_list.AddChild(new MinefieldMapView(MinefieldMap.From(MapLayout.Parse(FileAccess.GetFileAsString("res://data/maps/border_strip.layout.json")))));
+		}
 		foreach (var group in entries.GroupBy(e => e.Kind))
 		{
 			var head = new Label { Text = GameText.Get("journal.kind." + group.Key.ToString().ToLowerInvariant()) };
