@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="TraderData" load_steps=99 format=3]
 
+[ext_resource type="Texture2D" path="res://assets/textures/portraits/smuggler.png" id="portrait"]
 [ext_resource type="Script" path="res://scripts/trade/TraderData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/trade/SellListingData.cs" id="2"]
 [ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
@@ -208,6 +209,7 @@ Barters = Array[ExtResource("3")]([SubResource("b3_0"), SubResource("b3_1"), Sub
 
 [resource]
 script = ExtResource("1")
+Portrait = ExtResource("portrait")
 Id = "smuggler"
 NameKey = "trader.smuggler"
 Unlock = 0

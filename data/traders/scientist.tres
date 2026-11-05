@@ -1,5 +1,7 @@
 [gd_resource type="Resource" script_class="TraderData" load_steps=99 format=3]
 
+[ext_resource type="Texture2D" path="res://assets/textures/portraits/scientist.png" id="portrait"]
+[ext_resource type="Texture2D" path="res://assets/textures/portraits/scientist_revealed.png" id="portrait_revealed"]
 [ext_resource type="Script" path="res://scripts/trade/TraderData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/trade/SellListingData.cs" id="2"]
 [ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
@@ -70,6 +72,9 @@ SellFraction = 0.8
 
 [resource]
 script = ExtResource("1")
+Portrait = ExtResource("portrait")
+RevealedPortrait = ExtResource("portrait_revealed")
+RevealedNameKey = "trader.scientist_revealed"
 Id = "scientist"
 NameKey = "trader.scientist"
 Unlock = 0

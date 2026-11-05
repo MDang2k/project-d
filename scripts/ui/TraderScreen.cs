@@ -150,10 +150,27 @@ public partial class TraderScreen : Control
 	private void BuildTrader(TraderSpec trader, TradeEngine engine)
 	{
 		var state = _profile.Trader(trader.Id);
-		_page.AddChild(new Label { Text = $"{GameText.Get(trader.NameKey)}    level {state.Level}" });
+		// portrait beside the name and standing (character visuals spec s2); revealed identity after its quest
+		var (portrait, nameKey) = TraderCatalog.Face(trader.Id, _profile.Quests);
+		var header = new HBoxContainer();
+		header.AddThemeConstantOverride("separation", 16);
+		if (portrait is not null)
+		{
+			header.AddChild(new TextureRect
+			{
+				Texture = portrait,
+				CustomMinimumSize = new Vector2(160f, 160f),
+				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+				StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+			});
+		}
+		var nameBox = new VBoxContainer { SizeFlagsVertical = SizeFlags.ShrinkCenter };
+		header.AddChild(nameBox);
+		_page.AddChild(header);
+		nameBox.AddChild(new Label { Text = $"{GameText.Get(nameKey != "" ? nameKey : trader.NameKey)}    level {state.Level}" });
 		var standing = new Label { Text = ReputationSummary.TraderLine(_profile.Reputation, trader.Id, k => GameText.Get(k)) };
 		standing.Modulate = _profile.Reputation.Refuses(trader.Id) ? new Color(1f, 0.5f, 0.4f) : new Color(0.8f, 0.8f, 0.75f);
-		_page.AddChild(standing);
+		nameBox.AddChild(standing);
 		if (_profile.LockReasonKey(trader) is { } reason)
 		{
 			_page.AddChild(new Label { Text = GameText.Get(reason) });

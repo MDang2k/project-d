@@ -2,7 +2,7 @@
 
 Date: 2026-10-24
 
-Status: approved design; section 1 (the player) implemented 2026-10-29 with the changes recorded there and in decisions 9-11; sections 2-5 not implemented. Proposed by Claude at the designer's request ("just propose the whole set") and approved as written, plus the wristwatch raid time (section 1). Part 3 of the factions/characters content pass. Builds on the factions and bosses spec (`factions-bosses-design.md`), the story characters and names specs (`docs/superpowers/specs/story/`), the asset pipeline spec (`docs/superpowers/specs/art/asset-pipeline-art-direction-design.md`) and GDD §4 (menu hub) and §19 (art). Spoilers (Weiss, Albrecht). Numbers marked **(tune)**.
+Status: approved design; section 1 (the player) implemented 2026-10-29 with the changes recorded there and in decisions 9-11; section 2 (trader portraits) implemented: 512 px renders in assets/textures/portraits/, shown on the trade screen via TraderData.Portrait / RevealedPortrait / RevealQuestId (Weiss's RevealQuestId is empty until the mission 4 quest exists); sections 3-5 not implemented. Proposed by Claude at the designer's request ("just propose the whole set") and approved as written, plus the wristwatch raid time (section 1). Part 3 of the factions/characters content pass. Builds on the factions and bosses spec (`factions-bosses-design.md`), the story characters and names specs (`docs/superpowers/specs/story/`), the asset pipeline spec (`docs/superpowers/specs/art/asset-pipeline-art-direction-design.md`) and GDD §4 (menu hub) and §19 (art). Spoilers (Weiss, Albrecht). Numbers marked **(tune)**.
 
 ## Intent
 

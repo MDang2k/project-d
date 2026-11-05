@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="TraderData" load_steps=99 format=3]
 
+[ext_resource type="Texture2D" path="res://assets/textures/portraits/allied_qm.png" id="portrait"]
 [ext_resource type="Script" path="res://scripts/trade/TraderData.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/trade/SellListingData.cs" id="2"]
 [ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
@@ -422,6 +423,7 @@ SellFraction = 0.6
 
 [resource]
 script = ExtResource("1")
+Portrait = ExtResource("portrait")
 Id = "allied_qm"
 NameKey = "trader.allied_qm"
 Unlock = 1

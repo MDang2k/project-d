@@ -168,6 +168,7 @@ public static class GameText
 		["trader.medic"] = "Medic",
 		["trader.engineer"] = "Engineer",
 		["trader.scientist"] = "Scientist",
+		["trader.scientist_revealed"] = "Dr. Konrad Weiss",
 		["trader.locked.side"] = "Serves the other side. A favour could open this.",
 		["trader.locked.quest"] = "Not available yet.",
 		["trader.nothing"] = "Nothing for you yet.",
