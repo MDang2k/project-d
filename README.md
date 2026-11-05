@@ -65,6 +65,7 @@ Each spec has a detailed "Implementation status" table.
 - **Story:** acts, lock meter, story missions and endings are design only.
 - **Factions:** the code has looters, bandits and both PMC sides. Garrison holdouts, Abteilung Ewig, the Hollowed, Die Wächter and Die Troika are design only.
 - **Characters:** trader portraits are rendered and shown on the trade screen (Weiss's revealed portrait waits for the mission 4 quest id); story characters and mission NPCs are design only.
+- **Audio and doors:** the game has no sound yet; the [audio spec](docs/superpowers/specs/audio/audio-design.md) and the [doors spec](docs/superpowers/specs/world/doors-design.md) are written, not built.
 - **Post-slice systems:** grenades, malfunctions, zombies, aliens.
 
 ## Content in the game
@@ -114,4 +115,4 @@ python tools/export_catalog.py
 
 ## Debug tools (debug builds only)
 
-In a raid: **F1** debug menu (god mode, noclip, heal, give an item by id, teleport to documents, deposits and exits, exposure, bots, game speed), **F2** noclip, **F4** bot cones. The menu also switches a **hit log** (bottom right: target, body part, range, damage, armor, HP left, bleeds and fractures for each shot you land; misses name what they hit) and a **debug map** (top left: radar with the German lab note in gold, other documents, crystal deposits and exits, plus a distance and bearing line for the lab note). Flags: `--debugmenu`, `--debugmap`, `--debugshot`.
+In a raid: **F1** debug menu (god mode, noclip, heal, give an item by id, teleport to documents, deposits and exits, exposure, bots, game speed), **F2** noclip, **F4** bot cones. The menu also switches a **hit log** (bottom right: target, body part, range, damage, armor, HP left, bleeds and fractures for each shot you land; misses name what they hit) and a **debug map** (top left: radar with the German lab note in gold, other documents, crystal deposits and exits, plus a distance and bearing line for the lab note). A switch shows **NPC hitboxes** (head red, torso orange, limbs blue). Flags: `--debugmenu`, `--debugmap`, `--debughitboxes`, `--debugshot`.
