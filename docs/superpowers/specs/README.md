@@ -8,7 +8,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `m8-signature/` | M8 signature systems: skills (8a), reputation and friendly fire (8b), nemesis (8c), knowledge and journal (8d), Ewigstein (8e), bosses (8f) |
 | `weapons/` | weapon modding (v1 superseded by v2) |
 | `maps/` | raid map standard, world map and transits, map 1 requirements and revision, one spec per map |
-| `story/` | story bible (spoilers): core truth, arc and missions, characters, endings, names |
+| `story/` | story bible (spoilers): core truth, arc and missions, characters, endings, names; story mission framework |
 | `factions/` | faction identities, loadout tiers, bosses, Die Troika; character visuals (player, traders, story and mission characters) |
 | `ai/` | AI combat v2 (perception, under-fire reaction, aim through the gun, personalities, squads, performance) |
 | `animation/` | animation system: layered graph, socket ADS and grip IK, spring recoil, wall tuck, interruptible reloads |

@@ -62,7 +62,7 @@ Each spec has a detailed "Implementation status" table.
 ## Not built yet
 
 - **Maps:** the [raid map standard](docs/superpowers/specs/maps/raid-map-standard-design.md) pipeline, the [map 1 revision](docs/superpowers/specs/maps/map1-revision-design.md), transits and the seven other maps are design only, except the layout parser, validator and graybox generator, plus the first Border Strip layout and graybox (`MapLayout`, `MapValidator`, `GrayboxBuilder`, `GrayboxTscn`; run with `godot --headless --path . -s res://scripts/tools/GenerateMap.cs -- <map id>`). The game has one raid map.
-- **Story:** acts, lock meter, story missions and endings are design only.
+- **Story:** acts, lock meter, story missions and endings are design only; the [story mission framework](docs/superpowers/specs/story/story-mission-framework-design.md) is written, not built. Mission 1 First Delivery exists as quest `q07`.
 - **Factions:** the code has looters, bandits and both PMC sides. Garrison holdouts, Abteilung Ewig, the Hollowed, Die Wächter and Die Troika are design only.
 - **Characters:** trader portraits are rendered and shown on the trade screen (Weiss's revealed portrait waits for the mission 4 quest id); story characters and mission NPCs are design only.
 - **Audio and doors:** the game has no sound yet; the [audio spec](docs/superpowers/specs/audio/audio-design.md) and the [doors spec](docs/superpowers/specs/world/doors-design.md) are written, not built.
