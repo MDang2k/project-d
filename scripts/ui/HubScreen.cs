@@ -81,7 +81,7 @@ public partial class HubScreen : CanvasLayer
 
 	/// <summary>
 	/// Dev args after "--": --side=allied|soviet (pick the side), --equipkit (equip the usual loadout from
-	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --nemeses (open the Nemeses tab), --journal (open the Journal tab), --hubknow=id,id (unlock knowledge in memory), --nemseed=faction (add a demo nemesis in memory), --rep=target:hundredths,... (set reputation in memory), --shot=path (screenshot and quit).
+	/// the stash), --deploy, --hubreport (print what the profile holds), --character (open the Character tab), --nemeses (open the Nemeses tab), --journal (open the Journal tab), --hubknow=id,id (unlock knowledge in memory; with --translated also translate it), --nemseed=faction (add a demo nemesis in memory), --rep=target:hundredths,... (set reputation in memory), --shot=path (screenshot and quit).
 	/// </summary>
 	/// <summary>Dev: puts a demo nemesis in the roster, in memory only (a --shot or headless run never saves).</summary>
 	private void DevNemesis(string factionName)
@@ -213,7 +213,11 @@ public partial class HubScreen : CanvasLayer
 			DevNemesis(nemFaction);
 		if (args.FirstOrDefault(a => a.StartsWith("--hubknow="))?["--hubknow=".Length..] is { } know)
 			foreach (var id in know.Split(','))
+			{
 				Profile.Knowledge.Unlock(id);
+				if (args.Contains("--translated") && Profile.Knowledge.StartTranslation(id))
+					while (Profile.Knowledge.OnRaidEnded() is null) { } // dev: finish the translation at once
+			}
 		if (args.Contains("--journal"))
 			_journal.Open();
 		if (args.Contains("--nemeses"))

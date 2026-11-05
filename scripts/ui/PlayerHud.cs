@@ -227,12 +227,13 @@ public partial class HudCanvas : Control
 		}
 
 		// Reading a document: a bar and the word, low centre.
-		if (Player.ReadProgress >= 0f)
+		var activity = Player.ReadProgress >= 0f ? Player.ReadProgress : Player.HarvestProgress;
+		if (activity >= 0f)
 		{
 			var barBack = new Rect2(size.X * 0.5f - 110f, size.Y - 150f, 220f, 6f);
 			DrawRect(barBack, new Color(0f, 0f, 0f, 0.55f));
-			DrawRect(new Rect2(barBack.Position, new Vector2(barBack.Size.X * Player.ReadProgress, barBack.Size.Y)), new Color(0.85f, 0.8f, 0.55f));
-			DrawString(font, new Vector2(0f, size.Y - 156f), GameText.Get("knowledge.reading"), HorizontalAlignment.Center, size.X, 16, Ink);
+			DrawRect(new Rect2(barBack.Position, new Vector2(barBack.Size.X * activity, barBack.Size.Y)), new Color(0.85f, 0.8f, 0.55f));
+			DrawString(font, new Vector2(0f, size.Y - 156f), GameText.Get(Player.ReadProgress >= 0f ? "knowledge.reading" : "deposit.harvesting"), HorizontalAlignment.Center, size.X, 16, Ink);
 		}
 
 		// One short message above them.
@@ -295,6 +296,8 @@ public partial class HudCanvas : Control
 			tags.Add(("FRACTURE", new Color(0.95f, 0.65f, 0.25f)));
 		if (fx.Pain > 8f && !fx.PainSuppressed)
 			tags.Add(("PAIN", new Color(0.9f, 0.55f, 0.55f)));
+		if (Player.Exposure.Level > 0.5f)
+			tags.Add((GameText.Get("exposure.tag", (int)Player.Exposure.Level), new Color(0.6f, 0.85f, 0.9f)));
 		if (Player.Tier >= WeightTier.Heavy)
 			tags.Add(("OVERWEIGHT", new Color(0.85f, 0.8f, 0.4f)));
 		if (health.Vitals.Energy / 100f < HudRules.TagShowBelow)

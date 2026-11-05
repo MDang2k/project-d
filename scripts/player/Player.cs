@@ -450,6 +450,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		LootContainer? container = null;
 		DroppedItem? dropped = null;
 		LockedDoor? door = null;
+		EwigsteinDeposit? deposit = null;
 		var bestDist = float.MaxValue;
 
 		bool Candidate(Vector3 point, out float dist)
@@ -489,6 +490,18 @@ public partial class Player : CharacterBody3D, IPerceivable
 			}
 		}
 
+		foreach (var node in GetTree().GetNodesInGroup("ewigstein_deposits"))
+		{
+			if (node is EwigsteinDeposit dep && !dep.Harvested && Candidate(dep.GlobalPosition + Vector3.Up * 0.5f, out var d))
+			{
+				deposit = dep;
+				door = null;
+				container = null;
+				dropped = null;
+				bestDist = d;
+			}
+		}
+
 		if (_screen.Container is { } open)
 		{
 			if ((open.GlobalPosition - GlobalPosition).Length() > InteractReach + 1.2f)
@@ -496,17 +509,21 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_prompt.Visible = false;
 			return;
 		}
-		_prompt.Visible = (container is not null || dropped is not null || door is not null) && !_screen.IsOpen && !Health.IsDead;
+		_prompt.Visible = (container is not null || dropped is not null || door is not null || deposit is not null) && !_screen.IsOpen && !Health.IsDead;
 		if (!_prompt.Visible)
 			return;
-		_prompt.Text = door is not null
+		_prompt.Text = deposit is not null
+			? GameText.Get("deposit.prompt")
+			: door is not null
 			? GameText.Get("lock.prompt", door.Title)
 			: dropped is not null
 				? GameText.Get("msg.pickup.prompt", dropped.Title)
 				: GameText.Get("msg.search.prompt", container!.Title);
 		if (!Input.IsActionJustPressed("interact") || Input.MouseMode != Input.MouseModeEnum.Captured)
 			return;
-		if (door is not null)
+		if (deposit is not null)
+			deposit.TryStartHarvest(this);
+		else if (door is not null)
 			door.TryOpen(this);
 		else if (dropped is not null)
 			PickUp(dropped);
@@ -560,6 +577,12 @@ public partial class Player : CharacterBody3D, IPerceivable
 	}
 
 	private const float InteractReach = 2.4f;
+
+	/// <summary>Ewigstein exposure this raid (M8e); updated by <see cref="RaidExposure"/>, read by sway and the HUD.</summary>
+	public ExposureModel Exposure { get; } = new();
+
+	/// <summary>Harvesting an Ewigstein deposit: 0 to 1, or -1 when not (the HUD draws a bar). Set by the deposit.</summary>
+	public float HarvestProgress { get; set; } = -1f;
 
 	/// <summary>The knowledge item being read: 0 to 1, or -1 when not reading (the HUD draws a bar).</summary>
 	public float ReadProgress => _read.IsReading ? _read.Progress : -1f;
@@ -1112,7 +1135,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_aim.Amount, IsHoldingBreath, _support.RestAmount, _support.BipodDeployed);
 		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling,
 				weapon.Data.SwayBaseDeg * weapon.Stats.SwayMult * ergo.SwayMult(ergonomics), ctx)
-			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier * _pivotModel.SwayBoost;
+			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier * _pivotModel.SwayBoost * Exposure.SwayMultiplier;
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
 		var (posOffset, rotDeg) = UpdateActionPose(delta, weapon);
 		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y + rotDeg.X), Mathf.DegToRad(sway.X + rotDeg.Y),
@@ -1581,6 +1604,49 @@ public partial class Player : CharacterBody3D, IPerceivable
 					area.CollisionLayer = value ? 0u : 1u << 4;
 			}
 			Velocity = Vector3.Zero;
+			_pivotModel.Reset(Mathf.RadToDeg(Rotation.Y));
+			if (!value)
+				ResolveOverlap();
+		}
+	}
+
+	/// <summary>Dev: fires one round of the given ammo id from the eye toward a point, as if the weapon had shot it.</summary>
+	public void DebugShootAt(Vector3 target, string ammoId)
+	{
+		if (ItemDb.AmmoTypeById(ammoId) is not { } ammo)
+			return;
+		var from = _camera.GlobalPosition;
+		OnShotFired(ammo, from, (target - from).Normalized());
+	}
+
+	/// <summary>
+	/// Teleports for dev tools: sets the position, clears the velocity and lifts the body out of any geometry it ended up in.
+	/// </summary>
+	public void DebugTeleport(Vector3 position)
+	{
+		GlobalPosition = position + Vector3.Up * 0.2f;
+		Velocity = Vector3.Zero;
+		ResolveOverlap();
+	}
+
+	/// <summary>Raises the body until its capsule no longer overlaps solid geometry (leaving noclip inside a wall or the ground).</summary>
+	private void ResolveOverlap()
+	{
+		if (_collision.Shape is not { } shape)
+			return;
+		var space = GetWorld3D().DirectSpaceState;
+		for (var i = 0; i < 120; i++)
+		{
+			var query = new PhysicsShapeQueryParameters3D
+			{
+				Shape = shape,
+				Transform = _collision.GlobalTransform,
+				CollisionMask = CollisionMask,
+				Exclude = new Array<Rid> { GetRid() },
+			};
+			if (space.IntersectShape(query, 1).Count == 0)
+				return;
+			GlobalPosition += Vector3.Up * 0.25f;
 		}
 	}
 
@@ -1595,6 +1661,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var speed = Input.IsActionPressed("sprint") ? 40f : 12f;
 		GlobalPosition += dir.LimitLength(1f) * speed * delta;
 		Velocity = Vector3.Zero;
+		// the pelvis follows the view while flying, so the legs are square to it when the body is solid again
+		_pivotModel.Reset(Mathf.RadToDeg(Rotation.Y));
 		UpdateHandling(delta);
 		UpdateRig(delta);
 	}

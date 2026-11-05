@@ -5,26 +5,65 @@
 [ext_resource type="Script" path="res://scripts/trade/BarterOfferData.cs" id="3"]
 [ext_resource type="Script" path="res://scripts/trade/TraderLevelData.cs" id="4"]
 
+[sub_resource type="Resource" id="c0_0"]
+script = ExtResource("2")
+ItemId = "small_ewigstein_canister"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="c1_0"]
+script = ExtResource("2")
+ItemId = "small_ewigstein_canister"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="c1_1"]
+script = ExtResource("2")
+ItemId = "large_ewigstein_canister"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="c2_0"]
+script = ExtResource("2")
+ItemId = "small_ewigstein_canister"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="c2_1"]
+script = ExtResource("2")
+ItemId = "large_ewigstein_canister"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="c3_0"]
+script = ExtResource("2")
+ItemId = "small_ewigstein_canister"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="c3_1"]
+script = ExtResource("2")
+ItemId = "large_ewigstein_canister"
+PriceMultiplier = 1.0
+
 [sub_resource type="Resource" id="lv0"]
 script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("c0_0")])
 BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.25
 SellFraction = 0.8
 
 [sub_resource type="Resource" id="lv1"]
 script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("c1_0"), SubResource("c1_1")])
 BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.2
 SellFraction = 0.8
 
 [sub_resource type="Resource" id="lv2"]
 script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("c2_0"), SubResource("c2_1")])
 BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.15
 SellFraction = 0.8
 
 [sub_resource type="Resource" id="lv3"]
 script = ExtResource("4")
+Sells = Array[ExtResource("2")]([SubResource("c3_0"), SubResource("c3_1")])
 BuyCategories = PackedStringArray("Knowledge")
 BuyMultiplier = 1.1
 SellFraction = 0.8

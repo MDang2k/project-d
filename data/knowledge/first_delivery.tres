@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="KnowledgeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/knowledge/KnowledgeData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "first_delivery"
+Kind = 0
+TitleKey = "knowledge.first_delivery.title"
+TextKey = "knowledge.first_delivery.text"
+ItemId = ""
+TranslationRaids = 0
+Unlocks = PackedStringArray()
+LandmarkKey = ""

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "secure_case"
+NameKey = "item.secure_case"
+Category = 11
+Width = 3
+Height = 3
+WeightKg = 0.8
+MaxStack = 1
+WeaponClass = 0
+IconColor = Color(0.6, 0.15, 0.15, 1)
+IconLabel = "Case"
+Grids = Array[Vector2i]([Vector2i(3, 3)])
+BaseValue = 0
+Insurable = false

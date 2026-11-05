@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "large_ewigstein_canister"
+NameKey = "item.large_ewigstein_canister"
+Category = 16
+Width = 2
+Height = 3
+WeightKg = 12.0
+MaxStack = 1
+WeaponClass = 0
+IconColor = Color(0.3, 0.32, 0.35, 1)
+IconLabel = "Canister L"
+Grids = Array[Vector2i]([Vector2i(1, 3)])
+BaseValue = 40000
+Insurable = false

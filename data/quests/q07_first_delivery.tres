@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/QuestData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/quests/QuestObjectiveData.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/quests/QuestRewardData.cs" id="3"]
+
+[sub_resource type="Resource" id="o0"]
+script = ExtResource("2")
+Kind = 1
+Count = 1
+ItemId = "ewigstein_shard"
+FactionName = ""
+MapId = ""
+WeaponClassName = ""
+ZoneId = ""
+
+[sub_resource type="Resource" id="r0"]
+script = ExtResource("3")
+Kind = 1
+Amount = 1
+ItemId = "secure_case"
+TraderId = ""
+Level = 0
+Target = ""
+
+[sub_resource type="Resource" id="rep0"]
+script = ExtResource("3")
+Kind = 4
+Amount = 10
+ItemId = ""
+TraderId = ""
+Level = 0
+Target = "side_qm"
+
+[sub_resource type="Resource" id="rep1"]
+script = ExtResource("3")
+Kind = 4
+Amount = 10
+ItemId = ""
+TraderId = ""
+Level = 0
+Target = "side_faction"
+
+[sub_resource type="Resource" id="jr0"]
+script = ExtResource("3")
+Kind = 5
+Amount = 0
+ItemId = "first_delivery"
+TraderId = ""
+Level = 0
+Target = ""
+
+[resource]
+script = ExtResource("1")
+Id = "q07_first_delivery"
+TitleKey = "quest.q07_first_delivery.title"
+DescriptionKey = "quest.q07_first_delivery.desc"
+GiverTraderId = "side_qm"
+MinTraderLevel = 1
+RequiresQuestIds = PackedStringArray()
+RequiresSide = ""
+RequiresKnowledgeIds = PackedStringArray("german_lab_note_probe_7")
+Objectives = Array[ExtResource("2")]([SubResource("o0")])
+Rewards = Array[ExtResource("3")]([SubResource("r0"), SubResource("rep0"), SubResource("rep1"), SubResource("jr0")])

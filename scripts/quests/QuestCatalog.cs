@@ -9,7 +9,7 @@ public static class QuestCatalog
 {
 	public static readonly string[] Order =
 	{
-		"q01_looters", "q02_medical", "q03_bandits", "q04_recon", "q05_drain", "q06_helmets",
+		"q01_looters", "q02_medical", "q03_bandits", "q04_recon", "q05_drain", "q06_helmets", "q07_first_delivery",
 	};
 
 	private static List<QuestSpec>? _all;

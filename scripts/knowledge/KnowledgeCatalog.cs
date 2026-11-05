@@ -10,7 +10,7 @@ public static class KnowledgeCatalog
 	public static readonly string[] Order =
 	{
 		"bunker_side_room_door_code", "tower_cache_note", "german_lab_note_probe_7",
-		"radio_log_with_frequency", "guard_s_diary_march_1965", "evacuation_order_1965",
+		"radio_log_with_frequency", "guard_s_diary_march_1965", "evacuation_order_1965", "first_delivery",
 	};
 
 	private static List<KnowledgeSpec>? _all;

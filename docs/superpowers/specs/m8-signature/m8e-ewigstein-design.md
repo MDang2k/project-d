@@ -2,7 +2,7 @@
 
 Date: 2026-10-17
 
-Status: approved design, not implemented. Last M8 sub-project in build order (8a skills, 8b reputation, 8c nemesis, 8f bosses, 8d knowledge: specs approved; 8e this). Implements GDD §14 "Ewigstein in gameplay" (canister, exposure, delivery) and the M8 line "first Ewigstein delivery quest with containment canister and in-raid exposure".
+Status: built. Step 1 built (items with catalog ids `small_ewigstein_canister` and `large_ewigstein_canister`, `secure_case`; `GridRule`; `ExposureModel`; `EwigsteinRules`; Scientist stock; canisters and shards are not insurable, a call of mine). Step 2 built: `EwigsteinDeposit`, `RaidExposure`, sway, HUD tag, distortion, generated hum and static (no audio assets exist yet; a call of mine). Step 3 built: quest `q07_first_delivery`, `RewardKind.Knowledge`, nested-grid counting for hand-ins, journal entry `first_delivery`, two deposits on map 1 (portal, culvert end), lab note margin hint. Built (all three steps). Last M8 sub-project in build order (8a skills, 8b reputation, 8c nemesis, 8f bosses, 8d knowledge: specs approved; 8e this). Implements GDD §14 "Ewigstein in gameplay" (canister, exposure, delivery) and the M8 line "first Ewigstein delivery quest with containment canister and in-raid exposure".
 
 ## Intent
 

@@ -155,7 +155,11 @@ public static class QuestEngine
 	// --- hand-in objectives -----------------------------------------------------------------
 
 	private static IEnumerable<InventoryGrid> Grids(GameProfile profile, CharacterInventory character)
-		=> new[] { profile.Stash }.Concat(character.AllGrids);
+		=> new[] { profile.Stash }.Concat(character.AllGrids).SelectMany(WithNested);
+
+	/// <summary>A grid and the grids of items inside it (a shard in a canister counts, M8e).</summary>
+	private static IEnumerable<InventoryGrid> WithNested(InventoryGrid grid)
+		=> new[] { grid }.Concat(grid.Items.SelectMany(i => i.Grids).SelectMany(WithNested));
 
 	/// <summary>How many matching items are held in the stash and carried grids.</summary>
 	public static int CountItems(GameProfile profile, CharacterInventory character, string itemId, bool foundInRaidOnly)
@@ -258,6 +262,9 @@ public static class QuestEngine
 				break;
 			case RewardKind.UnlockTrader when r.TraderId is not null && ResolveTrader(r.TraderId, profile.Side) is { } unlocked:
 				profile.UnlockTrader(unlocked);
+				break;
+			case RewardKind.Knowledge when r.ItemId is not null:
+				profile.Knowledge.Unlock(r.ItemId);
 				break;
 			case RewardKind.Reputation when r.Target is not null && ResolveReputationTarget(r.Target, profile.Side) is { } target:
 				log.AddReputation(target, r.Amount);

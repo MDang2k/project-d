@@ -1,4 +1,4 @@
-[gd_scene load_steps=305 format=3]
+[gd_scene load_steps=306 format=3]
 
 [ext_resource type="Script" path="res://scripts/raid/RaidLevel.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/raid/PlayerSpawnPoint.cs" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="Resource" path="res://data/raid/map1.tres" id="9"]
 [ext_resource type="Script" path="res://scripts/raid/MapLandmark.cs" id="lmk"]
 [ext_resource type="Script" path="res://scripts/raid/KnowledgeSpot.cs" id="ksp"]
+[ext_resource type="PackedScene" path="res://scenes/world/ewigstein_deposit.tscn" id="dep"]
 
 [sub_resource type="NavigationMesh" id="nav"]
 cell_size = 0.5
@@ -4481,3 +4482,11 @@ ItemId = "guard_s_diary_march_1965"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0, -16)
 script = ExtResource("ksp")
 ItemId = "evacuation_order_1965"
+
+[node name="Deposits" type="Node3D" parent="."]
+
+[node name="PortalDeposit" parent="Deposits" instance=ExtResource("dep")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -70)
+
+[node name="CulvertDeposit" parent="Deposits" instance=ExtResource("dep")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0, -24)

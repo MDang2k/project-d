@@ -420,7 +420,7 @@ public class ReputationTests
 	public void EverySliceQuestGivesTheGiverReputationAndSideQuartermasterQuestsAlsoTheOwnFaction()
 	{
 		var files = Directory.GetFiles(RepoFile("data/quests"), "q0*.tres");
-		Assert.Equal(6, files.Length);
+		Assert.Equal(7, files.Length);
 		foreach (var file in files)
 		{
 			var text = File.ReadAllText(file);
@@ -429,7 +429,7 @@ public class ReputationTests
 				.Select(m => (Target: m.Groups[2].Value, Amount: int.Parse(m.Groups[1].Value))).ToList();
 			var mine = rewards.Where(r => r.Target == giver).ToList();
 			Assert.True(mine.Count == 1 && mine[0].Amount is >= 5 and <= 10, $"{Path.GetFileName(file)}: giver reward {string.Join(",", rewards)}");
-			Assert.Equal(giver == "side_qm", rewards.Any(r => r.Target == "side_faction" && r.Amount == 5));
+			Assert.Equal(giver == "side_qm", rewards.Any(r => r.Target == "side_faction" && r.Amount == (file.EndsWith("q07_first_delivery.tres") ? 10 : 5)));
 		}
 	}
 }

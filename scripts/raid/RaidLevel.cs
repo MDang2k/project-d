@@ -64,6 +64,15 @@ public partial class RaidLevel : Node3D
 		_knowledge = new RaidKnowledge { Name = "Knowledge" };
 		AddChild(_knowledge);
 		_knowledge.Start(Player);
+		if (OS.IsDebugBuild())
+		{
+			var debugMenu = new PlayerDebugMenu { Name = "DebugMenu" };
+			AddChild(debugMenu);
+			debugMenu.Start(Player, Projectiles, this);
+		}
+		var exposure = new RaidExposure { Name = "Exposure" };
+		AddChild(exposure);
+		exposure.Start(Player);
 		_nemesis = new RaidNemesis { Name = "Nemesis" };
 		AddChild(_nemesis);
 		_nemesis.Start(Player, Projectiles, Raid, cfg);

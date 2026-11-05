@@ -20,7 +20,8 @@ public sealed record ObjectiveSpec(
 	/// <summary>Locate: the quest zone to reach; Extract: the extraction zone to use.</summary>
 	string? ZoneId = null);
 
-public enum RewardKind { Money, Item, TraderLevel, UnlockTrader, Reputation }
+/// <summary>Knowledge unlocks the journal entry named by ItemId (M8e delivery quest).</summary>
+public enum RewardKind { Money, Item, TraderLevel, UnlockTrader, Reputation, Knowledge }
 
 /// <summary>
 /// What completing a quest gives. TraderId may be "side_qm" (your side's quartermaster) or

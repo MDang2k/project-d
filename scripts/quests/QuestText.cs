@@ -40,6 +40,7 @@ public static class QuestText
 		RewardKind.Item => r.Amount > 1 ? $"{GameText.ItemName(r.ItemId ?? "?")} x{r.Amount}" : GameText.ItemName(r.ItemId ?? "?"),
 		RewardKind.TraderLevel => GameText.Get("quest.reward.level", TraderName(r.TraderId), r.Level),
 		RewardKind.UnlockTrader => GameText.Get("quest.reward.unlock", TraderName(r.TraderId)),
+		RewardKind.Knowledge => GameText.Get("quest.reward.journal", GameText.Get("knowledge." + r.ItemId + ".title")),
 		_ => GameText.Get("quest.reward.reputation", ReputationTarget(r.Target), ReputationSummary.Format(r.Amount)),
 	};
 

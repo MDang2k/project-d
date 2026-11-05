@@ -11,6 +11,10 @@ public enum ItemCategory
 	WeaponPart,
 	/// <summary>A document, note or log that carries knowledge (M8d); only the Scientist buys it.</summary>
 	Knowledge,
+	/// <summary>An Ewigstein shard (M8e): story resource, never sold, rejected by the secure container.</summary>
+	Ewigstein,
+	/// <summary>A lead-lined canister (M8e): its grid takes shards only and shields what is inside from exposure.</summary>
+	Canister,
 }
 
 /// <summary>Primary weapons go in the primary or secondary slot, pistols only in the pistol slot.</summary>
@@ -60,7 +64,7 @@ public sealed class ItemInstance
 		Spec = spec;
 		Count = Math.Clamp(count, 1, Math.Max(1, spec.MaxStack));
 		if (spec.Grids is { } grids)
-			Grids = grids.Select(g => new InventoryGrid(g.Width, g.Height)).ToList();
+			Grids = grids.Select(g => new InventoryGrid(g.Width, g.Height, GridRuleFor(spec.Category))).ToList();
 	}
 
 	public int Uid { get; }
@@ -92,6 +96,17 @@ public sealed class ItemInstance
 
 	public static ItemInstance Create(ItemSpec spec, int count = 1) => new(spec, count);
 
+	private static GridRule GridRuleFor(ItemCategory category) => category switch
+	{
+		ItemCategory.SecureContainer => GridRule.NoEwigstein,
+		ItemCategory.Canister => GridRule.EwigsteinOnly,
+		_ => GridRule.Any,
+	};
+
+	/// <summary>This item is a shard or a canister, or holds one (the secure container rejects all three).</summary>
+	public bool HoldsEwigstein => Spec.Category is ItemCategory.Ewigstein or ItemCategory.Canister
+		|| Grids.Any(g => g.Items.Any(i => i.HoldsEwigstein));
+
 	/// <summary>Weight of this item with everything inside it.</summary>
 	public float WeightKg
 	{
@@ -110,16 +125,22 @@ public sealed class ItemInstance
 		=> Grids.Contains(grid) || Grids.Any(g => g.Items.Any(i => i.Contains(grid)));
 }
 
+/// <summary>What a grid accepts beyond its size (M8e): the secure container refuses Ewigstein, a canister takes shards only.</summary>
+public enum GridRule { Any, NoEwigstein, EwigsteinOnly }
+
 /// <summary>A rectangular grid of cells holding rotated or unrotated items (GDD s10). Pure logic.</summary>
 public sealed class InventoryGrid
 {
 	private readonly List<(ItemInstance Item, int X, int Y)> _entries = new();
 
-	public InventoryGrid(int width, int height)
+	public InventoryGrid(int width, int height, GridRule rule = GridRule.Any)
 	{
 		Width = width;
 		Height = height;
+		Rule = rule;
 	}
+
+	public GridRule Rule { get; }
 
 	public int Width { get; }
 	public int Height { get; }
@@ -152,6 +173,10 @@ public sealed class InventoryGrid
 	public bool CanPlace(ItemInstance item, int x, int y)
 	{
 		if (x < 0 || y < 0 || x + item.Width > Width || y + item.Height > Height)
+			return false;
+		if (Rule == GridRule.NoEwigstein && item.HoldsEwigstein)
+			return false;
+		if (Rule == GridRule.EwigsteinOnly && item.Spec.Category != ItemCategory.Ewigstein)
 			return false;
 		foreach (var (other, ox, oy) in _entries)
 		{
