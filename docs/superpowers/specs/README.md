@@ -6,7 +6,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 |---|---|
 | `m7-hub/` | M7 hub: persistence (7a), hub shell and stash (7b), economy and traders (7c), insurance (7d), quests (7e) |
 | `m8-signature/` | M8 signature systems: skills (8a), reputation and friendly fire (8b), nemesis (8c), knowledge and journal (8d), Ewigstein (8e), bosses (8f) |
-| `weapons/` | weapon modding (v1 superseded by v2) |
+| `weapons/` | weapon modding (v1 superseded by v2); throwables |
 | `maps/` | raid map standard, world map and transits, map 1 requirements and revision, one spec per map |
 | `story/` | story bible (spoilers): core truth, arc and missions, characters, endings, names; story mission framework |
 | `factions/` | faction identities, loadout tiers, bosses, Die Troika; character visuals (player, traders, story and mission characters) |

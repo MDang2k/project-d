@@ -67,7 +67,7 @@ Each spec has a detailed "Implementation status" table.
 - **Characters:** trader portraits are rendered and shown on the trade screen (Weiss's revealed portrait waits for the mission 4 quest id); story characters and mission NPCs are design only.
 - **Audio and doors:** the game has no sound yet; the [audio spec](docs/superpowers/specs/audio/audio-design.md) and the [doors spec](docs/superpowers/specs/world/doors-design.md) are written, not built.
 - **Menus and settings:** the game boots into the hub with no menus or settings; the [menus and settings spec](docs/superpowers/specs/ui/menus-settings-design.md) is written, not built.
-- **Post-slice systems:** grenades, malfunctions, zombies, aliens.
+- **Post-slice systems:** grenades (the [throwables spec](docs/superpowers/specs/weapons/throwables-design.md) is written), malfunctions, zombies, aliens.
 
 ## Content in the game
 
