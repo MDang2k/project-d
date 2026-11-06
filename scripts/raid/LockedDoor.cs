@@ -72,6 +72,8 @@ public partial class LockedDoor : StaticBody3D
 		};
 		if (message is not null)
 			player.NotifyMessage(message);
+		if (result == UnlockResult.MissingKey)
+			Sfx.Play3D(this, "lock_click", GlobalPosition);
 		GD.Print($"LOCK {Name}: {result}");
 		return result;
 	}
@@ -101,6 +103,7 @@ public partial class LockedDoor : StaticBody3D
 	{
 		if (!IsInsideTree())
 			return;
+		Sfx.Play3D(this, "door_slide", GlobalPosition);
 		var tween = CreateTween();
 		tween.TweenProperty(this, "position:y", Position.Y + OpenLift, 0.9).SetTrans(Tween.TransitionType.Sine);
 		tween.TweenCallback(Callable.From(() => CollisionLayer = 0));

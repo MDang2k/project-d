@@ -85,6 +85,7 @@ public partial class MineField : Node3D
 	private void Detonate(int index)
 	{
 		var at = new Vector3(_mines[index].X, GlobalPosition.Y, _mines[index].Y);
+		Sfx.Play3D(this, "mine_blast", _player!.GlobalPosition);
 		var plan = MineBlast.Plan(Tuning, _rng);
 		_player!.Health.ReceiveBlast(plan);
 		NoiseBus.Emit(at, Tuning.NoiseRadiusM, "explosion", this);

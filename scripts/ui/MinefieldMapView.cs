@@ -8,26 +8,26 @@ namespace ProjectD;
 /// </summary>
 public partial class MinefieldMapView : Control
 {
-	private const float Scale = 1.1f; // pixels per metre
+	private const float PixelsPerMetre = 1.1f; // pixels per metre
 
 	private readonly MinefieldMap _map;
 
 	public MinefieldMapView(MinefieldMap map)
 	{
 		_map = map;
-		CustomMinimumSize = new Vector2(map.MapSize.X * Scale, map.MapSize.Y * Scale);
+		CustomMinimumSize = new Vector2(map.MapSize.X * PixelsPerMetre, map.MapSize.Y * PixelsPerMetre);
 	}
 
-	private Vector2 P(Vector2 metres) => metres * Scale;
+	private Vector2 P(Vector2 metres) => metres * PixelsPerMetre;
 
 	public override void _Draw()
 	{
-		DrawRect(new Rect2(Vector2.Zero, _map.MapSize * Scale), new Color(0.12f, 0.13f, 0.11f));
-		DrawRect(new Rect2(Vector2.Zero, _map.MapSize * Scale), new Color(0.5f, 0.5f, 0.45f), false, 1.5f);
+		DrawRect(new Rect2(Vector2.Zero, _map.MapSize * PixelsPerMetre), new Color(0.12f, 0.13f, 0.11f));
+		DrawRect(new Rect2(Vector2.Zero, _map.MapSize * PixelsPerMetre), new Color(0.5f, 0.5f, 0.45f), false, 1.5f);
 		DrawDashedLine(P(new Vector2(_map.MapSize.X / 2f, 0f)), P(new Vector2(_map.MapSize.X / 2f, _map.MapSize.Y)), new Color(0.6f, 0.6f, 0.55f, 0.6f), 1f, 6f);
 		foreach (var field in _map.Minefields)
 		{
-			var r = new Rect2(P(field.Position), field.Size * Scale);
+			var r = new Rect2(P(field.Position), field.Size * PixelsPerMetre);
 			DrawRect(r, new Color(0.8f, 0.15f, 0.12f, 0.35f));
 			DrawRect(r, new Color(0.9f, 0.25f, 0.2f), false, 1.5f);
 		}

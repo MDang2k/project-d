@@ -76,6 +76,9 @@ public partial class RaidLevel : Node3D
 			AddChild(probe);
 			probe.Start(Player);
 		}
+		var raidAudio = new RaidAudio { Name = "Audio" };
+		AddChild(raidAudio);
+		raidAudio.Start(Player, Projectiles, Raid);
 		var exposure = new RaidExposure { Name = "Exposure" };
 		AddChild(exposure);
 		exposure.Start(Player);

@@ -195,6 +195,7 @@ public partial class InventoryScreen : CanvasLayer
 
 	private void Open()
 	{
+		Sfx.Play2D(this, "ui_open");
 		_root.Visible = true;
 		Input.MouseMode = Input.MouseModeEnum.Visible;
 		Rebuild();

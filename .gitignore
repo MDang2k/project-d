@@ -10,3 +10,6 @@ obj/
 .godot/mono/
 *.user
 *.blend1
+# downloaded sound packs stay out of the repo (only the converted files in assets/audio/sfx are used)
+assets/audio/*.zip
+assets/audio/_packs/

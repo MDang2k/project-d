@@ -573,6 +573,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			return;
 		}
 		dropped.QueueFree();
+		Sfx.Play2D(this, "pickup");
 		WeaponMessage?.Invoke(GameText.Get("msg.pickup.done", GameText.ItemName(item.Spec.Id)));
 		Inventory.NotifyChanged();
 	}
@@ -830,11 +831,13 @@ public partial class Player : CharacterBody3D, IPerceivable
 		weapon.DryFired += () =>
 		{
 			WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
+			Sfx.Play3D(this, "dry_fire", weapon.GlobalPosition);
 			NoiseBus.Emit(weapon.GlobalPosition, PerceptionEnvironment.CueRadius("dry_click"), "dry_click", this);
 		};
 		weapon.Controller.MagChecked += r =>
 		{
 			_skills.MagChecked();
+			Sfx.Play3D(this, "mag_check", weapon.GlobalPosition);
 			WeaponMessage?.Invoke(GameText.ForMagCheck(r));
 		};
 		weapon.Controller.ReloadFinished += _skills.Reloaded;
@@ -859,6 +862,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		// the gun itself: bullet dispersion in MOA, tightened or widened by the barrel parts and the ammo
 		direction = Dispersion.Apply(direction, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), GD.Randf);
 		_projectiles?.Spawn(fired, position, direction, GetRid(), _ownRids);
+		Sfx.Play3D(this, Weapon?.Item?.Spec.WeaponClass == WeaponClass.Pistol ? "shot_pistol" : "shot_rifle", position);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)
 		{
@@ -1230,6 +1234,22 @@ public partial class Player : CharacterBody3D, IPerceivable
 			clip = sampler.Sample(ReloadClipWarp.ClipTime(_clipWarp!, c.ReloadElapsed));
 		}
 
+		if (phase != _lastReloadPhase)
+		{
+			switch (phase)
+			{
+				case ReloadPhase.MagDetach:
+					Sfx.Play3D(this, "mag_out", weapon.GlobalPosition);
+					break;
+				case ReloadPhase.MagInsert:
+					Sfx.Play3D(this, "mag_in", weapon.GlobalPosition);
+					break;
+				case ReloadPhase.BoltRack:
+					Sfx.Play3D(this, "bolt_rack", weapon.GlobalPosition);
+					break;
+			}
+			_lastReloadPhase = phase;
+		}
 		_reloadTilt = Mathf.MoveToward(_reloadTilt, phase == ReloadPhase.None ? 0f : pose.Tilt, 6f * delta);
 		var goal = clip?.LeftPos ?? (phase == ReloadPhase.None
 			? grip
@@ -1579,6 +1599,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 	}
 
 	private float _stepTimer;
+	private ReloadPhase _lastReloadPhase;
 
 	/// <summary>Walking makes noise AI can hear; sprinting is loud, crouching and crawling are quiet.</summary>
 	private void UpdateFootsteps(float delta)
@@ -1594,6 +1615,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (_stepTimer < interval)
 			return;
 		_stepTimer = 0f;
+		Sfx.Play3D(this, "footstep", GlobalPosition, Stance == Stance.Prone ? -8f : Stance == Stance.Crouch ? -4f : IsSprinting ? 2f : 0f);
 		var radius = Stance switch
 		{
 			Stance.Prone => _cfg.FootstepProneRadius,

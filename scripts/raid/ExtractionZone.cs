@@ -42,6 +42,7 @@ public partial class ExtractionZone : Node3D
 		var spark = new MeshInstance3D { Mesh = new SphereMesh { Radius = 0.12f, Height = 0.24f }, Position = new Vector3(0f, 1.5f, 0f), CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
 			MaterialOverride = new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded, AlbedoColor = new Color(1f, 0.4f, 0.3f) } };
 		AddChild(spark);
+		Sfx.Play3D(this, "flare_fire", GlobalPosition + Vector3.Up * 1.5f);
 		NoiseBus.Emit(GlobalPosition, 90f, "flare", this);
 		player.NotifyMessage(GameText.Get("flare.fired"));
 		GD.Print($"FLARE fired at {ZoneId}, helicopter in {Heli.DelayS:0} s");
@@ -67,6 +68,7 @@ public partial class ExtractionZone : Node3D
 		_helicopter.AddChild(new MeshInstance3D { Mesh = new BoxMesh { Size = new Vector3(0.4f, 0.4f, 5f) }, MaterialOverride = dark, Position = new Vector3(0f, 1.8f, 5f) });
 		_helicopter.AddChild(new MeshInstance3D { Name = "Rotor", Mesh = new BoxMesh { Size = new Vector3(9f, 0.06f, 0.35f) }, MaterialOverride = dark, Position = new Vector3(0f, 2.5f, 0f) });
 		AddChild(_helicopter);
+		Sfx.Play3D(this, "heli_land", GlobalPosition + Vector3.Up * 3f);
 		NoiseBus.Emit(GlobalPosition, 150f, "helicopter", this);
 		GD.Print($"FLARE helicopter landed at {ZoneId}");
 		if (GetTree().GetNodesInGroup("perceivables").OfType<Player>().FirstOrDefault() is { } p)

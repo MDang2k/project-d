@@ -1,0 +1,37 @@
+{
+  // Sound events of the audio pass. "files" are names in assets/audio/sfx (no extension); replace a file with a real
+  // recording of the same name, or point an event at another file. db = volume offset, pitch = random pitch spread,
+  // bus = SFX, Ambient or UI, maxDistance and unit = 3D falloff in metres.
+  "events": {
+    "shot_rifle":   { "files": ["shot_rifle_1", "shot_rifle_2", "shot_rifle_3"], "db": 0, "pitch": 0.05, "maxDistance": 700, "unit": 45 },
+    "shot_pistol":  { "files": ["shot_pistol_1", "shot_pistol_2", "shot_pistol_3"], "db": -2, "pitch": 0.06, "maxDistance": 450, "unit": 30 },
+    "dry_fire":     { "files": ["dry_fire"], "db": -4, "pitch": 0.04, "maxDistance": 40, "unit": 6 },
+    "mag_out":      { "files": ["mag_out"], "db": -4, "pitch": 0.04, "maxDistance": 50, "unit": 7 },
+    "mag_in":       { "files": ["mag_in"], "db": -3, "pitch": 0.04, "maxDistance": 50, "unit": 7 },
+    "bolt_rack":    { "files": ["bolt_rack"], "db": -3, "pitch": 0.04, "maxDistance": 55, "unit": 8 },
+    "mag_check":    { "files": ["mag_check"], "db": -8, "pitch": 0.05, "maxDistance": 25, "unit": 4 },
+
+    "bullet_whiz":  { "files": ["whiz_1", "whiz_2"], "db": -1, "pitch": 0.1, "maxDistance": 30, "unit": 6 },
+    "impact_flesh": { "files": ["impact_flesh_1", "impact_flesh_2", "impact_flesh_3", "pack_body_hit_1", "pack_body_hit_2"], "db": -1, "pitch": 0.08, "maxDistance": 90, "unit": 12 },
+    "impact_armor": { "files": ["impact_armor_1", "impact_armor_2"], "db": -1, "pitch": 0.08, "maxDistance": 90, "unit": 12 },
+    "impact_concrete": { "files": ["impact_concrete_1", "impact_concrete_2", "impact_concrete_3"], "db": -2, "pitch": 0.1, "maxDistance": 100, "unit": 14 },
+    "impact_dirt":  { "files": ["impact_dirt_1", "impact_dirt_2"], "db": -4, "pitch": 0.1, "maxDistance": 60, "unit": 8 },
+    "impact_metal": { "files": ["impact_metal_1", "impact_metal_2", "pack_metal_tap", "pack_metal_clang"], "db": -2, "pitch": 0.1, "maxDistance": 110, "unit": 14 },
+
+    "footstep":     { "files": ["pack_footstep_gravel_1", "pack_footstep_gravel_2", "pack_footstep_gravel_3", "pack_footstep_gravel_4"], "db": -9, "pitch": 0.1, "maxDistance": 45, "unit": 5 },
+    "hurt":         { "files": ["hurt"], "db": 0, "pitch": 0.06, "maxDistance": 60, "unit": 8 },
+    "pickup":       { "files": ["pickup", "pack_pickup_1", "pack_pickup_2"], "db": -4, "pitch": 0.08, "maxDistance": 25, "unit": 4 },
+
+    "door_slide":   { "files": ["door_slide", "pack_door_open"], "db": -2, "pitch": 0.03, "maxDistance": 80, "unit": 12 },
+    "lock_click":   { "files": ["lock_click", "pack_lock_1", "pack_lock_2"], "db": -3, "pitch": 0.03, "maxDistance": 30, "unit": 5 },
+    "mine_blast":   { "files": ["mine_blast"], "db": 2, "pitch": 0.04, "maxDistance": 900, "unit": 70 },
+    "flare_fire":   { "files": ["flare_fire"], "db": -1, "pitch": 0.03, "maxDistance": 300, "unit": 30 },
+    "heli_land":    { "files": ["heli_land"], "db": 0, "pitch": 0.0, "maxDistance": 500, "unit": 50 },
+
+    "extract_tick": { "files": ["extract_tick"], "db": -4, "pitch": 0.0, "bus": "UI" },
+    "extract_done": { "files": ["extract_done"], "db": -2, "pitch": 0.0, "bus": "UI" },
+    "ui_click":     { "files": ["pack_ui_select_1", "pack_ui_select_2", "pack_ui_select_3", "pack_ui_select_4"], "db": -6, "pitch": 0.02, "bus": "UI" },
+    "ui_open":      { "files": ["pack_ui_open_1", "pack_ui_open_2"], "db": -6, "pitch": 0.0, "bus": "UI" },
+    "ambient_wind": { "files": ["wind_loop"], "db": -14, "pitch": 0.0, "bus": "Ambient" }
+  }
+}

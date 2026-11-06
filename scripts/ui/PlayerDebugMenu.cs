@@ -128,6 +128,14 @@ public partial class PlayerDebugMenu : CanvasLayer
 		var speed = new HSlider { MinValue = 0.1, MaxValue = 3.0, Step = 0.1, Value = 1.0 };
 		speed.ValueChanged += v => Engine.TimeScale = v;
 		box.AddChild(speed);
+		foreach (var bus in new[] { "Master", "SFX", "Ambient", "UI" })
+		{
+			var name = bus;
+			box.AddChild(new Label { Text = $"Volume: {name}" });
+			var slider = new HSlider { MinValue = 0.0, MaxValue = 1.0, Step = 0.05, Value = Sfx.GetBusVolume(name) };
+			slider.ValueChanged += v => Sfx.SetBusVolume(name, (float)v);
+			box.AddChild(slider);
+		}
 		RefreshTargets();
 	}
 
