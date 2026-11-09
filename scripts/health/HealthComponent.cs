@@ -173,6 +173,22 @@ public partial class HealthComponent : Node
 		_effects!.Inflict(plan.SteppedLeg, plan.Fracture, plan.HeavyBleed ? BleedLevel.Heavy : BleedLevel.None, Body);
 	}
 
+	/// <summary>
+	/// A grenade blast (throwables spec s3): every share goes through armor like a hit of its penetration tier, with the
+	/// usual bleed and fracture rolls. Returns the damage dealt.
+	/// </summary>
+	public float ReceiveExplosion(IReadOnlyList<BlastHit> hits)
+	{
+		var total = 0f;
+		foreach (var hit in hits)
+		{
+			if (IsDead)
+				break;
+			total += ReceiveDamage(hit.Part, hit.Damage, hit.PenetrationTier).Damage;
+		}
+		return total;
+	}
+
 	private HitResult Scaled(HitResult hit) => DamageScale == 1f ? hit : hit with { Damage = hit.Damage * DamageScale };
 
 	private HitResult Apply(HitResult result)

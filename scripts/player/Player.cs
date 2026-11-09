@@ -297,6 +297,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 		RefreshHeldWeapon();
 		if (Weapon is null && StartWeapon is not null && Inventory.Inventory.InSlot(ActiveSlot) is null)
 			EquipWeapon(StartWeapon);
+		HookGrenadeEvents();
+		StartGrenadeDev();
 		Input.MouseMode = Input.MouseModeEnum.Captured;
 	}
 
@@ -728,6 +730,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Draws the weapon from a slot (1, 2, 3 keys).</summary>
 	public void SelectSlot(EquipSlot slot)
 	{
+		if (GrenadeInHand && !TryPutGrenadeAway())
+			return; // the pin goes back first, or the spoon is gone
 		if (Inventory.Inventory.InSlot(slot) is null || _transition.BlocksWeaponActions)
 			return;
 		ActiveSlot = slot;
@@ -783,6 +787,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 	/// <summary>Uses a medical, food or drink item from the inventory; consumed when finished.</summary>
 	public bool UseItem(ItemInstance item)
 	{
+		if (ItemDb.Data(item.Spec.Id)?.Payload is GrenadeData grenade)
+			return TakeGrenade(item, grenade.ToSpec()); // a grenade goes in the hand instead of being used up
 		if (_pendingUse is not null || Health.IsDead || _transition.BlocksWeaponActions)
 			return false;
 		Weapon?.Controller.Interrupt();
@@ -1333,6 +1339,13 @@ public partial class Player : CharacterBody3D, IPerceivable
 		var weapon = Weapon;
 		if (weapon is null)
 			return;
+		if (GrenadeInHand)
+		{
+			weapon.CanFire = false;
+			weapon.TriggerHeld = false;
+			weapon.TriggerPressed = false;
+			return;
+		}
 		var captured = Input.MouseMode == Input.MouseModeEnum.Captured;
 		weapon.Controller.ReloadTimeMultiplier = _penalties.ReloadTimeMultiplier;
 		weapon.CanFire = (captured || DebugForceTrigger) && !IsSprinting && !_mantling && !_swap.Active && !WeaponRedFlagged
@@ -1517,6 +1530,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		UpdateLoader(delta);
 		UpdateInteract();
 		UpdateQuickUse();
+		UpdateGrenadeInHand(delta);
 		UpdateWeaponInput();
 		_transition.Update(delta);
 		UpdateMelee(delta);

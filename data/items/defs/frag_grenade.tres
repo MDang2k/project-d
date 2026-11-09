@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/items/GrenadeData.cs" id="2"]
+
+[sub_resource type="Resource" id="grenade"]
+script = ExtResource("2")
+Id = "frag_grenade"
+FuseS = 4.5
+FuseSpreadS = 0.3
+Fragments = 70
+FragmentDamage = 28.0
+FragmentTier = 2
+FragmentRangeM = 25.0
+FragmentMinScale = 0.3
+BlastCoreM = 4.8
+BlastDamage = 60.0
+BlastTier = 2
+NoiseRadiusM = 200.0
+ThrowSpeedMult = 1.0
+
+[resource]
+script = ExtResource("1")
+Id = "frag_grenade"
+NameKey = "item.frag_grenade"
+Category = 12
+Width = 1
+Height = 1
+WeightKg = 0.4
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("grenade")
+IconColor = Color(0.3, 0.38, 0.25, 1)
+IconLabel = "Frag"
+BaseValue = 5500
+Insurable = true

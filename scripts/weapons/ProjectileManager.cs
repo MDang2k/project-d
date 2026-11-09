@@ -6,7 +6,7 @@ using Godot.Collections;
 namespace ProjectD;
 
 public readonly record struct BulletImpact(Vector3 Position, Vector3 Normal, GodotObject Collider,
-	AmmoType Ammo, Vector3 Velocity, float TravelDistance, HitResult? Hit = null, Rid Shooter = default);
+	AmmoType Ammo, Vector3 Velocity, float TravelDistance, HitResult? Hit = null, Rid Shooter = default, bool Fragment = false);
 
 /// <summary>
 /// Steps every in-flight bullet each physics frame and raycasts the segment it travelled
@@ -25,6 +25,10 @@ public partial class ProjectileManager : Node3D
 		public Vector3 Origin;
 		public MeshInstance3D? Tracer;
 		public List<Vector3> Path = new();
+		/// <summary>Grenade fragment: no tracer, no near-miss event, a range limit and damage that falls off with distance.</summary>
+		public bool Fragment;
+		public float MaxRangeM;
+		public float MinScale = 1f;
 	}
 
 	private readonly List<Bullet> _bullets = new();
@@ -88,6 +92,35 @@ public partial class ProjectileManager : Node3D
 		_bullets.Add(b);
 	}
 
+	/// <summary>
+	/// Spawns a grenade fragment (throwables spec s3): a short-lived projectile that hits like a bullet but loses damage with
+	/// distance, down to <paramref name="minScale"/> at <paramref name="maxRangeM"/>, and vanishes beyond it.
+	/// </summary>
+	public void SpawnFragment(AmmoType ammo, Vector3 position, Vector3 direction, Rid shooter, Array<Rid> exclude, float maxRangeM, float minScale)
+	{
+		_bullets.Add(new Bullet
+		{
+			State = new BulletState { Position = position, Velocity = direction.Normalized() * ammo.MuzzleVelocity },
+			Ammo = ammo,
+			Shooter = shooter,
+			Exclude = exclude,
+			Origin = position,
+			Fragment = true,
+			MaxRangeM = maxRangeM,
+			MinScale = minScale,
+		});
+	}
+
+	/// <summary>A blast hurt a living body: raises the same Hit and Killed events a bullet would, so friendly fire, nemesis and quests see it.</summary>
+	public void ReportExplosionHit(HealthComponent victim, bool wasAlive, Rid thrower)
+	{
+		if (!wasAlive)
+			return;
+		Hit?.Invoke(victim, victim.IsDead, thrower);
+		if (victim.IsDead)
+			Killed?.Invoke(victim, thrower);
+	}
+
 	public override void _PhysicsProcess(double deltaD)
 	{
 		var delta = (float)deltaD;
@@ -100,7 +133,13 @@ public partial class ProjectileManager : Node3D
 			var q = PhysicsRayQueryParameters3D.Create(from, to, HitMask, b.Exclude);
 			q.CollideWithAreas = true;
 			var hit = space.IntersectRay(q);
-			Passed?.Invoke(from, hit.Count > 0 ? hit["position"].AsVector3() : to, b.Shooter);
+			if (!b.Fragment)
+				Passed?.Invoke(from, hit.Count > 0 ? hit["position"].AsVector3() : to, b.Shooter);
+			if (b.Fragment && b.Origin.DistanceTo(to) > b.MaxRangeM)
+			{
+				Remove(i);
+				continue;
+			}
 			if (hit.Count > 0)
 			{
 				var pos = hit["position"].AsVector3();
@@ -108,13 +147,16 @@ public partial class ProjectileManager : Node3D
 				var collider = hit["collider"].AsGodotObject();
 				var area = collider as HitboxArea;
 				var wasAlive = area?.Health is { IsDead: false };
-				var result = area?.ReceiveBullet(b.Ammo);
+				var ammoHere = b.Fragment
+					? b.Ammo with { Damage = b.Ammo.Damage * FragmentBurst.DamageScale(b.Origin.DistanceTo(pos), b.MaxRangeM, b.MinScale) }
+					: b.Ammo;
+				var result = area?.ReceiveBullet(ammoHere);
 				if (wasAlive && area?.Health is { } struck)
 					Hit?.Invoke(struck, struck.IsDead, b.Shooter);
 				if (wasAlive && area?.Health is { IsDead: true } victim)
 					Killed?.Invoke(victim, b.Shooter);
 				Impact?.Invoke(new BulletImpact(pos, hit["normal"].AsVector3(), collider,
-					b.Ammo, b.State.Velocity, b.Origin.DistanceTo(pos), result, b.Shooter));
+					b.Ammo, b.State.Velocity, b.Origin.DistanceTo(pos), result, b.Shooter, b.Fragment));
 				Remove(i);
 			}
 			else if (b.State.Age > MaxLifetimeS)

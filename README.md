@@ -117,3 +117,7 @@ python tools/export_catalog.py
 ## Debug tools (debug builds only)
 
 In a raid: **F1** debug menu (god mode, noclip, heal, give an item by id, teleport to documents, deposits and exits, exposure, bots, game speed), **F2** noclip, **F4** bot cones. The menu also switches a **hit log** (bottom right: target, body part, range, damage, armor, HP left, bleeds and fractures for each shot you land; misses name what they hit) and a **debug map** (top left: radar with the German lab note in gold, other documents, crystal deposits and exits, plus a distance and bearing line for the lab note). A switch shows **NPC hitboxes** (head red, torso orange, limbs blue). Flags: `--debugmenu`, `--debugmap`, `--debughitboxes`, `--debugshot`, `--perf` and `--perfquit` (fps and draw calls at the spawn, exits and centre), `--flarenow` and `--helidelay=s` (fire a flare at the landing zone), `--waveclock=secs`.
+
+## Throwables
+
+Spec: [throwables](docs/superpowers/specs/weapons/throwables-design.md). Build step 1 is in: the M67 frag (`frag_grenade`, Allied QM or the F1 give list). Bind it to a quick-use slot (hover it in the inventory and press 4 to 7), press the key to take it in hand, hold left mouse to pull the pin and throw overhand, hold right mouse for an underhand lob, press reload to cook it. Dev flag `--throwgrenade=cookSeconds` (a negative number sets one off 2 m from the nearest bot). Not yet: the other frags, concussion, smoke, stun, gas, fire, thermite, AI use.

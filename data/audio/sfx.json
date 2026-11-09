@@ -32,6 +32,10 @@
     "extract_done": { "files": ["extract_done"], "db": -2, "pitch": 0.0, "bus": "UI" },
     "ui_click":     { "files": ["pack_ui_select_1", "pack_ui_select_2", "pack_ui_select_3", "pack_ui_select_4"], "db": -6, "pitch": 0.02, "bus": "UI" },
     "ui_open":      { "files": ["pack_ui_open_1", "pack_ui_open_2"], "db": -6, "pitch": 0.0, "bus": "UI" },
+    "grenade_pin":   { "files": ["lock_click"], "db": -2, "pitch": 0.05, "maxDistance": 30, "unit": 5 },
+    "grenade_spoon": { "files": ["bolt_rack"], "db": -3, "pitch": 0.05, "maxDistance": 25, "unit": 4 },
+    "grenade_clink": { "files": ["impact_metal_1", "impact_metal_2"], "db": -3, "pitch": 0.1, "maxDistance": 40, "unit": 8 },
+    "grenade_blast": { "files": ["mine_blast"], "db": 0, "pitch": 0.05, "maxDistance": 800, "unit": 55 },
     "ambient_wind": { "files": ["wind_loop"], "db": -14, "pitch": 0.0, "bus": "Ambient" }
   }
 }
