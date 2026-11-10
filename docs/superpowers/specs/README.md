@@ -14,7 +14,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `animation/` | animation system: layered graph, socket ADS and grip IK, spring recoil, wall tuck, interruptible reloads |
 | `audio/` | audio: spatial cues, sound propagation through rooms and portals, ballistic sound, foley, mix |
 | `world/` | world interaction: doors |
-| `ui/` | menus and settings: main menu, pause menu, graphics, audio, controls, gameplay; raid time readout (O key) |
+| `ui/` | menus and settings: main menu, pause menu, graphics, audio, controls, gameplay; raid time readout (O key); onboarding hints |
 | `art/` | asset pipeline and art direction (used by the model-designer agent) |
 
 New specs go into the matching folder, named `<topic>-design.md` with no date in the file name. The date goes on a `Date: YYYY-MM-DD` line under the title.

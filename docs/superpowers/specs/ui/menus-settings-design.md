@@ -111,7 +111,7 @@ Designer decision: comfort and rule options, no difficulty.
 - **Malfunctions** on/off (GDD §7; takes effect when malfunctions exist, post-slice; shown disabled until then).
 - **Aim:** hold or toggle. **Crouch:** toggle (default) or hold. **Lean:** hold (default) or toggle. **Sprint:** hold or toggle.
 - **Language:** the `GameText` languages available (English only for now; the option exists so translations can drop in).
-- **Tutorial hints** on/off (short first-time prompts such as "Hold F to open slowly"; the hints themselves are content for later).
+- **Tutorial hints** on/off and **Reset hints** (short first-time prompts; design in `docs/superpowers/specs/ui/onboarding-hints-design.md`).
 - No crosshair or ammo-counter options, ever (CLAUDE.md); debug flags stay out of this screen.
 
 ## 4. How settings reach the game
