@@ -130,7 +130,7 @@ Hip fire, aim down sights, hold breath (reduces sway, drains arm stamina). Weapo
 
 ### Malfunctions (post-slice)
 
-Jams and misfeeds tied to weapon condition. Must have a clear cause the player can manage (condition, ammo quality). Include an option to disable. Not in the slice.
+Jams and misfeeds tied to weapon condition. Must have a clear cause the player can manage (condition, ammo quality). Include an option to disable. Not in the slice. Full design: `docs/superpowers/specs/weapons/malfunctions-design.md` (condition on vital parts, check then clear, ammo reliability, repair and salvage).
 
 ### Default controls (tune)
 
