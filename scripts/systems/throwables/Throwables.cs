@@ -105,7 +105,7 @@ public static class ThrowModel
 {
 	public const float WindUpS = 0.5f;
 	public const float MinWindUp = 0.6f;
-	public const float UpBiasDeg = 8f;
+	public const float UpBiasDeg = 15f;
 
 	/// <summary>How much of a full overhand throw a wind-up of this length gives: 60% when released at once, 100% after half a second.</summary>
 	public static float WindUpFraction(float heldS)
@@ -116,7 +116,7 @@ public static class ThrowModel
 	{
 		var baseSpeed = underhand
 			? 6f // a lob or a roll
-			: stance switch { Stance.Prone => 7f, Stance.Crouch => 12f, _ => 14f };
+			: stance switch { Stance.Prone => 10f, Stance.Crouch => 17f, _ => 20f };
 		var fraction = underhand ? 1f : Math.Clamp(windUpFraction, MinWindUp, 1f);
 		return baseSpeed * fraction * (1f + strengthBonus) * itemMultiplier;
 	}

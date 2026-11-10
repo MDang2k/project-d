@@ -39,6 +39,9 @@ public sealed class PlayerSkills
 			Report(SkillIds.Strength, action, n);
 	}
 
+	/// <summary>A grenade was thrown (throwables spec s2): trains Strength.</summary>
+	public void Threw() => Report(SkillIds.Strength, "throw");
+
 	public void Mantled() => Report(SkillIds.Endurance, "mantle");
 
 	public void Shot() => Report(SkillIds.RecoilControl, "shot");

@@ -8,6 +8,8 @@ public sealed record SkillEffectTuning(
 	float EnduranceStamina = 0.30f,
 	/// <summary>Kilograms added to the weight thresholds.</summary>
 	float StrengthKg = 5f,
+	/// <summary>Throw speed added per Strength level above 1, as a fraction (0.02 is +2%).</summary>
+	float StrengthThrowPerLevel = 0.02f,
 	/// <summary>Reload and magazine-check time removed, as a fraction.</summary>
 	float HandlingTimeCut = 0.25f,
 	/// <summary>Level from which a magazine check shows the exact count.</summary>
@@ -43,6 +45,9 @@ public sealed class SkillEffects
 
 	/// <summary>Kilograms added to the weight thresholds.</summary>
 	public float WeightBonusKg => _t.StrengthKg * Share(SkillIds.Strength);
+
+	/// <summary>Fraction added to grenade throw speed: +2% per Strength level above 1 (throwables spec s2).</summary>
+	public float ThrowSpeedBonus => _t.StrengthThrowPerLevel * (_book.Level(SkillIds.Strength) - 1);
 
 	/// <summary>Multiplier on reload and magazine-check time.</summary>
 	public float HandlingTimeMultiplier => 1f - _t.HandlingTimeCut * Share(SkillIds.WeaponHandling);

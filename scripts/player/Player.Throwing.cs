@@ -141,10 +141,11 @@ public partial class Player
 		if (_fuse is null || _grenadeSpec is not { } spec)
 			return;
 		var speed = ThrowModel.Speed(Stance, _windUnderhand, ThrowModel.WindUpFraction(_windS),
-			0f, spec.ThrowSpeedMult);
+			GameState.Instance?.Profile.SkillEffects.ThrowSpeedBonus ?? 0f, spec.ThrowSpeedMult);
 		var dir = ThrowModel.Direction(-_camera.GlobalBasis.Z, _windUnderhand);
 		var left = _fuse.Release();
 		ReleaseGrenade(spec, left, dir * speed + Velocity * 0.5f);
+		_skills.Threw();
 		FinishThrownGrenade();
 	}
 
@@ -172,7 +173,7 @@ public partial class Player
 		var grenade = ThrownGrenade.Create(spec, Math.Max(0.05f, fuseLeftS), GetRid(), velocity, this);
 		GetParent().AddChild(grenade);
 		grenade.GlobalPosition = at;
-		GD.Print($"GRENADE thrown {spec.Id} v={velocity.Length():0.0} m/s fuse left {fuseLeftS:0.0} s");
+		GD.Print($"GRENADE thrown {spec.Id} v={velocity.Length():0.0} m/s fuse left {fuseLeftS:0.0} s from {at.X:0},{at.Z:0}");
 	}
 
 	/// <summary>A cooked grenade ran out in the hand: it goes off where you stand.</summary>
@@ -201,6 +202,9 @@ public partial class Player
 		Health.Died += _ => DropLiveGrenade();
 	}
 
+	/// <summary>Dev: <c>--grenadeid=egg_grenade</c> picks the grenade the dev throw uses (default frag_grenade).</summary>
+	private static string DevGrenadeId() => OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--grenadeid="))?["--grenadeid=".Length..] ?? "frag_grenade";
+
 	private static void Freeze(AiHuman bot) => AiHuman.Paused = true;
 
 	private async void StartGrenadeDev()
@@ -211,14 +215,14 @@ public partial class Player
 		await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
 		var bot = GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Where(a => a.IsAlive)
 			.OrderBy(a => a.GlobalPosition.DistanceTo(GlobalPosition)).FirstOrDefault();
-		if (bot is null || ItemDb.Create("frag_grenade") is not { } grenade)
+		if (bot is null || ItemDb.Create(DevGrenadeId()) is not { } grenade)
 			return;
 		Inventory.Inventory.TryAutoStore(grenade);
 		DebugTeleport(bot.GlobalPosition + new Vector3(0f, 0f, 7f));
 		DebugTurnTo(0f);
 		DebugSetPitchDeg(6f);
 		var before = bot.Health.Body.TotalHp;
-		if (cookS < 0f && ItemDb.Data("frag_grenade")?.Payload is GrenadeData test)
+		if (cookS < 0f && ItemDb.Data(DevGrenadeId())?.Payload is GrenadeData test)
 		{
 			// dev: set it off 2 m from the bot with nothing in between, to read blast and fragment damage
 			Freeze(bot);
@@ -227,7 +231,7 @@ public partial class Player
 			GD.Print($"GRENADE dev: bot {bot.Name} hp {before:0} -> {bot.Health.Body.TotalHp:0}, dead={!bot.IsAlive}");
 			return;
 		}
-		if (ItemDb.Data("frag_grenade")?.Payload is not GrenadeData data || !TakeGrenade(grenade, data.ToSpec()))
+		if (ItemDb.Data(DevGrenadeId())?.Payload is not GrenadeData data || !TakeGrenade(grenade, data.ToSpec()))
 			return;
 		_fuse!.PullPin();
 		_winding = true;

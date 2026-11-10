@@ -85,13 +85,13 @@ public class ThrowablesTests
 	[Fact]
 	public void SpeedByStanceUnderhandStrengthAndItem()
 	{
-		Assert.Equal(14f, ThrowModel.Speed(Stance.Stand, false, 1f), 3);
-		Assert.Equal(12f, ThrowModel.Speed(Stance.Crouch, false, 1f), 3);
-		Assert.Equal(7f, ThrowModel.Speed(Stance.Prone, false, 1f), 3);
-		Assert.Equal(8.4f, ThrowModel.Speed(Stance.Stand, false, 0.6f), 3);
+		Assert.Equal(20f, ThrowModel.Speed(Stance.Stand, false, 1f), 3);
+		Assert.Equal(17f, ThrowModel.Speed(Stance.Crouch, false, 1f), 3);
+		Assert.Equal(10f, ThrowModel.Speed(Stance.Prone, false, 1f), 3);
+		Assert.Equal(12f, ThrowModel.Speed(Stance.Stand, false, 0.6f), 3);
 		Assert.Equal(6f, ThrowModel.Speed(Stance.Stand, true, 0.6f), 3); // a lob ignores the wind-up
-		Assert.Equal(14f * 1.1f, ThrowModel.Speed(Stance.Stand, false, 1f, 0.1f), 3);
-		Assert.Equal(14f * 1.25f, ThrowModel.Speed(Stance.Stand, false, 1f, 0f, 1.25f), 3);
+		Assert.Equal(20f * 1.1f, ThrowModel.Speed(Stance.Stand, false, 1f, 0.1f), 3);
+		Assert.Equal(20f * 1.25f, ThrowModel.Speed(Stance.Stand, false, 1f, 0f, 1.25f), 3);
 	}
 
 	[Fact]
@@ -99,7 +99,7 @@ public class ThrowablesTests
 	{
 		var forward = new Vector3(0f, 0f, -1f);
 		var d = ThrowModel.Direction(forward, underhand: false);
-		Assert.Equal(8f, Mathf.RadToDeg(Mathf.Asin(d.Y)), 1);
+		Assert.Equal(15f, Mathf.RadToDeg(Mathf.Asin(d.Y)), 1);
 		Assert.True(d.Z < 0f);
 		Assert.True(ThrowModel.Direction(forward, true).Y < d.Y);
 	}
