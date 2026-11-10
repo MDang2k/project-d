@@ -56,9 +56,6 @@ public sealed class CharacterInventory
 	public float TotalWeightKg
 		=> _slots.Values.Sum(i => i.WeightKg) + Pockets.Sum(p => p.Items.Sum(i => i.WeightKg));
 
-	/// <summary>Weight that does not include the secure container (its contents are safe, not worn).</summary>
-	public float CarriedWeightKg => TotalWeightKg;
-
 	public static bool SlotAccepts(EquipSlot slot, ItemSpec spec) => slot switch
 	{
 		EquipSlot.Head => spec.Category == ItemCategory.Helmet,

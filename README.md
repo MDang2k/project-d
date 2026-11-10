@@ -50,7 +50,7 @@ Each spec has a detailed "Implementation status" table.
 
 | System | Status | Main things left |
 |---|---|---|
-| [Composable actors](docs/superpowers/specs/ai/composable-actors-design.md) (AI stats from catalog sheets, F5 inspector) | **Built** | delete the old `AiPreset` after your playtest; player skills wait for M8a |
+| [Composable actors](docs/superpowers/specs/ai/composable-actors-design.md) (AI stats from catalog sheets, F5 inspector) | **Built** | old `AiPreset` oracle removed 2026-11-10; player skills wait for M8a |
 | [AI combat v2](docs/superpowers/specs/ai/ai-combat-v2-design.md) | **Steps 1-7 built, playtest pending** | bot stamina; corner pieing; armor retargeting; marksman behaviour; boss squads; voice barks; flashlight and NVG rules (M9); grenades (post-slice). No light zones, foliage or wall material tags are placed on maps yet |
 | [Animation system](docs/superpowers/specs/animation/animation-system-design.md) | **Partly built** | see below |
 | [Weapon modding v2](docs/superpowers/specs/weapons/weapon-modding-v2-design.md) | **Mostly built** | ammo recoil modifier; effective range display; drag and drop in the workshop; most part models |

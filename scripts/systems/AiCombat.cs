@@ -124,11 +124,9 @@ public sealed record TacticsTuning(
 	float SuppressS,
 	float HealS,
 	/// <summary>Bursts fired from open ground before looking for cover.</summary>
-	int BurstsBeforeCover,
-	float FlankMinDistance,
-	float FlankCooldownS)
+	int BurstsBeforeCover)
 {
-	public static TacticsTuning Default => new(0.5f, 0.5f, 25f, 1.5f, 3.5f, 2.5f, 3f, 8f, 3, 12f, 20f);
+	public static TacticsTuning Default => new(0.5f, 0.5f, 25f, 1.5f, 3.5f, 2.5f, 3f, 8f, 3);
 }
 
 public enum TacticState { Advance, Shoot, SeekCover, Hide, Peek, Suppress, Flank, Retreat, Heal, Flee }
@@ -155,9 +153,9 @@ public readonly record struct CombatSituation(
 
 /// <summary>
 /// Combat behaviors: advance, shoot, take cover, peek, suppress, flank, retreat, heal, flee. Pure logic
-/// layered under <see cref="AiBrain"/>'s Combat state; the node executes the chosen state. With
-/// <see cref="UtilityControlled"/> the choice between actions belongs to <see cref="AiUtility"/> and the states
-/// only sequence themselves (hide, peek, arrive, finish); without it the older built-in rules decide.
+/// layered under <see cref="AiBrain"/>'s Combat state; the node executes the chosen state. The choice between
+/// actions belongs to <see cref="AiUtility"/> (AI combat v2 step 4); the states only sequence themselves
+/// (hide, peek, arrive, finish).
 /// </summary>
 public sealed class CombatTactics
 {
@@ -165,8 +163,6 @@ public sealed class CombatTactics
 	private readonly Random _rng;
 	private float _hideFor;
 	private int _bursts;
-	private float _flankCooldown;
-	private float _retreatLock;
 
 	/// <summary>Replaced when the actor's stats change.</summary>
 	public TacticsTuning Tuning { get => _t; set => _t = value; }
@@ -176,9 +172,6 @@ public sealed class CombatTactics
 		_t = tuning;
 		_rng = rng;
 	}
-
-	/// <summary>The utility layer picks actions; the built-in cross-action rules are off.</summary>
-	public bool UtilityControlled { get; set; }
 
 	/// <summary>A state ended or changed, so the utility layer should score again now instead of at its next tick.</summary>
 	public bool NeedsDecision { get; set; }
@@ -200,9 +193,6 @@ public sealed class CombatTactics
 
 	private void Enter(TacticState next)
 	{
-		// Once a retreat is over, do not start another straight away (it would flicker with Hide).
-		if (State is TacticState.Retreat or TacticState.Heal && next is not (TacticState.Retreat or TacticState.Heal))
-			_retreatLock = 10f;
 		State = next;
 		StateTimeS = 0f;
 		_bursts = 0;
@@ -211,23 +201,9 @@ public sealed class CombatTactics
 			_hideFor = Mathf.Lerp(_t.HideMinS, _t.HideMaxS, (float)_rng.NextDouble());
 	}
 
-	private float RetreatInjury => Mathf.Lerp(0.35f, 0.85f, _t.Courage);
-	private float CoverSuppression => Mathf.Lerp(0.3f, 0.8f, _t.Courage);
-
 	public void Update(float delta, in CombatSituation s)
 	{
 		StateTimeS += delta;
-		_flankCooldown = Math.Max(0f, _flankCooldown - delta);
-		_retreatLock = Math.Max(0f, _retreatLock - delta);
-
-		// Badly hurt: pull back to cover and patch up, whatever else is going on.
-		if (!UtilityControlled && s.Injury >= RetreatInjury && State is not (TacticState.Retreat or TacticState.Heal) && s.CoverAvailable
-			&& _retreatLock <= 0f)
-		{
-			Enter(TacticState.Retreat);
-			return;
-		}
-
 		switch (State)
 		{
 			case TacticState.Retreat:
@@ -245,26 +221,12 @@ public sealed class CombatTactics
 				break;
 
 			case TacticState.Advance:
-				if (!UtilityControlled && s.Suppression > CoverSuppression && s.CoverAvailable)
-					Enter(TacticState.SeekCover);
-				else if (s.SeesTarget && s.TargetDistance <= _t.EngageDistance)
+				if (s.SeesTarget && s.TargetDistance <= _t.EngageDistance)
 					Enter(TacticState.Shoot);
 				break;
 
 			case TacticState.Shoot:
-				if (UtilityControlled)
-				{
-					if (s.SeesTarget && s.TargetDistance > _t.EngageDistance * 1.25f)
-						Enter(TacticState.Advance);
-				}
-				else if (s.Suppression > CoverSuppression && s.CoverAvailable
-					|| _bursts >= _t.BurstsBeforeCover && s.CoverAvailable && _t.Courage < 0.9f)
-					Enter(TacticState.SeekCover);
-				else if (TryFlank(s))
-					Enter(TacticState.Flank);
-				else if (!s.SeesTarget && StateTimeS > 1.2f)
-					Enter(TacticState.Suppress);
-				else if (s.SeesTarget && s.TargetDistance > _t.EngageDistance * 1.25f)
+				if (s.SeesTarget && s.TargetDistance > _t.EngageDistance * 1.25f)
 					Enter(TacticState.Advance);
 				break;
 
@@ -292,34 +254,17 @@ public sealed class CombatTactics
 			case TacticState.Suppress:
 				if (s.SeesTarget)
 					Enter(TacticState.Shoot);
-				else if (StateTimeS >= _t.SuppressS && UtilityControlled)
-					Enter(TacticState.Hide);
 				else if (StateTimeS >= _t.SuppressS)
-					Enter(TryFlank(s) ? TacticState.Flank
-						: _t.Aggression > 0.5f ? TacticState.Advance : TacticState.Hide);
+					Enter(TacticState.Hide);
 				break;
 
 			case TacticState.Flank:
 				if (s.SeesTarget && s.TargetDistance <= _t.EngageDistance * 0.7f || s.AtDestination && !s.HoldFlank
-					|| StateTimeS > (UtilityControlled ? 40f : 14f))
+					|| StateTimeS > 40f)
 					Enter(TacticState.Shoot);
 				else if (s.Suppression > 0.8f && s.CoverAvailable)
 					Enter(TacticState.SeekCover);
 				break;
 		}
-	}
-
-	/// <summary>Pairs flank: while the partner keeps the target busy, the more aggressive one swings around.</summary>
-	private bool TryFlank(in CombatSituation s)
-	{
-		if (!s.PartnerEngaged || !s.FlankPointAvailable || _flankCooldown > 0f || s.TargetDistance < _t.FlankMinDistance)
-			return false;
-		if (_rng.NextDouble() > _t.Aggression)
-		{
-			_flankCooldown = 3f; // roll again in a few seconds, not every frame
-			return false;
-		}
-		_flankCooldown = _t.FlankCooldownS;
-		return true;
 	}
 }

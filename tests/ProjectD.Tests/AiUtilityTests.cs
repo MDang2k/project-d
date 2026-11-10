@@ -145,7 +145,7 @@ public class ArchetypeCatalogTests
 		=> Assert.Null(Real().Create("looter").Archetype);
 }
 
-public class UtilityControlledTacticsTests
+public class TacticsUnderUtilityTests
 {
 	private static CombatSituation Sit(bool sees = true, float distance = 20f, float suppression = 0f, float injury = 0f)
 		=> new(sees, distance, 0f, injury, suppression, true, false, true, false, false, false);
@@ -153,7 +153,7 @@ public class UtilityControlledTacticsTests
 	[Fact]
 	public void BuiltInCrossActionRulesAreOffAndForceWorks()
 	{
-		var t = new CombatTactics(TacticsTuning.Default with { Courage = 0f }, new Random(1)) { UtilityControlled = true };
+		var t = new CombatTactics(TacticsTuning.Default with { Courage = 0f }, new Random(1));
 		t.Begin();
 		for (var i = 0; i < 5; i++)
 			t.Update(0.1f, Sit(suppression: 0.9f, injury: 0.9f)); // would retreat or seek cover on its own

@@ -84,10 +84,9 @@ public class CombatTacticsTests
 		bool healed = false, bool partner = false, bool flank = false)
 		=> new(sees, distance, sinceSeen, injury, suppression, cover, at, item, healed, partner, flank);
 
-	private static CombatTactics Make(float courage = 0.5f, float aggression = 0.5f, int seed = 3)
+	private static CombatTactics Make(int seed = 3)
 	{
-		var t = new CombatTactics(TacticsTuning.Default with { Courage = courage, Aggression = aggression },
-			new Random(seed));
+		var t = new CombatTactics(TacticsTuning.Default, new Random(seed));
 		t.Begin();
 		return t;
 	}
@@ -109,38 +108,12 @@ public class CombatTacticsTests
 	}
 
 	[Fact]
-	public void TakesCoverAfterEnoughBursts()
+	public void CoverLeadsToAHidePeekCycle()
 	{
 		var t = Make();
-		Run(t, Sit(), 0.2f);
-		for (var i = 0; i < 3; i++)
-			t.OnBurstFinished();
-		Run(t, Sit(), 0.1f);
-		Assert.Equal(TacticState.SeekCover, t.State);
+		t.Force(TacticState.SeekCover);
 		Run(t, Sit(at: true), 0.1f);
 		Assert.Equal(TacticState.Hide, t.State);
-	}
-
-	[Fact]
-	public void CoverIsOnlyUsedWhenAvailable()
-	{
-		var t = Make();
-		Run(t, Sit(cover: false), 0.2f);
-		for (var i = 0; i < 5; i++)
-			t.OnBurstFinished();
-		Run(t, Sit(cover: false), 0.2f);
-		Assert.Equal(TacticState.Shoot, t.State);
-	}
-
-	[Fact]
-	public void HidePeekCycleRepeats()
-	{
-		var t = Make();
-		Run(t, Sit(), 0.2f);
-		for (var i = 0; i < 3; i++)
-			t.OnBurstFinished();
-		Run(t, Sit(), 0.1f);
-		Run(t, Sit(at: true), 0.1f);
 		for (var i = 0; i < 80 && t.State == TacticState.Hide; i++)
 			t.Update(0.1f, Sit(sees: false, at: true)); // hide timer runs out
 		Assert.Equal(TacticState.Peek, t.State);
@@ -151,27 +124,10 @@ public class CombatTacticsTests
 	}
 
 	[Fact]
-	public void HeavyFireSendsAdvancingAiToCover()
-	{
-		var t = Make(courage: 0.2f);
-		Run(t, Sit(distance: 60f, suppression: 0.6f), 0.2f);
-		Assert.Equal(TacticState.SeekCover, t.State);
-	}
-
-	[Fact]
-	public void BraveAiIgnoresModerateFire()
-	{
-		var t = Make(courage: 1f);
-		Run(t, Sit(distance: 20f, suppression: 0.5f), 0.3f);
-		Assert.Equal(TacticState.Shoot, t.State);
-	}
-
-	[Fact]
-	public void BadlyHurtRetreatsThenHeals()
+	public void RetreatThenHealsThenHides()
 	{
 		var t = Make();
-		Run(t, Sit(injury: 0.7f), 0.2f);
-		Assert.Equal(TacticState.Retreat, t.State);
+		t.Force(TacticState.Retreat);
 		Run(t, Sit(injury: 0.7f, sees: false, at: true), 0.2f);
 		Assert.Equal(TacticState.Heal, t.State);
 		Run(t, Sit(injury: 0.3f, sees: false, healed: true), 0.2f);
@@ -179,69 +135,23 @@ public class CombatTacticsTests
 	}
 
 	[Fact]
-	public void RetreatDoesNotFlickerBackToBackWithHide()
-	{
-		var t = Make(courage: 0f);
-		Run(t, Sit(injury: 0.9f), 0.2f);
-		Run(t, Sit(injury: 0.9f, sees: false, at: true, item: false), 0.2f);
-		Assert.Equal(TacticState.Hide, t.State);
-		Run(t, Sit(injury: 0.9f, sees: false, at: true, item: false), 3f);
-		Assert.NotEqual(TacticState.Retreat, t.State);
-	}
-
-	[Fact]
-	public void CowardRetreatsEarlierThanBraveAi()
-	{
-		var coward = Make(courage: 0f);
-		var brave = Make(courage: 1f);
-		Run(coward, Sit(injury: 0.45f), 0.2f);
-		Run(brave, Sit(injury: 0.45f), 0.2f);
-		Assert.Equal(TacticState.Retreat, coward.State);
-		Assert.NotEqual(TacticState.Retreat, brave.State);
-	}
-
-	[Fact]
-	public void NoCoverMeansFightOn()
+	public void SuppressShootsOnSightAndHidesWhenDone()
 	{
 		var t = Make();
-		Run(t, Sit(injury: 0.9f, cover: false), 0.3f);
-		Assert.NotEqual(TacticState.Retreat, t.State);
-	}
-
-	[Fact]
-	public void LosingSightWhileShootingSuppressesLastKnownPosition()
-	{
-		var t = Make();
-		Run(t, Sit(), 0.2f);
-		Run(t, Sit(sees: false, sinceSeen: 2f), 1.5f);
-		Assert.Equal(TacticState.Suppress, t.State);
+		t.Force(TacticState.Suppress);
 		Run(t, Sit(), 0.1f);
 		Assert.Equal(TacticState.Shoot, t.State);
+		t.Force(TacticState.Suppress);
+		Run(t, Sit(sees: false), TacticsTuning.Default.SuppressS + 0.2f);
+		Assert.Equal(TacticState.Hide, t.State);
 	}
 
 	[Fact]
-	public void AggressivePairMemberFlanks()
+	public void AFlankEndsInShootingOnArrival()
 	{
-		var t = Make(aggression: 1f);
-		Run(t, Sit(distance: 24f), 0.2f);
-		Run(t, Sit(distance: 24f, partner: true, flank: true), 0.2f);
-		Assert.Equal(TacticState.Flank, t.State);
+		var t = Make();
+		t.Force(TacticState.Flank);
 		Run(t, Sit(sees: false, distance: 24f, at: true), 0.1f);
 		Assert.Equal(TacticState.Shoot, t.State);
-	}
-
-	[Fact]
-	public void PassiveAiDoesNotFlankEveryTime()
-	{
-		var flanked = 0;
-		for (var seed = 0; seed < 20; seed++)
-		{
-			var t = Make(aggression: 0.1f, seed: seed);
-			Run(t, Sit(distance: 24f), 0.2f);
-			Run(t, Sit(distance: 24f, partner: true, flank: true), 0.5f);
-			if (t.State == TacticState.Flank)
-				flanked++;
-		}
-		Assert.InRange(flanked, 0, 8);
 	}
 }

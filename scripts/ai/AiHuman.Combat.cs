@@ -60,7 +60,7 @@ public partial class AiHuman
 
 	private void InitCombat()
 	{
-		_tactics = new CombatTactics(ActorTuning.Tactics(Actor!.Stats), _rng) { UtilityControlled = true };
+		_tactics = new CombatTactics(ActorTuning.Tactics(Actor!.Stats), _rng);
 		_action = TacticAction.Push;
 		_healItem = ActorDb.Medical(Def.Text("heal_item"));
 		_motor = new AiAimMotor(ActorTuning.Aim(Actor.Stats), _rng);
