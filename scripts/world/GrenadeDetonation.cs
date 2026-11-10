@@ -34,6 +34,8 @@ public static class GrenadeDetonation
 			var ammo = new AmmoType("grenade_fragment", spec.FragmentDamage, spec.FragmentTier, FragmentSpeed);
 			foreach (var dir in FragmentBurst.Directions(spec.Fragments, rng))
 				projectiles.SpawnFragment(ammo, position + dir * 0.12f, dir, thrower, exclude, spec.FragmentRangeM, spec.FragmentMinScale);
+			if (spec.Fragments > 0)
+				projectiles.ReportBurst(position, spec.FragmentRangeM * 0.5f, thrower, ignoreBody);
 		}
 
 		// blast core: everyone in the core with a clear line from the burst to any of their body points

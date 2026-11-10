@@ -217,7 +217,7 @@ public class QuestTests
 		Assert.Equal(3, profile.Trader("engineer").Level); // not lowered
 		Assert.Contains("soviet_qm", profile.UnlockedTraders);
 		Assert.Equal(2, log.Pending.Count);
-		Assert.Equal(5, log.Reputation["bandits"]);
+		Assert.Equal(5, profile.Reputation.Hundredths("bandits")); // through the clamped book, not the detached test log
 		var delivered = QuestEngine.DeliverPending(log, profile, Make);
 		Assert.Equal(2, delivered.Count);
 		Assert.Empty(log.Pending);

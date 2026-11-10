@@ -59,7 +59,7 @@ public partial class ThrownGrenade : RigidBody3D
 		if (_clinked)
 			return;
 		_clinked = true;
-		NoiseBus.Emit(GlobalPosition, 15f, "grenade_clink", this);
+		NoiseBus.Emit(GlobalPosition, _spec.ClinkNoiseM, "grenade_clink", this);
 		Sfx.Play3D(this, "grenade_clink", GlobalPosition);
 	}
 
@@ -71,7 +71,8 @@ public partial class ThrownGrenade : RigidBody3D
 		if (_fuseLeft > 0f)
 			return;
 		_detonated = true;
-		GrenadeDetonation.Detonate(this, _spec, GlobalPosition, _thrower, GetRid());
+		if (_spec.Kind != GrenadeKind.Distraction) // a bottle or rock that never hit anything just disappears
+			GrenadeDetonation.Detonate(this, _spec, GlobalPosition, _thrower, GetRid());
 		QueueFree();
 	}
 }

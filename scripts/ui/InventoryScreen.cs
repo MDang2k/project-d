@@ -64,6 +64,8 @@ public partial class InventoryScreen : CanvasLayer
 	/// <summary>Opens the inventory with a world container beside it and starts searching it.</summary>
 	public void OpenWithContainer(LootContainer container)
 	{
+		if (!IsOpen && !GrenadePutAway())
+			return;
 		_container?.Model.StopSearch();
 		_container = container;
 		container.Model.StartSearch();
@@ -193,8 +195,16 @@ public partial class InventoryScreen : CanvasLayer
 			Open();
 	}
 
+	/// <summary>
+	/// The grenade in hand is an inventory item, so the screen only opens with empty hands: a safe grenade goes back at
+	/// once; with the pin out the pin goes back first (open again after), and a cooked one must be thrown.
+	/// </summary>
+	private bool GrenadePutAway() => !_player.GrenadeInHand || _player.TryPutGrenadeAway();
+
 	private void Open()
 	{
+		if (!GrenadePutAway())
+			return;
 		Sfx.Play2D(this, "ui_open");
 		_root.Visible = true;
 		Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -755,7 +765,9 @@ public partial class InventoryScreen : CanvasLayer
 				break;
 		}
 		if (item.Spec.MagazineCapacity > 0)
-			sb.Append($"\n{item.Spec.Caliber}  rounds {item.Rounds.Count}/{item.Spec.MagazineCapacity}");
+			sb.Append(AmmoDisplay.ShowCounts
+				? $"\n{item.Spec.Caliber}  rounds {item.Rounds.Count}/{item.Spec.MagazineCapacity}"
+				: $"\n{item.Spec.Caliber}  capacity {item.Spec.MagazineCapacity}");
 		if (item.Spec.Grids is { Count: > 0 })
 			sb.Append("\nStorage " + string.Join(" + ", item.Spec.Grids.Select(g => $"{g.Width}x{g.Height}")));
 		return sb.ToString();

@@ -789,6 +789,8 @@ public partial class Player : CharacterBody3D, IPerceivable
 	{
 		if (ItemDb.Data(item.Spec.Id)?.Payload is GrenadeData grenade)
 			return TakeGrenade(item, grenade.ToSpec()); // a grenade goes in the hand instead of being used up
+		if (GrenadeInHand && !TryPutGrenadeAway())
+			return false; // the pin goes back first, or the spoon is gone and it must be thrown
 		if (_pendingUse is not null || Health.IsDead || _transition.BlocksWeaponActions)
 			return false;
 		Weapon?.Controller.Interrupt();

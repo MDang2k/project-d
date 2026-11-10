@@ -3,6 +3,15 @@ using Godot;
 
 namespace ProjectD;
 
+/// <summary>
+/// The no-ammo-counter rule (CLAUDE.md, GDD s7): round counts are learned through magazine checks, never shown. Dev
+/// flag <c>--showammo</c> (off by default) shows them in the inventory, tooltips and trader lists for debugging.
+/// </summary>
+public static class AmmoDisplay
+{
+	public static readonly bool ShowCounts = Array.IndexOf(OS.GetCmdlineUserArgs(), "--showammo") >= 0;
+}
+
 /// <summary>Placeholder icon drawing shared by grid and slot views (colour block plus label).</summary>
 public static class ItemIcon
 {
@@ -28,7 +37,7 @@ public static class ItemIcon
 			canvas.DrawString(font, rect.Position + new Vector2(0f, rect.Size.Y - 4f), $"x{item.Count}",
 				HorizontalAlignment.Right, rect.Size.X - 3f, 12, new Color(1f, 1f, 0.6f));
 		}
-		if (item.Spec.MagazineCapacity > 0)
+		if (item.Spec.MagazineCapacity > 0 && AmmoDisplay.ShowCounts)
 		{
 			canvas.DrawString(font, rect.Position + new Vector2(0f, rect.Size.Y - 4f),
 				$"{item.Rounds.Count}/{item.Spec.MagazineCapacity}", HorizontalAlignment.Right, rect.Size.X - 3f, 11,

@@ -175,16 +175,27 @@ public partial class HealthComponent : Node
 
 	/// <summary>
 	/// A grenade blast (throwables spec s3): every share goes through armor like a hit of its penetration tier, with the
-	/// usual bleed and fracture rolls. Returns the damage dealt.
+	/// usual bleed and fracture rolls. Listeners see one hit (the heaviest share carrying the total damage), not one per
+	/// share, and it counts as enemy damage like the fragments. Returns the damage dealt.
 	/// </summary>
 	public float ReceiveExplosion(IReadOnlyList<BlastHit> hits)
 	{
 		var total = 0f;
+		HitResult? heaviest = null;
 		foreach (var hit in hits)
 		{
 			if (IsDead)
 				break;
-			total += ReceiveDamage(hit.Part, hit.Damage, hit.PenetrationTier).Damage;
+			var applied = ApplyQuiet(Scaled(DamageResolver.Resolve(hit.Damage, hit.PenetrationTier, hit.Part, Armor, Cfg.ToDamageTuning())));
+			total += applied.Damage;
+			if (heaviest is null || applied.Damage > heaviest.Value.Damage)
+				heaviest = applied;
+		}
+		if (heaviest is { } h)
+		{
+			var combined = h with { Damage = total };
+			HitTaken?.Invoke(combined);
+			EnemyHitTaken?.Invoke(combined);
 		}
 		return total;
 	}
@@ -193,11 +204,18 @@ public partial class HealthComponent : Node
 
 	private HitResult Apply(HitResult result)
 	{
+		ApplyQuiet(result);
+		HitTaken?.Invoke(result);
+		return result;
+	}
+
+	/// <summary>Damage and its bleed and fracture rolls, without raising <see cref="HitTaken"/>.</summary>
+	private HitResult ApplyQuiet(HitResult result)
+	{
 		EnsureState();
 		Body.TakeDamage(result.Part, result.Damage);
 		if (!Body.IsDestroyed(result.Part))
 			_effects!.OnHit(result, () => Rng.NextDouble());
-		HitTaken?.Invoke(result);
 		return result;
 	}
 

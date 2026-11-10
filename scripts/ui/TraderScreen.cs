@@ -421,7 +421,7 @@ public partial class TraderScreen : Control
 		var text = GameText.ItemName(item.Spec.Id);
 		if (item.Count > 1)
 			text += $" x{item.Count}";
-		if (item.Spec.MagazineCapacity > 0)
+		if (item.Spec.MagazineCapacity > 0 && AmmoDisplay.ShowCounts)
 			text += $"  ({item.Rounds.Count}/{item.Spec.MagazineCapacity} rounds)";
 		if (item.Spec.MaxDurability > 0f)
 			text += $"  ({TradeEngine.Condition(item) * 100f:0}% condition)";

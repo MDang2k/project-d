@@ -267,7 +267,7 @@ public static class QuestEngine
 				profile.Knowledge.Unlock(r.ItemId);
 				break;
 			case RewardKind.Reputation when r.Target is not null && ResolveReputationTarget(r.Target, profile.Side) is { } target:
-				log.AddReputation(target, r.Amount);
+				profile.Reputation.Add(target, r.Amount); // clamped like every other change, so no hidden buffer past the cap
 				break;
 		}
 	}

@@ -33,7 +33,9 @@ public sealed record GrenadeSpec(
 	Color? CloudColor = null,
 	bool RandomColor = false,
 	/// <summary>Distraction: goes off on the first contact, with this much noise (a bottle 20 m, a rock 12 m).</summary>
-	float ImpactNoiseM = 0f);
+	float ImpactNoiseM = 0f,
+	/// <summary>How far the clink of its first landing carries for AI hearing.</summary>
+	float ClinkNoiseM = 15f);
 
 public enum GrenadeStage { Safe, PinOut, Cooking, Thrown, Detonated }
 
@@ -44,9 +46,6 @@ public enum GrenadeStage { Safe, PinOut, Cooking, Thrown, Detonated }
 /// </summary>
 public sealed class GrenadeFuse
 {
-	/// <summary>Seconds it takes to put the pin back.</summary>
-	public const float PinBackS = 1.2f;
-
 	public GrenadeFuse(float fuseS, float spreadS, Random rng)
 		=> FuseS = Math.Max(0.5f, fuseS + (float)(rng.NextDouble() * 2.0 - 1.0) * spreadS);
 
@@ -111,35 +110,60 @@ public sealed class GrenadeFuse
 	}
 }
 
+/// <summary>
+/// Throwing feel numbers (throwables spec s2), set in <c>PlayerConfig</c>: throw speeds by stance, the wind-up, the upward
+/// bias, the pin-back time and how far the pin and spoon are heard.
+/// </summary>
+public sealed record ThrowTuning(
+	float StandSpeed = 20f,
+	float CrouchSpeed = 17f,
+	float ProneSpeed = 10f,
+	/// <summary>A lob or a roll; ignores the wind-up.</summary>
+	float UnderhandSpeed = 6f,
+	/// <summary>Seconds of wind-up for a full overhand throw.</summary>
+	float WindUpS = 0.5f,
+	/// <summary>Share of a full throw when released at once.</summary>
+	float MinWindUp = 0.6f,
+	float UpBiasDeg = 15f,
+	float UnderhandBiasDeg = 2f,
+	float PinBackS = 1.2f,
+	float PinNoiseM = 10f,
+	float SpoonNoiseM = 6f)
+{
+	public static ThrowTuning Default { get; } = new();
+}
+
 /// <summary>Throw speed and direction (throwables spec s2). Pure logic.</summary>
 public static class ThrowModel
 {
-	public const float WindUpS = 0.5f;
-	public const float MinWindUp = 0.6f;
-	public const float UpBiasDeg = 15f;
-
-	/// <summary>How much of a full overhand throw a wind-up of this length gives: 60% when released at once, 100% after half a second.</summary>
-	public static float WindUpFraction(float heldS)
-		=> MinWindUp + (1f - MinWindUp) * Math.Clamp(heldS / WindUpS, 0f, 1f);
+	/// <summary>How much of a full overhand throw a wind-up of this length gives: the minimum when released at once, 100% after the wind-up time.</summary>
+	public static float WindUpFraction(float heldS, ThrowTuning? t = null)
+	{
+		t ??= ThrowTuning.Default;
+		return t.MinWindUp + (1f - t.MinWindUp) * Math.Clamp(heldS / t.WindUpS, 0f, 1f);
+	}
 
 	/// <param name="strengthBonus">Fraction added by the Strength skill (0.02 per level).</param>
-	public static float Speed(Stance stance, bool underhand, float windUpFraction, float strengthBonus = 0f, float itemMultiplier = 1f)
+	public static float Speed(Stance stance, bool underhand, float windUpFraction, float strengthBonus = 0f, float itemMultiplier = 1f,
+		ThrowTuning? t = null)
 	{
+		t ??= ThrowTuning.Default;
 		var baseSpeed = underhand
-			? 6f // a lob or a roll
-			: stance switch { Stance.Prone => 10f, Stance.Crouch => 17f, _ => 20f };
-		var fraction = underhand ? 1f : Math.Clamp(windUpFraction, MinWindUp, 1f);
+			? t.UnderhandSpeed
+			: stance switch { Stance.Prone => t.ProneSpeed, Stance.Crouch => t.CrouchSpeed, _ => t.StandSpeed };
+		var fraction = underhand ? 1f : Math.Clamp(windUpFraction, t.MinWindUp, 1f);
 		return baseSpeed * fraction * (1f + strengthBonus) * itemMultiplier;
 	}
 
 	/// <summary>The throw leaves along the view, tipped upward by a fixed bias (a lob goes flatter).</summary>
-	public static Vector3 Direction(Vector3 forward, bool underhand)
+	public static Vector3 Direction(Vector3 forward, bool underhand, ThrowTuning? t = null)
 	{
+		t ??= ThrowTuning.Default;
 		var f = forward.Normalized();
 		var right = f.Cross(Vector3.Up);
 		if (right.LengthSquared() < 1e-6f)
 			return f;
-		return f.Rotated(right.Normalized(), Mathf.DegToRad(underhand ? 2f : UpBiasDeg)).Normalized();
+		return f.Rotated(right.Normalized(), Mathf.DegToRad(underhand ? t.UnderhandBiasDeg : t.UpBiasDeg)).Normalized();
 	}
 }
 

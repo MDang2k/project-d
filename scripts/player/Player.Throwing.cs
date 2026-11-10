@@ -54,7 +54,7 @@ public partial class Player
 		return true;
 	}
 
-	/// <summary>Puts the grenade away. With the pin out it takes 1.2 s; with the spoon gone it cannot be done.</summary>
+	/// <summary>Puts the grenade away. With the pin out it takes the pin-back time; with the spoon gone it cannot be done.</summary>
 	public bool TryPutGrenadeAway()
 	{
 		if (_fuse is null)
@@ -68,7 +68,7 @@ public partial class Player
 		{
 			if (_pinBackLeft <= 0f)
 			{
-				_pinBackLeft = GrenadeFuse.PinBackS;
+				_pinBackLeft = _cfg.GrenadePinBackS;
 				_winding = false;
 				WeaponMessage?.Invoke(GameText.Get("msg.grenade.pinback"));
 			}
@@ -117,7 +117,7 @@ public partial class Player
 			_windS = 0f;
 			if (_grenadeSpec.Kind != GrenadeKind.Distraction)
 			{
-				NoiseBus.Emit(GlobalPosition, 10f, "grenade_pin", this);
+				NoiseBus.Emit(GlobalPosition, _cfg.GrenadePinNoiseM, "grenade_pin", this);
 				Sfx.Play3D(this, "grenade_pin", GlobalPosition);
 				WeaponMessage?.Invoke(GameText.Get("msg.grenade.pin"));
 			}
@@ -126,9 +126,9 @@ public partial class Player
 		if (!_winding)
 			return;
 		_windS += delta;
-		if (Input.IsActionJustPressed("reload") && _fuse.Cook())
+		if (Input.IsActionJustPressed("reload") && _grenadeSpec.Kind != GrenadeKind.Distraction && _fuse.Cook())
 		{
-			NoiseBus.Emit(GlobalPosition, 6f, "grenade_spoon", this);
+			NoiseBus.Emit(GlobalPosition, _cfg.GrenadeSpoonNoiseM, "grenade_spoon", this);
 			Sfx.Play3D(this, "grenade_spoon", GlobalPosition);
 			WeaponMessage?.Invoke(GameText.Get("msg.grenade.cooking"));
 		}
@@ -143,9 +143,10 @@ public partial class Player
 	{
 		if (_fuse is null || _grenadeSpec is not { } spec)
 			return;
-		var speed = ThrowModel.Speed(Stance, _windUnderhand, ThrowModel.WindUpFraction(_windS),
-			GameState.Instance?.Profile.SkillEffects.ThrowSpeedBonus ?? 0f, spec.ThrowSpeedMult);
-		var dir = ThrowModel.Direction(-_camera.GlobalBasis.Z, _windUnderhand);
+		var tuning = _cfg.ToThrowTuning();
+		var speed = ThrowModel.Speed(Stance, _windUnderhand, ThrowModel.WindUpFraction(_windS, tuning),
+			GameState.Instance?.Profile.SkillEffects.ThrowSpeedBonus ?? 0f, spec.ThrowSpeedMult, tuning);
+		var dir = ThrowModel.Direction(-_camera.GlobalBasis.Z, _windUnderhand, tuning);
 		var left = _fuse.Release();
 		ReleaseGrenade(spec, left, dir * speed + Velocity * 0.5f);
 		_skills.Threw();
@@ -189,7 +190,7 @@ public partial class Player
 		FinishThrownGrenade();
 	}
 
-	/// <summary>Taking a hit or dying with the pin out: the grenade falls at your feet live.</summary>
+	/// <summary>Dying, or losing the throwing arm, with the pin out: the grenade falls at your feet live (spec s2).</summary>
 	private void DropLiveGrenade()
 	{
 		if (_fuse is null || _grenadeSpec is not { } spec || _fuse.Stage is GrenadeStage.Safe)
@@ -201,7 +202,12 @@ public partial class Player
 
 	private void HookGrenadeEvents()
 	{
-		Health.HitTaken += _ => DropLiveGrenade();
+		// any hit after which the throwing arm is gone (a blast reports one combined hit on its heaviest part)
+		Health.HitTaken += _ =>
+		{
+			if (Health.Body.IsDestroyed(BodyPart.RightArm))
+				DropLiveGrenade();
+		};
 		Health.Died += _ => DropLiveGrenade();
 	}
 
@@ -242,7 +248,7 @@ public partial class Player
 			return;
 		_fuse!.PullPin();
 		_winding = true;
-		_windS = ThrowModel.WindUpS;
+		_windS = _cfg.ThrowWindUpS;
 		if (cookS > 0f)
 		{
 			_fuse.Cook();

@@ -216,6 +216,26 @@ public partial class PlayerConfig : Resource
 		BreathHoldSwayMult, WeightSwayPerKg, CrouchRecoilMult, ProneRecoilMult, AdsRecoilMult,
 		RestedSwayMult, BipodSwayMult, RestedRecoilMult, BipodRecoilMult);
 
+	[ExportGroup("Throwing")]
+	/// <summary>Overhand throw speeds by stance and the underhand lob, m/s (throwables spec s2).</summary>
+	[Export] public float ThrowStandSpeed { get; set; } = 20f;
+	[Export] public float ThrowCrouchSpeed { get; set; } = 17f;
+	[Export] public float ThrowProneSpeed { get; set; } = 10f;
+	[Export] public float ThrowUnderhandSpeed { get; set; } = 6f;
+	/// <summary>Seconds of wind-up for a full overhand throw; released at once it gives the minimum share.</summary>
+	[Export] public float ThrowWindUpS { get; set; } = 0.5f;
+	[Export] public float ThrowMinWindUp { get; set; } = 0.6f;
+	[Export] public float ThrowUpBiasDeg { get; set; } = 15f;
+	[Export] public float ThrowUnderhandBiasDeg { get; set; } = 2f;
+	/// <summary>Seconds to put the pin back.</summary>
+	[Export] public float GrenadePinBackS { get; set; } = 1.2f;
+	/// <summary>How far AI hear the pin pull and the spoon release, metres.</summary>
+	[Export] public float GrenadePinNoiseM { get; set; } = 10f;
+	[Export] public float GrenadeSpoonNoiseM { get; set; } = 6f;
+
+	public ThrowTuning ToThrowTuning() => new(ThrowStandSpeed, ThrowCrouchSpeed, ThrowProneSpeed, ThrowUnderhandSpeed,
+		ThrowWindUpS, ThrowMinWindUp, ThrowUpBiasDeg, ThrowUnderhandBiasDeg, GrenadePinBackS, GrenadePinNoiseM, GrenadeSpoonNoiseM);
+
 	public ClearanceTuning ToClearanceTuning() => new(
 		ClearanceMargin, ClearanceMaxRetract, ClearanceMaxTiltDeg, ClearanceInSpeed,
 		ClearanceOutSpeed, ClearanceFireBlockFraction);

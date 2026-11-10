@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Godot.Collections;
 
@@ -109,6 +110,28 @@ public partial class ProjectileManager : Node3D
 			MaxRangeM = maxRangeM,
 			MinScale = minScale,
 		});
+	}
+
+	/// <summary>
+	/// A fragment burst counts as one near miss for everyone within <paramref name="radiusM"/> with a clear line to it
+	/// (throwables spec s3): fragments do not raise <see cref="Passed"/> one by one, so a bot gets one suppression and
+	/// under-fire trigger per burst and the player hears one whiz. Raised as a segment from the burst to their chest.
+	/// </summary>
+	public void ReportBurst(Vector3 position, float radiusM, Rid shooter, Rid? ignoreBody)
+	{
+		var space = GetWorld3D().DirectSpaceState;
+		var exclude = ignoreBody is { } own ? new Array<Rid> { own } : new Array<Rid>();
+		foreach (var node in GetTree().GetNodesInGroup("perceivables").OfType<Node3D>().ToList())
+		{
+			if (node is not IPerceivable { IsAlive: true })
+				continue;
+			var chest = node.GlobalPosition + Vector3.Up * 1.2f;
+			if (chest.DistanceTo(position) > radiusM)
+				continue;
+			var q = PhysicsRayQueryParameters3D.Create(position, chest, 1u, exclude); // layer 1 is the world: walls shield
+			if (space.IntersectRay(q).Count == 0)
+				Passed?.Invoke(position, chest, shooter);
+		}
 	}
 
 	/// <summary>A blast hurt a living body: raises the same Hit and Killed events a bullet would, so friendly fire, nemesis and quests see it.</summary>

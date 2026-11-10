@@ -27,6 +27,8 @@ public partial class GrenadeData : Resource
 	[Export] public int BlastTier { get; set; } = 2;
 	/// <summary>How far the bang carries for AI hearing, metres.</summary>
 	[Export] public float NoiseRadiusM { get; set; } = 200f;
+	/// <summary>How far the clink of its first landing carries for AI hearing, metres.</summary>
+	[Export] public float ClinkNoiseM { get; set; } = 15f;
 	/// <summary>Stick grenades throw further (catalog note "long throw").</summary>
 	[Export] public float ThrowSpeedMult { get; set; } = 1f;
 
@@ -44,5 +46,5 @@ public partial class GrenadeData : Resource
 
 	public GrenadeSpec ToSpec() => new(Id, FuseS, FuseSpreadS, Fragments, FragmentDamage, FragmentTier, FragmentRangeM,
 		FragmentMinScale, BlastCoreM, BlastDamage, BlastTier, NoiseRadiusM, ThrowSpeedMult, Kind, CloudRadiusM, CloudGrowS,
-		CloudLifeS, CloudColor, RandomColor, ImpactNoiseM);
+		CloudLifeS, CloudColor, RandomColor, ImpactNoiseM, ClinkNoiseM);
 }

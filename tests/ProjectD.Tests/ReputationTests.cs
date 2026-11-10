@@ -362,6 +362,22 @@ public class ReputationTests
 	}
 
 	[Fact]
+	public void AReputationRewardAtTheCapStoresNoHiddenBuffer()
+	{
+		var profile = new GameProfile { Side = PlayerSide.Allied };
+		profile.Reputation.Add("medic", ReputationBook.Max);
+		var q = Quest("medic", new RewardSpec(RewardKind.Reputation, 10, Target: "medic"));
+		var cat = new[] { q };
+		QuestEngine.Refresh(cat, profile.Quests, profile);
+		QuestEngine.Accept(profile.Quests, q);
+		QuestEngine.OnEvent(cat, profile.Quests, new KilledEvent(Faction.Looters, WeaponClass.Primary, "map1"));
+		QuestEngine.TurnIn(cat, profile.Quests, profile, new CharacterInventory(), q);
+		Assert.Equal(ReputationBook.Max, profile.Quests.Reputation["medic"]);
+		profile.Reputation.Add("medic", -10);
+		Assert.Equal(ReputationBook.Max - 10, profile.Reputation.Hundredths("medic")); // a penalty after the reward counts
+	}
+
+	[Fact]
 	public void AGiverWhoRefusesYouHandsOutNoNewQuestsButTurnInsStillWork()
 	{
 		var profile = new GameProfile { Side = PlayerSide.Allied };

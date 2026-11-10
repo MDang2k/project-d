@@ -95,6 +95,16 @@ public class ThrowablesTests
 	}
 
 	[Fact]
+	public void ThrowNumbersComeFromTheTuning()
+	{
+		var t = new ThrowTuning(StandSpeed: 25f, UnderhandSpeed: 4f, WindUpS: 1f, MinWindUp: 0.5f, UpBiasDeg: 30f);
+		Assert.Equal(25f, ThrowModel.Speed(Stance.Stand, false, 1f, t: t), 3);
+		Assert.Equal(4f, ThrowModel.Speed(Stance.Stand, true, 0.5f, t: t), 3);
+		Assert.Equal(0.75f, ThrowModel.WindUpFraction(0.5f, t), 3);
+		Assert.Equal(30f, Mathf.RadToDeg(Mathf.Asin(ThrowModel.Direction(new Vector3(0f, 0f, -1f), false, t).Y)), 1);
+	}
+
+	[Fact]
 	public void ThrowLeavesTippedUpByTheBias()
 	{
 		var forward = new Vector3(0f, 0f, -1f);
