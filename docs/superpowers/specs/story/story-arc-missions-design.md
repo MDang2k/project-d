@@ -27,7 +27,7 @@ Three acts. The truth (Ewigstein is a lock, the ruins are a prison) is revealed 
 | Lock | Effect |
 |---|---|
 | <= 85 | frost spreads onto outer maps (more frost-touched spots) |
-| <= 70 | zombies in The Labs and at night (post-slice) |
+| <= 70 | the Hollowed in The Labs and at night (post-slice; full spread by lock in `docs/superpowers/specs/ai/hollowed-design.md` section 5) |
 | <= 55 | Labs breach starts earlier; deposit exposure rises; Kommando Resonanz may surface (section 4) |
 | <= 40 | the Wardens arrive: Act 3 starts |
 

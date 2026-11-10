@@ -376,7 +376,7 @@ Named leaders with 2-3 escorts that follow them as a squad. Per map, a boss eith
 
 ### Zombies (post-slice)
 
-Separate AI: melee, sound-driven, swarming. Attracted by gunfire. Spec TBD.
+The Hollowed: separate AI, mostly slow and sound-driven, swarming, with rare frenzied, heavy and frozen variants; they spread as the lock meter falls. Full design: `docs/superpowers/specs/ai/hollowed-design.md`.
 
 ## 17. Audio
 

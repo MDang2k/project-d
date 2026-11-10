@@ -10,7 +10,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `maps/` | raid map standard, world map and transits, map 1 requirements and revision, one spec per map |
 | `story/` | story bible (spoilers): core truth, arc and missions, characters, endings, names; story mission framework |
 | `factions/` | faction identities, loadout tiers, bosses, Die Troika; character visuals (player, traders, story and mission characters) |
-| `ai/` | AI combat v2 (perception, under-fire reaction, aim through the gun, personalities, squads, performance); composable actors; combat lab (bot difficulty testing) |
+| `ai/` | AI combat v2 (perception, under-fire reaction, aim through the gun, personalities, squads, performance); composable actors; combat lab (bot difficulty testing); the Hollowed |
 | `animation/` | animation system: layered graph, socket ADS and grip IK, spring recoil, wall tuck, interruptible reloads |
 | `audio/` | audio: spatial cues, sound propagation through rooms and portals, ballistic sound, foley, mix |
 | `world/` | world interaction: doors |
