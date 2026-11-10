@@ -100,7 +100,7 @@ public partial class PlayerDebugMenu : CanvasLayer
 		foreach (var (id, title) in new[]
 		{
 			("ewigstein_shard", "Ewigstein shard"), ("small_ewigstein_canister", "Small canister"), ("large_ewigstein_canister", "Large canister"),
-			("german_lab_note_probe_7", "German lab note"), ("frag_grenade", "M67"), ("defensive_frag_grenade", "F-1"), ("offensive_frag_grenade", "RGD-5"), ("egg_grenade", "Model 39"), ("stick_grenade", "M24 stick"), ("concussion_grenade", "MK3 conc."), ("bunker_side_room_door_code", "Door code"), ("radio_room_key", "Radio room key"),
+			("german_lab_note_probe_7", "German lab note"), ("frag_grenade", "M67"), ("defensive_frag_grenade", "F-1"), ("offensive_frag_grenade", "RGD-5"), ("egg_grenade", "Model 39"), ("stick_grenade", "M24 stick"), ("concussion_grenade", "MK3 conc."), ("smoke_grenade_east", "RDG-2 smoke"), ("smoke_grenade_west", "M18 smoke"), ("throwable_bottle", "Bottle"), ("throwable_rock", "Rock"), ("bunker_side_room_door_code", "Door code"), ("radio_room_key", "Radio room key"),
 		})
 		{
 			var itemId = id;

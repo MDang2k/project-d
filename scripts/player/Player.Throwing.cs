@@ -115,9 +115,12 @@ public partial class Player
 			_winding = true;
 			_windUnderhand = aimPressed && !firePressed;
 			_windS = 0f;
-			NoiseBus.Emit(GlobalPosition, 10f, "grenade_pin", this);
-			Sfx.Play3D(this, "grenade_pin", GlobalPosition);
-			WeaponMessage?.Invoke(GameText.Get("msg.grenade.pin"));
+			if (_grenadeSpec.Kind != GrenadeKind.Distraction)
+			{
+				NoiseBus.Emit(GlobalPosition, 10f, "grenade_pin", this);
+				Sfx.Play3D(this, "grenade_pin", GlobalPosition);
+				WeaponMessage?.Invoke(GameText.Get("msg.grenade.pin"));
+			}
 			return;
 		}
 		if (!_winding)
@@ -226,8 +229,12 @@ public partial class Player
 		{
 			// dev: set it off 2 m from the bot with nothing in between, to read blast and fragment damage
 			Freeze(bot);
-			GrenadeDetonation.Detonate(this, test.ToSpec(), bot.GlobalPosition + new Vector3(2f, 0.1f, 0f), GetRid());
-			await ToSignal(GetTree().CreateTimer(1.0), SceneTreeTimer.SignalName.Timeout);
+			var testSpec = test.ToSpec();
+			var at = testSpec.Kind == GrenadeKind.Smoke ? (bot.GlobalPosition + GlobalPosition) * 0.5f : bot.GlobalPosition + new Vector3(2f, 0.1f, 0f);
+			GrenadeDetonation.Detonate(this, testSpec, at, GetRid());
+			await ToSignal(GetTree().CreateTimer(testSpec.Kind == GrenadeKind.Smoke ? 5.0 : 1.0), SceneTreeTimer.SignalName.Timeout);
+			if (testSpec.Kind == GrenadeKind.Smoke)
+				GD.Print($"SMOKE dev: bot sees player through the cloud? blocked={SmokeCloud.Blocks(bot.GlobalPosition + Vector3.Up * 1.6f, GlobalPosition + Vector3.Up * 1.3f)}, side line blocked={SmokeCloud.Blocks(bot.GlobalPosition + new Vector3(9f, 1.6f, 0f), GlobalPosition + new Vector3(9f, 1.3f, 0f))}");
 			GD.Print($"GRENADE dev: bot {bot.Name} hp {before:0} -> {bot.Health.Body.TotalHp:0}, dead={!bot.IsAlive}");
 			return;
 		}

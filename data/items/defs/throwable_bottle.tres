@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/items/GrenadeData.cs" id="2"]
+
+[sub_resource type="Resource" id="grenade"]
+script = ExtResource("2")
+Id = "throwable_bottle"
+FuseS = 99.0
+FuseSpreadS = 0.0
+Fragments = 0
+BlastCoreM = 0.0
+BlastDamage = 0.0
+NoiseRadiusM = 0.0
+Kind = 3
+ImpactNoiseM = 20.0
+
+[resource]
+script = ExtResource("1")
+Id = "throwable_bottle"
+NameKey = "item.throwable_bottle"
+Category = 12
+Width = 1
+Height = 1
+WeightKg = 0.3
+MaxStack = 4
+WeaponClass = 0
+Payload = SubResource("grenade")
+IconColor = Color(0.5, 0.65, 0.5, 1)
+IconLabel = "Bottle"
+BaseValue = 0
+Insurable = false

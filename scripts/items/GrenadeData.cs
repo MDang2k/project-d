@@ -30,6 +30,19 @@ public partial class GrenadeData : Resource
 	/// <summary>Stick grenades throw further (catalog note "long throw").</summary>
 	[Export] public float ThrowSpeedMult { get; set; } = 1f;
 
+	[ExportGroup("Type")]
+	[Export] public GrenadeKind Kind { get; set; } = GrenadeKind.Frag;
+	/// <summary>Smoke: full radius, seconds to grow to it, seconds it lasts.</summary>
+	[Export] public float CloudRadiusM { get; set; }
+	[Export] public float CloudGrowS { get; set; } = 4f;
+	[Export] public float CloudLifeS { get; set; } = 45f;
+	[Export] public Color CloudColor { get; set; } = new(0.82f, 0.84f, 0.85f);
+	/// <summary>The M18 colours each cloud differently.</summary>
+	[Export] public bool RandomColor { get; set; }
+	/// <summary>Distraction items (bottle, rock): go off on first contact with this much noise; 0 for a normal grenade.</summary>
+	[Export] public float ImpactNoiseM { get; set; }
+
 	public GrenadeSpec ToSpec() => new(Id, FuseS, FuseSpreadS, Fragments, FragmentDamage, FragmentTier, FragmentRangeM,
-		FragmentMinScale, BlastCoreM, BlastDamage, BlastTier, NoiseRadiusM, ThrowSpeedMult);
+		FragmentMinScale, BlastCoreM, BlastDamage, BlastTier, NoiseRadiusM, ThrowSpeedMult, Kind, CloudRadiusM, CloudGrowS,
+		CloudLifeS, CloudColor, RandomColor, ImpactNoiseM);
 }

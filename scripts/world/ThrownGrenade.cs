@@ -47,6 +47,15 @@ public partial class ThrownGrenade : RigidBody3D
 
 	private void OnBodyEntered(Node body)
 	{
+		if (_spec.Kind == GrenadeKind.Distraction && !_detonated)
+		{
+			_detonated = true;
+			NoiseBus.Emit(GlobalPosition, _spec.ImpactNoiseM, "distraction", this);
+			Sfx.Play3D(this, _spec.ImpactNoiseM >= 20f ? "glass_break" : "rock_hit", GlobalPosition);
+			GD.Print($"DISTRACTION {_spec.Id} landed at {GlobalPosition.X:0},{GlobalPosition.Z:0}, noise {_spec.ImpactNoiseM:0} m");
+			QueueFree();
+			return;
+		}
 		if (_clinked)
 			return;
 		_clinked = true;

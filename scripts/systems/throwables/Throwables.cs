@@ -4,6 +4,8 @@ using Godot;
 
 namespace ProjectD;
 
+public enum GrenadeKind { Frag, Concussion, Smoke, Distraction }
+
 /// <summary>
 /// A frag grenade's numbers (throwables spec s3 and s8), built from <c>GrenadeData</c>. Fragment values: how many are
 /// simulated, their damage and penetration tier, how far they fly and the share of damage left at that range. Blast
@@ -22,7 +24,16 @@ public sealed record GrenadeSpec(
 	float BlastDamage,
 	int BlastTier,
 	float NoiseRadiusM,
-	float ThrowSpeedMult = 1f);
+	float ThrowSpeedMult = 1f,
+	GrenadeKind Kind = GrenadeKind.Frag,
+	/// <summary>Smoke: radius, seconds to grow, seconds it lasts, colour, and whether each cloud picks a random colour (M18).</summary>
+	float CloudRadiusM = 0f,
+	float CloudGrowS = 4f,
+	float CloudLifeS = 45f,
+	Color? CloudColor = null,
+	bool RandomColor = false,
+	/// <summary>Distraction: goes off on the first contact, with this much noise (a bottle 20 m, a rock 12 m).</summary>
+	float ImpactNoiseM = 0f);
 
 public enum GrenadeStage { Safe, PinOut, Cooking, Thrown, Detonated }
 

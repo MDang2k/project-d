@@ -16,6 +16,11 @@ public static class GrenadeDetonation
 
 	public static void Detonate(Node context, GrenadeSpec spec, Vector3 position, Rid thrower, Rid? ignoreBody = null)
 	{
+		if (spec.Kind == GrenadeKind.Smoke)
+		{
+			SmokeCloud.Spawn(context, spec, position);
+			return;
+		}
 		var tree = context.GetTree();
 		var projectiles = tree.GetFirstNodeInGroup("projectiles") as ProjectileManager;
 		var rng = new System.Random();

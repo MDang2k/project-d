@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/items/GrenadeData.cs" id="2"]
+
+[sub_resource type="Resource" id="grenade"]
+script = ExtResource("2")
+Id = "smoke_grenade_east"
+FuseS = 2.0
+FuseSpreadS = 0.3
+Fragments = 0
+BlastCoreM = 0.0
+BlastDamage = 0.0
+NoiseRadiusM = 20.0
+Kind = 2
+CloudRadiusM = 8.0
+CloudGrowS = 4.0
+CloudLifeS = 45.0
+CloudColor = Color(0.82, 0.84, 0.85, 1)
+RandomColor = false
+
+[resource]
+script = ExtResource("1")
+Id = "smoke_grenade_east"
+NameKey = "item.smoke_grenade_east"
+Category = 12
+Width = 1
+Height = 1
+WeightKg = 0.5
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("grenade")
+IconColor = Color(0.7, 0.7, 0.72, 1)
+IconLabel = "RDG"
+BaseValue = 2500
+Insurable = true

@@ -636,7 +636,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 				var p = points[(i + 1) % points.Length];
 				if (i == 1 && !centerSeen && _band != AiBand.Combat)
 					break;
-				if (Cast(PhysicsRayQueryParameters3D.Create(eye, p, 1u, ignore)).Count != 0)
+				if (Cast(PhysicsRayQueryParameters3D.Create(eye, p, 1u, ignore)).Count != 0 || SmokeCloud.Blocks(eye, p))
 					continue;
 				visible += hasFoliage ? PerceptionEnvironment.FoliageVisibility(FoliageOpacities(space, eye, p)) : 1f;
 				if (i == 0)

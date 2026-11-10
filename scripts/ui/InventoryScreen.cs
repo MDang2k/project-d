@@ -175,7 +175,7 @@ public partial class InventoryScreen : CanvasLayer
 			if (!e.IsActionPressed($"quick_use_{slot + 1}"))
 				continue;
 			if (ItemAt(GetViewport().GetMousePosition()) is not { } hit
-				|| ItemDb.Data(hit.Item.Spec.Id)?.Payload is not (MedicalData or ConsumableData))
+				|| ItemDb.Data(hit.Item.Spec.Id)?.Payload is not (MedicalData or ConsumableData or GrenadeData))
 				return true;
 			_player.QuickUse.Bind(slot, hit.Item.Spec.Id);
 			_tooltipText.Text = GameText.Get("msg.quickuse.bound", GameText.ItemName(hit.Item.Spec.Id), slot + 4);
