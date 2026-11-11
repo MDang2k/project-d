@@ -11,6 +11,7 @@ Low-poly but attractive, in the spirit of BattleBit Remastered: simple readable 
 ## 1. Look
 
 - **Shapes:** chunky, bevelled-by-geometry silhouettes; read at a glance at 30 m; detail suggested by a few cuts, not dense geometry.
+- **Shading (designer decision 2026-11-11):** smooth shading with sharp edges marked (auto-smooth / smooth by angle about 30°, plus manual sharp edges where a crease must read). Large planes stay crisp and chunky; curved parts (barrels, helmets, magazines) read rounder. Not flat-per-face: every hard edge duplicates vertices, and per-face flat shading triples them.
 - **Surfaces:** flat colours from one shared palette texture (UV islands placed on palette swatches). Optional: a small shared grime/wear overlay. No per-asset hand-painted textures in the first pass.
 - **Characters (exception, designer decision 2026-10-24):** BattleBit-style cuboid bodies (box head, rectangular torso, blocky stiff limbs) with small per-outfit pixel-art textures (64-128 px, nearest filtering) for faces, fabric shading, seams, pockets and insignia. Faces are simple and visible (box head, minimal pixel face). Weapons, parts, props and kit stay palette-only.
 - **Printed items (exception, designer decision 2026-11-05):** small printed items (ammo boxes, packets) may use a shared pixel-art label atlas like characters (128 px, nearest filtering, e.g. `assets/textures/items/ammo_boxes.png`), with invented unreadable text and no real logos; everything else stays palette-only.
@@ -33,7 +34,8 @@ Low-poly but attractive, in the spirit of BattleBit Remastered: simple readable 
 | Vehicle (truck, APC hulk) | 2,000-6,000 | 1-2 | |
 | Building kit piece | 100-2,000 | 1 | modular, see section 5 |
 
-- Godot's import-time automatic LOD is enabled for everything; no hand-made LODs in the first pass.
+- **Automatic LOD (revised 2026-11-11):** Godot's import-time LOD decimation breaks already-low meshes (degenerate triangles, flipped normals, lost silhouettes). It is **off for meshes under 600 triangles** (small items, ammo boxes, simple props, simple kit walls: `meshes/generate_lods=false` in the import settings). Above 600 it stays on, and the preview check (section 8) includes a distance view to confirm the decimated LODs keep their silhouette and boundary edges; if they do not, turn it off for that asset and note it.
+- **Weapons (designer decision, memory "weapon detail then LOD"):** the 2,000-5,000 triangle budget is for the **first-person and close view**. World copies (dropped items, weapons held by AI and seen in third person) use a low-poly version made later; until it exists they use Godot's automatic LOD of the same mesh.
 - Shadows: small props do not cast real-time shadows (flag set on import or in scene).
 
 ## 3. Units, axes, origins
@@ -42,6 +44,7 @@ Low-poly but attractive, in the spirit of BattleBit Remastered: simple readable 
 - Blender: Z up. Model weapons pointing along **Blender +Y** so they export to Godot **-Z forward** (glTF converts Blender Z-up/+Y to Godot Y-up/-Z).
 - Origins: weapons at the rear grip (where `GripRight` sits); characters at the feet between the soles; props and kit pieces at the floor centre (kit pieces on their grid corner, section 5); items at the centre of their bottom face.
 - Apply all transforms (scale 1, rotation 0) before export.
+- **Marker empties have scale exactly (1, 1, 1)** (revised 2026-11-11): no negative or non-uniform scale, even on mirrored sides or under scaled parents (apply the parent's scale first). A negative or uneven scale breaks the orientation maths of grips, sights and attach points in the engine.
 
 ## 4. Markers (gameplay attachment points)
 
@@ -59,6 +62,14 @@ Markers are Blender **empties** with exact names; they export as nodes and the g
 | Worn gear | `Attach` at the parent bone it follows |
 | Loot container, door, lock | `Interact` (where the prompt and hand go) |
 
+- **Custom properties must be exported** (revised 2026-11-11): Blender's glTF exporter drops custom properties unless "Custom Properties" is on (`export_extras=True` from Python). Without it `grip_pose` never reaches Godot (found 2026-11-11: `fal_type.glb` and `fal_handguard_std.glb` carry no extras; only `makarov_pm.glb` does).
+
+### Character rig and skinning (designer decision 2026-11-11)
+
+- Characters stay **skinned meshes** on the shared skeleton (body and outfits bind by bone name, as built), with **rigid-style weights**: every box segment is weighted 100% to its own bone (one weight per vertex), so blocks never deform softly and there is no weight painting to get wrong.
+- The only blended vertices are narrow rings at the shoulders, hips, and the forearm twist (character visuals decision 9), so joints do not tear open. Outfits follow the same rule.
+- Not rigid parenting of separate meshes: that would lose the forearm twist, gap at joints, and need the body and outfit loading rebuilt.
+
 `GripRight` and `GripLeft` carry a rotation (the hand's Palm point goes on the marker and the hand aligns to it), in Godot space: local -Z runs along the grip axis from pinky to index (pistol grip: up toward the receiver; handguard: toward the muzzle), local +Y points out of the back of the hand, X = Y x Z (same as the character's `Palm_L`/`Palm_R`); author them in Blender so the exported glTF node has this rotation. All other markers stay position-only.
 
 ## 5. Building kit (maps)
@@ -75,6 +86,10 @@ Markers are Blender **empties** with exact names; they export as nodes and the g
 - `<id>` is the game item id when the item exists in `data/items/defs` (e.g. `ak_type`, `fal_type`, `em2`, `mg_type`, `pistol`), otherwise the catalog `Id` from `docs/design/catalog/*.csv`. Kit pieces: `kit_<family>_<piece>` (e.g. `kit_military_wall_3m`).
 - Categories: `weapons`, `parts`, `characters`, `gear`, `items`, `props`, `vehicles`, `kit`.
 - Shared palette texture: `assets/textures/palette.png` (256 x 256 **(tune)**), one shared material.
+- **One palette, not copies (revised 2026-11-11):** exported models must reference the shared `palette.png`, not embed their own copy (found 2026-11-11: `fal_type_palette.png`, `makarov_pm_palette.png` and others are embedded per model). Export with the image as a reference to the shared file, or remap the material to the shared palette material on import.
+- **Filtering (revised 2026-11-11):** the palette and the pixel-art atlases import with **nearest filtering with mipmaps** (`NearestWithMipmaps`) set in the import settings and the shared material, not only in code. Linear filtering lets a dark swatch bleed into a bright neighbour at a distance.
+- **Gutters:** each colour family on the palette keeps at least 4 px of padding from the next family, and UV islands sit in the middle of their swatch, so mipmaps never mix families.
+- **glTF export settings:** binary glTF, Y-up, apply modifiers, **custom properties on** (`export_extras=True`), no cameras or lights, materials pointing at the shared palette.
 - Git LFS already tracks `.blend`, `.glb`, `.png`. Original assets need no `CREDITS.md` entry; any third-party mesh, texture or reference asset must be added there with source and licence before use.
 - Every exported asset gets a review render `assets/source/<category>/<id>_preview.png` for the designer.
 
@@ -95,6 +110,13 @@ Everything else follows the catalog Phase column: `Slice` rows before `Post-slic
 
 Within budget, palette-only materials, correct scale and origin, transforms applied, all required markers present and named exactly, collision for kit pieces, `.blend` and `.glb` saved in the right folders, preview render saved, and a short note to the designer (what it is, tri count, markers, anything uncertain). The designer approves in game; feedback goes back to the agent.
 
+Also checked (revised 2026-11-11):
+- the shared palette is referenced, not embedded; nearest filtering with mipmaps;
+- smooth shading with sharp edges, not flat per face;
+- markers at scale (1, 1, 1); custom properties exported (`grip_pose` present where required);
+- automatic LOD off under 600 triangles; above it, a distance preview shows the LODs keep their silhouette;
+- characters: one bone weight per vertex except the shoulder, hip and forearm-twist rings.
+
 ## Decisions
 
 1. Shared palette texture, flat colour first pass; no glow anywhere.
@@ -103,3 +125,8 @@ Within budget, palette-only materials, correct scale and origin, transforms appl
 4. Markers are named empties; character bones match the procedural rig.
 5. `.blend` sources in a `.gdignore` folder, `.glb` exports imported by Godot.
 6. Slice assets first, in the order above.
+7. (2026-11-11) Smooth shading with sharp edges; shared palette referenced with nearest filtering and gutters; no auto LOD under 600 triangles; custom properties exported and markers at unit scale; weapons' 5,000-triangle budget is first person, with a low-poly world version later; characters skinned with rigid-style weights.
+
+## Open items
+
+- Re-export the FAL family (`fal_type`, `fal_handguard_std`, other FAL parts) with custom properties on so `grip_pose` arrives, and repoint every existing model at the shared palette with nearest filtering; turn auto LOD off on existing small items (grenades, ammo boxes, food and medical items).
