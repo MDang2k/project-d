@@ -141,7 +141,7 @@ public partial class AiHuman
 	/// <summary>Metres to the nearest cover from the threat, searched now rather than at the next refresh.</summary>
 	private float? CoverDistanceNow()
 	{
-		var threat = Perception.InterestPoint ?? GlobalPosition - GlobalBasis.Z * 10f;
+		var threat = _dodgeThreat ?? Perception.InterestPoint ?? GlobalPosition - GlobalBasis.Z * 10f;
 		_coverPoint = FindCover(threat, false);
 		_coverRefresh = CoverRefreshS;
 		return _coverPoint is { } c ? GlobalPosition.DistanceTo(c) : null;
@@ -189,6 +189,7 @@ public partial class AiHuman
 
 		_suppression = Mathf.Max(0f, _suppression - 0.3f * delta);
 		TickSquad(delta);
+		UpdateGrenadesInCombat(delta, target, sees, distance, faceTarget);
 		_underFire.Update(delta, CoverDistanceNow, _arrived);
 		_coverRefresh -= delta;
 		if (_coverRefresh <= 0f)
@@ -282,6 +283,11 @@ public partial class AiHuman
 			case UnderFirePhase.Prone:
 				plan = plan with { Destination = null, FaceYaw = faceTarget };
 				break;
+		}
+		if (IsThrowing)
+		{
+			plan = plan with { Destination = null, FaceYaw = faceTarget }; // winding up the throw: stands, faces, does not shoot
+			_wantsFire = false;
 		}
 		if (_underFire.BlocksFire || StanceLocked)
 			_wantsFire = false;

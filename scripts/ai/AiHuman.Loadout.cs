@@ -61,6 +61,7 @@ public partial class AiHuman
 			}
 		}
 		Gear = inv;
+		GiveGrenades();
 		ApplyNemesisGear();
 	}
 

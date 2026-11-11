@@ -283,6 +283,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			&& Health is { IsDead: false })
 		{
 			_noises.Add(e);
+			if (e.Kind == "grenade_pin" && e.Source is IPerceivable thrower && e.Position.DistanceTo(GlobalPosition) <= e.Radius
+				&& HostileTo(thrower) && AiGrenadeDecision.PinSendsBotToCover(Archetype))
+				_pendingDodgeFrom = e.Position; // heard a hostile pull a pin: get away from the thrower
 			if (e.Position.DistanceTo(GlobalPosition) <= e.Radius)
 				Wake();
 		}
@@ -344,6 +347,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 		if (Ambush is { Sprung: false })
 			senses = TickAmbush(senses);
 		Brain.Update(delta, senses, _arrived, false);
+		GrenadeAwarenessTick(delta);
 		Move(delta);
 		UpdateLooting();
 		UpdateLabel();

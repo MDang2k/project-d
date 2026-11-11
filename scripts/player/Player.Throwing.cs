@@ -216,8 +216,29 @@ public partial class Player
 
 	private static void Freeze(AiHuman bot) => AiHuman.Paused = true;
 
+	/// <summary>Dev (--aithrow): the nearest bot throws a frag at the player from 20 m, and a second bot stands by to dodge it.</summary>
+	private async void DevAiThrow()
+	{
+		await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
+		var bots = GetTree().GetNodesInGroup("perceivables").OfType<AiHuman>().Where(a => a.IsAlive)
+			.OrderBy(a => a.GlobalPosition.DistanceTo(GlobalPosition)).Take(2).ToList();
+		if (bots.Count < 2)
+			return;
+		DebugTeleport(bots[0].GlobalPosition + new Vector3(0f, 0f, 20f));
+		Health.DamageScale = 0f; // survive it, this is a look at what the bots do
+		bots[1].GlobalPosition = GlobalPosition + new Vector3(3f, 0f, 2f);
+		bots[0].DebugThrowAt(GlobalPosition);
+		await ToSignal(GetTree().CreateTimer(9.0), SceneTreeTimer.SignalName.Timeout);
+		GD.Print($"AITHROW dev: player hp {Health.Body.TotalHp:0}, bots left with {bots[0].Gear.AllItems().Count(i => i.Spec.Id.EndsWith("grenade"))} grenades");
+	}
+
 	private async void StartGrenadeDev()
 	{
+		if (OS.GetCmdlineUserArgs().Contains("--aithrow"))
+		{
+			DevAiThrow();
+			return;
+		}
 		var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--throwgrenade="));
 		if (arg is null || !float.TryParse(arg["--throwgrenade=".Length..], System.Globalization.CultureInfo.InvariantCulture, out var cookS))
 			return;

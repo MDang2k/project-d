@@ -10,6 +10,9 @@ namespace ProjectD;
 /// </summary>
 public partial class ThrownGrenade : RigidBody3D
 {
+	/// <summary>Every grenade in flight or lying armed, for the AI that watches for them.</summary>
+	public static readonly System.Collections.Generic.List<ThrownGrenade> Live = new();
+
 	private GrenadeSpec _spec = null!;
 	private float _fuseLeft;
 	private Rid _thrower;
@@ -33,8 +36,19 @@ public partial class ThrownGrenade : RigidBody3D
 		return g;
 	}
 
+	/// <summary>It has landed and clinked (AI within 8 m hear that).</summary>
+	public bool Clinked => _clinked;
+
+	public Rid ThrowerRid => _thrower;
+
+	/// <summary>Frags and concussions hurt; smoke and bottles do not.</summary>
+	public bool IsDangerous => _spec.Kind is GrenadeKind.Frag or GrenadeKind.Concussion;
+
+	public override void _ExitTree() => Live.Remove(this);
+
 	public override void _Ready()
 	{
+		Live.Add(this);
 		BodyEntered += OnBodyEntered;
 		// the thrower's body counts again after a moment, so a bounce off a wall can come back at them
 		var timer = GetTree().CreateTimer(0.4);
