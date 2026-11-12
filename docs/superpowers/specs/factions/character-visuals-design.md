@@ -36,7 +36,7 @@ The silent contractor (story part 3). No face or body customisation; the side ch
 
 ### Wristwatch (raid time)
 
-**Superseded (decision 11):** the watch was removed from the player model. How the player reads raid time is an open item (see Open items); the rules below are kept as the reference design until the designer picks a replacement.
+**Superseded (decision 11):** the watch was removed from the player model; raid time is read with the O key (raid time readout spec, 2026-11-05). The rules below are kept only as history.
 
 The only way to know the raid time in a raid; there is no timer on screen (no-HUD rule).
 
@@ -184,17 +184,17 @@ Full looks are in the Bosses sheet (`Look` column). The one hook each boss is re
 
 ## Decisions
 
-1. Player base outfit per side: Allied M65 jacket, gloves and pale blue armband; Soviet M69 jacket, bare hands and red armband; both wear a wristwatch. No customisation.
+1. Player base outfit per side: Allied M65 jacket, gloves and pale blue armband; Soviet M69 jacket, bare hands and red armband. No customisation. (The wristwatch of the first version was removed, decision 11.)
 2. Worn gear meshes are shared by the player and every faction.
 3. Trader portraits are rendered 3D busts in the game style, 512 x 512.
 4. Weiss is the only trader whose portrait changes (scarf off, frost scar, after mission 4).
 5. Rauch is the only unmasked Abteilung Ewig soldier; Albrecht wears his old lab coat.
 6. Survey team in bright orange parkas; the hollowed survivor's eyes track the player.
-7. Raid time only from an analog wristwatch both sides wear; raids start at a fixed clock time and the deploy screen states the deadline.
-8. (2026-10-24) Character style is BattleBit Remastered-like: cuboid, flat-shaded, stiff-limbed bodies with small pixel-art textures per outfit (nearest filtering), simple visible box-head faces. This overrides "no hand-painted textures" for characters only (pipeline spec section 1).
+7. ~~Raid time only from an analog wristwatch.~~ Superseded by decision 11 and the O-key readout (`docs/superpowers/specs/ui/raid-time-readout-design.md`).
+8. (2026-10-24) Character style is BattleBit Remastered-like: cuboid, stiff-limbed bodies (smooth shading with sharp edges, asset pipeline decision 2026-11-11) with small pixel-art textures per outfit (nearest filtering), simple visible box-head faces. This overrides "no hand-painted textures" for characters only (pipeline spec section 1).
 9. (2026-10-29) Hands are mitten blocks with no finger bones; the hand turns to the grip marker and the forearm twist bone takes part of the roll.
 10. (2026-10-29) Outfits carry no cap; headgear (caps, helmets) are separate items worn on the head.
-11. (2026-10-29) The wristwatch is removed from the player model (it did not bend with the hand); the raid-time readout needs a new answer (open item).
+11. (2026-10-29) The wristwatch is removed from the player model (it did not bend with the hand); raid time is read with the O key (2026-11-05).
 
 ## Open items
 
@@ -202,6 +202,5 @@ Full looks are in the Bosses sheet (`Look` column). The one hook each boss is re
 - Headgear items (caps per side, helmets) on the head bone, hidden locally like the head.
 
 - 3D character preview in the hub loadout screen.
-- Check-watch key binding (designer).
 - Greeting lines and dialogue (writing pass).
 - Die Wächter visuals (late, art pass).
