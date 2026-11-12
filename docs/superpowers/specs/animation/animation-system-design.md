@@ -74,7 +74,7 @@ Decided 2026-10-28: the reload and animation system handles only detachable-maga
 
 - A separate first-person arms rig (Call of Duty dual-rig approach): rejected (section 3).
 - Hand-made aiming poses per sight or grip.
-- Ragdoll and death animations (separate spec when needed; current death behaviour stays).
+- Ragdoll and death animations: separate spec, `docs/superpowers/specs/animation/death-ragdoll-design.md`.
 - Facial animation (characters are silent; traders are rendered portraits).
 
 ### Anti-goals
@@ -546,7 +546,7 @@ Claude's calls (designer may change): camera stays the authority with the body s
 
 ## Open items
 
-- Death and ragdoll animation (separate spec).
+- Death and ragdoll: `docs/superpowers/specs/animation/death-ragdoll-design.md`.
 - The catalog value `Prone bulk` for backpacks (a new column in `item_catalog.xlsx`, Backpacks sheet) and which of the Slice backpacks count as large: **the designer will decide this later**; until then the profile bonus stays 0.
 - The foot-drag, prone-thud, fabric and breathing sounds are audio content (GDD §17), with dust particle art per surface.
 - GDD §6 lean rule updated (prone lean exists); the rest of §6 (movement, turning inertia) and the stance input lines get the new rules once built; the footsteps noise table gets the new radii.

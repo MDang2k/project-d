@@ -11,7 +11,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `story/` | story bible (spoilers): core truth, arc and missions, characters, endings, names; story mission framework |
 | `factions/` | faction identities, loadout tiers, bosses, Die Troika; character visuals (player, traders, story and mission characters) |
 | `ai/` | AI combat v2 (perception, under-fire reaction, aim through the gun, personalities, squads, performance); composable actors; combat lab (bot difficulty testing); the Hollowed |
-| `animation/` | animation system: layered graph, socket ADS and grip IK, spring recoil, wall tuck, interruptible reloads |
+| `animation/` | animation system: layered graph, socket ADS and grip IK, spring recoil, wall tuck, interruptible reloads; death, ragdolls and bodies |
 | `audio/` | audio: spatial cues, sound propagation through rooms and portals, ballistic sound, foley, mix |
 | `world/` | world interaction: doors |
 | `ui/` | menus and settings: main menu, pause menu, graphics, audio, controls, gameplay; raid time readout (O key); onboarding hints |
