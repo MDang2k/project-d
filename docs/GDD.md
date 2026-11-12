@@ -440,5 +440,5 @@ Zombies; grenades; malfunctions; full gunsmithing; medium maps; story missions; 
 - Do night raids give better rewards?
 - Paper maps as an in-raid item?
 - Chance-based extraction points?
-- Economy: prices, sell rates, insurance cost.
+- ~~Economy: prices, sell rates, insurance cost.~~ Resolved: `docs/superpowers/specs/economy/economy-balance-design.md` (the catalog is the price scale; targets in standard loadouts).
 - Alien design.

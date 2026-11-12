@@ -15,6 +15,7 @@ Grouped by category. Each spec names its status at the top (approved, implemente
 | `audio/` | audio: spatial cues, sound propagation through rooms and portals, ballistic sound, foley, mix |
 | `world/` | world interaction: doors |
 | `ui/` | menus and settings: main menu, pause menu, graphics, audio, controls, gameplay; raid time readout (O key); onboarding hints |
+| `economy/` | economy and loot balance: one price scale (the catalog), raid income targets, trader specialties, report tool |
 | `art/` | asset pipeline and art direction (used by the model-designer agent) |
 
 New specs go into the matching folder, named `<topic>-design.md` with no date in the file name. The date goes on a `Date: YYYY-MM-DD` line under the title.
