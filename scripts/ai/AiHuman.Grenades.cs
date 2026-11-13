@@ -27,6 +27,21 @@ public partial class AiHuman
 	private Vector3? _pendingDodgeFrom;
 	private readonly System.Collections.Generic.HashSet<ThrownGrenade> _dodged = new();
 
+	private float _blindS;
+	private float _deafS;
+	private float _gasS;
+
+	/// <summary>A flashbang reached this AI (throwables spec s4): it sees almost nothing for a few seconds (acquisition x0.15, aim goes wild) and hears nothing.</summary>
+	public void Stun(float blindS, float deafS)
+	{
+		_blindS = Mathf.Max(_blindS, blindS);
+		_deafS = Mathf.Max(_deafS, deafS);
+		GD.Print($"AI {Name} stunned: blind {blindS:0.0} s, deaf {deafS:0.0} s");
+	}
+
+	/// <summary>Multiplier on this AI's aim error from being blinded or gassed.</summary>
+	private float AimErrorFromStatus() => (_blindS > 0f ? 3f : 1f) * (_gasS > 0f ? GasModel.AimErrorMultiplier : 1f);
+
 	/// <summary>The AI is mid-throw: it stands still and does not shoot.</summary>
 	public bool IsThrowing => _throwLeftS > 0f;
 
@@ -142,6 +157,27 @@ public partial class AiHuman
 	private void GrenadeAwarenessTick(float delta)
 	{
 		_grenadeCooldownS = Mathf.Max(0f, _grenadeCooldownS - delta);
+		_blindS = Mathf.Max(0f, _blindS - delta);
+		_deafS = Mathf.Max(0f, _deafS - delta);
+		_gasS = Mathf.Max(0f, _gasS - delta);
+		if (SmokeCloud.GasCentreAt(GlobalPosition + Vector3.Up * 1.2f) is { } gasAt)
+		{
+			_gasS = 1f; // coughing: aims badly, and gets out of the cloud
+			if (!_fleeing)
+			{
+				_fleeing = true;
+				_fleePoint = FindFleePoint(gasAt);
+			}
+		}
+		foreach (var patch in FirePatch.Active)
+		{
+			var flat = new Vector2(patch.GlobalPosition.X - GlobalPosition.X, patch.GlobalPosition.Z - GlobalPosition.Z).Length();
+			if (flat < patch.RadiusM + 1.5f && !_fleeing)
+			{
+				_fleeing = true; // keeps away from fire
+				_fleePoint = FindFleePoint(patch.GlobalPosition);
+			}
+		}
 		if (_throwLeftS > 0f && (_throwLeftS -= delta) <= 0f)
 			ReleaseAiGrenade();
 		if (_dodgeThreatLeftS > 0f && (_dodgeThreatLeftS -= delta) <= 0f)

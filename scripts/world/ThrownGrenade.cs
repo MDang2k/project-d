@@ -61,6 +61,13 @@ public partial class ThrownGrenade : RigidBody3D
 
 	private void OnBodyEntered(Node body)
 	{
+		if (_spec.ImpactTriggered() && _spec.Kind != GrenadeKind.Distraction && !_detonated)
+		{
+			_detonated = true; // molotov and flare go off where they land
+			GrenadeDetonation.Detonate(this, _spec, GlobalPosition, _thrower, GetRid());
+			QueueFree();
+			return;
+		}
 		if (_spec.Kind == GrenadeKind.Distraction && !_detonated)
 		{
 			_detonated = true;
@@ -85,7 +92,7 @@ public partial class ThrownGrenade : RigidBody3D
 		if (_fuseLeft > 0f)
 			return;
 		_detonated = true;
-		if (_spec.Kind != GrenadeKind.Distraction) // a bottle or rock that never hit anything just disappears
+		if (!_spec.ImpactTriggered()) // an impact item that never hit anything just disappears
 			GrenadeDetonation.Detonate(this, _spec, GlobalPosition, _thrower, GetRid());
 		QueueFree();
 	}

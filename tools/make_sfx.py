@@ -334,6 +334,52 @@ def wind_loop():
     return head
 
 
+def ear_ring():
+    n = int(SR * 4.5)
+    out = []
+    for i in range(n):
+        t = i / SR
+        env = math.exp(-t / 1.8)
+        out.append((math.sin(2 * math.pi * 4100 * t) * 0.6 + math.sin(2 * math.pi * 3300 * t + 1.0) * 0.4) * env)
+    return out
+
+
+def cough(seed):
+    rng = random.Random(seed)
+    parts = []
+    for k in range(3):
+        n = int(SR * (0.09 + 0.03 * k))
+        burst = mul(lowpass(noise(n, rng), 0.25 - 0.04 * k), env_exp(n, 0.05))
+        voice = scale(mul(sine_sweep(n, 220 - 20 * k, 150, 0.06), env_exp(n, 0.06)), 0.5)
+        parts.append(add(burst, voice))
+        parts.append(silence(0.07))
+    return concat(*parts)
+
+
+def fire_crackle():
+    rng = random.Random(41)
+    n = int(SR * 5.0)
+    base = scale(lowpass(noise(n, rng), 0.03), 0.5)
+    pops = [0.0] * n
+    for _ in range(140):
+        at = int(rng.uniform(0.0, 4.9) * SR)
+        ln = int(rng.uniform(0.002, 0.012) * SR)
+        for i in range(ln):
+            if at + i < n:
+                pops[at + i] += rng.uniform(-1, 1) * (1 - i / ln) * rng.uniform(0.3, 1.0)
+    return add(base, pops)
+
+
+def stun_bang():
+    rng = random.Random(51)
+    n = int(SR * 1.6)
+    crack = mul(highpass(noise(n, rng), 0.5), env_exp(n, 0.02))
+    boom = scale(sine_sweep(n, 180, 70, 0.12), 0.8)
+    ring = scale(tone(n, 3800, 0.5), 0.35)
+    dry = add(crack, boom, ring)
+    return add(dry, delay(lowpass(dry, 0.2), 0.12, 0.3, n))
+
+
 def main():
     for i in range(1, 4):
         save(f"shot_rifle_{i}", gunshot(100 + i, True))
@@ -364,6 +410,11 @@ def main():
     save("extract_tick", extract_tick(), peak=0.5)
     save("extract_done", extract_done(), peak=0.6)
     save("wind_loop", wind_loop(), peak=0.6)
+    save("ear_ring", ear_ring(), peak=0.5)
+    save("cough_1", cough(61), peak=0.7)
+    save("cough_2", cough(62), peak=0.7)
+    save("fire_crackle", fire_crackle(), peak=0.7)
+    save("stun_bang", stun_bang(), peak=0.95)
     print("wrote", len(list(OUT.glob("*.wav"))), "files to", OUT)
 
 

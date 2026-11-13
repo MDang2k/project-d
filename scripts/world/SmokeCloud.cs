@@ -22,12 +22,38 @@ public partial class SmokeCloud : Node3D
 
 	public float Radius { get; private set; }
 
+	/// <summary>Tear gas: the same growing cloud, but it hurts the lungs instead of hiding anyone.</summary>
+	public bool IsGas => _spec.Kind == GrenadeKind.Gas;
+
+	/// <summary>How thick the tear gas is at a point, 0 none to 1 at the centre of the thickest cloud.</summary>
+	public static float GasAt(Vector3 point)
+	{
+		var best = 0f;
+		foreach (var cloud in Active)
+		{
+			if (cloud.IsGas)
+				best = Mathf.Max(best, CloudModel.Opacity(cloud.GlobalPosition.DistanceTo(point), cloud.Radius));
+		}
+		return best;
+	}
+
+	/// <summary>The centre of the nearest tear gas cloud that covers a point, or null.</summary>
+	public static Vector3? GasCentreAt(Vector3 point)
+	{
+		foreach (var cloud in Active)
+		{
+			if (cloud.IsGas && cloud.GlobalPosition.DistanceTo(point) < cloud.Radius)
+				return cloud.GlobalPosition;
+		}
+		return null;
+	}
+
 	/// <summary>Whether a sight line from a watcher's eye to a body point runs through any cloud's dense core.</summary>
 	public static bool Blocks(Vector3 from, Vector3 to)
 	{
 		foreach (var cloud in Active)
 		{
-			if (CloudModel.SegmentBlocked(from, to, cloud.GlobalPosition, cloud.Radius))
+			if (!cloud.IsGas && CloudModel.SegmentBlocked(from, to, cloud.GlobalPosition, cloud.Radius))
 				return true;
 		}
 		return false;
@@ -49,13 +75,13 @@ public partial class SmokeCloud : Node3D
 		Active.Add(this);
 		var rng = new RandomNumberGenerator();
 		rng.Randomize();
-		_color = _spec.RandomColor ? Color.FromHsv(rng.Randf(), 0.55f, 0.95f) : _spec.CloudColor ?? new Color(0.82f, 0.84f, 0.85f);
+		_color = IsGas ? new Color(0.72f, 0.82f, 0.3f) : _spec.RandomColor ? Color.FromHsv(rng.Randf(), 0.55f, 0.95f) : _spec.CloudColor ?? new Color(0.82f, 0.84f, 0.85f);
 		_drift = new Vector3(rng.Randf() - 0.5f, 0f, rng.Randf() - 0.5f).Normalized() * 0.2f;
 		_puffs = new Node3D();
 		AddChild(_puffs);
 		var material = new StandardMaterial3D
 		{
-			AlbedoColor = new Color(_color, 0.34f),
+			AlbedoColor = new Color(_color, IsGas ? 0.22f : 0.34f),
 			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
 			CullMode = BaseMaterial3D.CullModeEnum.Disabled,
 			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
@@ -94,7 +120,7 @@ public partial class SmokeCloud : Node3D
 		_puffs.Scale = Vector3.One * Mathf.Max(0.01f, Radius * 1.6f);
 		// the veil: thick when the camera is in the dense part, none outside
 		var veil = 0f;
-		if (GetViewport().GetCamera3D() is { } camera)
+		if (!IsGas && GetViewport().GetCamera3D() is { } camera)
 			veil = CloudModel.Opacity(camera.GlobalPosition.DistanceTo(GlobalPosition), Radius);
 		_veil.Color = new Color(_color, Mathf.Clamp(veil * 1.25f, 0f, 0.96f));
 	}

@@ -25,6 +25,16 @@ public sealed class LockModel
 
 	public event Action? Opened;
 
+	/// <summary>Burned through or broken: opens without a key or code (thermite).</summary>
+	public UnlockResult ForceOpen()
+	{
+		if (State == LockState.Open)
+			return UnlockResult.AlreadyOpen;
+		State = LockState.Open;
+		Opened?.Invoke();
+		return UnlockResult.Opened;
+	}
+
 	/// <summary>A known door code opens the lock (M8d); the code is knowledge, so nothing is used up.</summary>
 	public UnlockResult OpenWithCode()
 	{

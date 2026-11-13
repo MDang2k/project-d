@@ -646,7 +646,7 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 				if (i == 0)
 					centerSeen = true;
 			}
-			var strength = PerceptionModel.VisionStrength(_tuning, distance, angle, profile, visible / points.Length, light);
+			var strength = PerceptionModel.VisionStrength(_tuning, distance, angle, profile, visible / points.Length, light) * (_blindS > 0f ? 0.15f : 1f);
 			if (strength > best)
 			{
 				best = strength;
@@ -660,7 +660,9 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 			LastCue = $"saw {bestName}";
 		}
 
-		// Hearing: every noise since the last tick, loudest wins inside the model.
+		// Hearing: every noise since the last tick, loudest wins inside the model. A flashbang leaves the AI deaf for a few seconds.
+		if (_deafS > 0f)
+			_noises.Clear();
 		foreach (var n in _noises)
 		{
 			var radius = PerceptionEnvironment.EffectiveRadius(n.Radius, WallMaterials(space, n.Position, eye));

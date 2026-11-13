@@ -4,7 +4,7 @@ using Godot;
 
 namespace ProjectD;
 
-public enum GrenadeKind { Frag, Concussion, Smoke, Distraction }
+public enum GrenadeKind { Frag, Concussion, Smoke, Distraction, Stun, Gas, Molotov, Thermite, Flare }
 
 /// <summary>
 /// A frag grenade's numbers (throwables spec s3 and s8), built from <c>GrenadeData</c>. Fragment values: how many are

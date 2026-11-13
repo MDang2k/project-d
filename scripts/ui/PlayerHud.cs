@@ -296,6 +296,10 @@ public partial class HudCanvas : Control
 			tags.Add(("FRACTURE", new Color(0.95f, 0.65f, 0.25f)));
 		if (fx.Pain > 8f && !fx.PainSuppressed)
 			tags.Add(("PAIN", new Color(0.9f, 0.55f, 0.55f)));
+		if (health.IsBurning)
+			tags.Add(("BURNING", new Color(1f, 0.5f, 0.2f)));
+		if (Player.GasSwayMultiplier > 1.1f)
+			tags.Add(("TEAR GAS", new Color(0.8f, 0.85f, 0.4f)));
 		if (Player.Exposure.Level > 0.5f)
 			tags.Add((GameText.Get("exposure.tag", (int)Player.Exposure.Level), new Color(0.6f, 0.85f, 0.9f)));
 		if (Player.Tier >= WeightTier.Heavy)

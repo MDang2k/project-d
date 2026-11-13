@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/items/GrenadeData.cs" id="2"]
+
+[sub_resource type="Resource" id="grenade"]
+script = ExtResource("2")
+Id = "thermite_grenade"
+FuseS = 2.0
+FuseSpreadS = 0.0
+Fragments = 0
+BlastCoreM = 0.0
+BlastDamage = 0.0
+NoiseRadiusM = 40.0
+Kind = 7
+CloudRadiusM = 1.0
+CloudGrowS = 4.0
+CloudLifeS = 20.0
+ImpactNoiseM = 40.0
+
+[resource]
+script = ExtResource("1")
+Id = "thermite_grenade"
+NameKey = "item.thermite_grenade"
+Category = 12
+Width = 1
+Height = 1
+WeightKg = 0.9
+MaxStack = 1
+WeaponClass = 0
+Payload = SubResource("grenade")
+IconColor = Color(0.6, 0.35, 0.25, 1)
+IconLabel = "Therm"
+BaseValue = 7000
+Insurable = true

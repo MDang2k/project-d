@@ -49,6 +49,14 @@ public partial class HealthComponent : Node
 	public List<ArmorState> Armor { get; } = new();
 	public bool IsDead => Body.IsDead;
 
+	private readonly BurnStatus _burn = new();
+
+	/// <summary>Burning (throwables spec s4): in fire and for 3 s after.</summary>
+	public bool IsBurning => _burn.IsBurning;
+
+	/// <summary>Standing in fire this step.</summary>
+	public void Ignite() => _burn.Ignite();
+
 	public event Action<HitResult>? HitTaken;
 	/// <summary>A bullet or a melee blow from another character landed (not falls, mines, bleeding or hunger).</summary>
 	public event Action<HitResult>? EnemyHitTaken;
@@ -124,6 +132,12 @@ public partial class HealthComponent : Node
 		EnsureState();
 		_medical!.Update((float)delta);
 		_effects!.Update((float)delta, Body);
+		if (_burn.IsBurning && !Body.IsDead)
+		{
+			foreach (var (part, damage) in _burn.Update((float)delta))
+				Body.TakeDamage(part, damage);
+			_effects.AddPain(8f * (float)delta);
+		}
 		_consumables!.Update((float)delta);
 		var injured = _effects.Fractures.Count > 0 || _effects.BleedingParts.Any();
 		var starvation = _vitals!.Update((float)delta, new VitalsActivity(Sprinting, HeavyLoad, injured));

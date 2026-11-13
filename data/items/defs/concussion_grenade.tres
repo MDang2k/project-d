@@ -18,6 +18,8 @@ BlastDamage = 60.0
 BlastTier = 2
 NoiseRadiusM = 150.0
 ThrowSpeedMult = 1.0
+Kind = 1
+CloudRadiusM = 6.0
 
 [resource]
 script = ExtResource("1")

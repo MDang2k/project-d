@@ -505,7 +505,7 @@ public partial class AiHuman
 			var ads = position.DistanceTo(_aimPoint) > 10f ? 1f : 0f;
 			_motor.Shot(gun.RecoilTuning, HandlingModel.RecoilMultiplier(Handling, PerceivedStance, ads));
 		}
-		_motor.ErrorScale = (_blindFiring ? S(Stats.Cover.BlindErrorMult) : 1f) * (1f + 0.7f - S(Stats.Aim.Consistency));
+		_motor.ErrorScale = (_blindFiring ? S(Stats.Cover.BlindErrorMult) : 1f) * (1f + 0.7f - S(Stats.Aim.Consistency)) * AimErrorFromStatus();
 		var dir = _motor.Direction(position, _aimPoint);
 		// the gun and ammo themselves, in MOA, on top of the shooter's aim
 		dir = Dispersion.Apply(dir, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), () => (float)_rng.NextDouble());

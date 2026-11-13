@@ -70,6 +70,9 @@ public sealed class StatusEffects
 	/// <summary>Seconds of morphine left; pain effects are suppressed while above 0.</summary>
 	public float MorphineLeft { get; private set; }
 	public bool PainSuppressed => MorphineLeft > 0f;
+
+	/// <summary>Pain that does not come from a hit (fire).</summary>
+	public void AddPain(float amount) => Pain = Math.Min(_t.MaxPain, Pain + amount);
 	public float HealPoolLeft => _healPool;
 
 	public BleedLevel Bleed(BodyPart part) => _bleed.TryGetValue(part, out var b) ? b : BleedLevel.None;

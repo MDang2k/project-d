@@ -21,10 +21,14 @@ public partial class LockedDoor : StaticBody3D
 	/// <summary>Knowledge effect id (lock.&lt;id&gt;) of this door's code; when known, the door opens by code with no key (M8d).</summary>
 	[Export] public string CodeKnowledgeId { get; set; } = "";
 
+	/// <summary>Boss key spots and story doors cannot be burned through (throwables spec s5).</summary>
+	[Export] public bool ThermiteProof { get; set; }
+
 	/// <summary>Seconds to key in a known code.</summary>
 	public const float CodeEntryS = 2f;
 
 	private LockModel _lock = null!;
+	private ThermiteLock _thermite = null!;
 	private float _codeLeft;
 	private Player? _codePlayer;
 
@@ -36,6 +40,13 @@ public partial class LockedDoor : StaticBody3D
 	{
 		_lock = new LockModel(KeyId, SingleUse);
 		_lock.Opened += OnOpened;
+		_thermite = new ThermiteLock(ThermiteProof);
+		_thermite.Noise += () => NoiseBus.Emit(GlobalPosition, 30f, "thermite", this);
+		_thermite.BurnedThrough += () =>
+		{
+			GD.Print($"LOCK {Name}: burned through");
+			_lock.ForceOpen();
+		};
 		if (Engine.IsEditorHint())
 			return;
 		AddToGroup("locked_doors");
@@ -78,8 +89,18 @@ public partial class LockedDoor : StaticBody3D
 		return result;
 	}
 
+	/// <summary>Thermite beside the door: it burns open after about 20 s, loud and bright. False for a proof or open door.</summary>
+	public bool StartBurn()
+	{
+		if (IsOpen || !_thermite.Start())
+			return false;
+		GD.Print($"LOCK {Name}: thermite started");
+		return true;
+	}
+
 	public override void _Process(double delta)
 	{
+		_thermite.Update((float)delta);
 		if (_codeLeft <= 0f || _codePlayer is not { } player)
 			return;
 		if (!IsInstanceValid(player) || player.GlobalPosition.DistanceTo(GlobalPosition) > 3.5f || player.IsDead)

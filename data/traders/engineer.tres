@@ -215,9 +215,29 @@ script = ExtResource("2")
 ItemId = "signal_flare"
 PriceMultiplier = 1.0
 
+[sub_resource type="Resource" id="k0_thermite_grenade"]
+script = ExtResource("2")
+ItemId = "thermite_grenade"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k1_thermite_grenade"]
+script = ExtResource("2")
+ItemId = "thermite_grenade"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k2_thermite_grenade"]
+script = ExtResource("2")
+ItemId = "thermite_grenade"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k3_thermite_grenade"]
+script = ExtResource("2")
+ItemId = "thermite_grenade"
+PriceMultiplier = 1.0
+
 [sub_resource type="Resource" id="lv0"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("fl0"), SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11"), SubResource("s0_12"), SubResource("s0_13"), SubResource("s0_14"), SubResource("s0_15"), SubResource("s0_16"), SubResource("s0_17"), SubResource("s0_18"), SubResource("s0_19"), SubResource("s0_20"), SubResource("s0_21"), SubResource("s0_22"), SubResource("s0_23"), SubResource("s0_24"), SubResource("s0_25"), SubResource("s0_26"), SubResource("s0_27"), SubResource("s0_28"), SubResource("s0_29"), SubResource("s0_30"), SubResource("s0_31"), SubResource("s0_32"), SubResource("s0_33"), SubResource("s0_34")])
+Sells = Array[ExtResource("2")]([SubResource("k0_thermite_grenade"), SubResource("fl0"), SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4"), SubResource("s0_5"), SubResource("s0_6"), SubResource("s0_7"), SubResource("s0_8"), SubResource("s0_9"), SubResource("s0_10"), SubResource("s0_11"), SubResource("s0_12"), SubResource("s0_13"), SubResource("s0_14"), SubResource("s0_15"), SubResource("s0_16"), SubResource("s0_17"), SubResource("s0_18"), SubResource("s0_19"), SubResource("s0_20"), SubResource("s0_21"), SubResource("s0_22"), SubResource("s0_23"), SubResource("s0_24"), SubResource("s0_25"), SubResource("s0_26"), SubResource("s0_27"), SubResource("s0_28"), SubResource("s0_29"), SubResource("s0_30"), SubResource("s0_31"), SubResource("s0_32"), SubResource("s0_33"), SubResource("s0_34")])
 BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
 BuyMultiplier = 1.25
 SellFraction = 0.5
@@ -299,7 +319,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv1"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("fl1"), SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3"), SubResource("s1_4"), SubResource("s1_5"), SubResource("s1_6"), SubResource("s1_7"), SubResource("s1_8"), SubResource("s1_9"), SubResource("s1_10"), SubResource("s1_11")])
+Sells = Array[ExtResource("2")]([SubResource("k1_thermite_grenade"), SubResource("fl1"), SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3"), SubResource("s1_4"), SubResource("s1_5"), SubResource("s1_6"), SubResource("s1_7"), SubResource("s1_8"), SubResource("s1_9"), SubResource("s1_10"), SubResource("s1_11")])
 BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
 BuyMultiplier = 1.2
 SellFraction = 0.55
@@ -381,7 +401,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv2"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("fl2"), SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3"), SubResource("s2_4"), SubResource("s2_5"), SubResource("s2_6"), SubResource("s2_7"), SubResource("s2_8"), SubResource("s2_9"), SubResource("s2_10"), SubResource("s2_11")])
+Sells = Array[ExtResource("2")]([SubResource("k2_thermite_grenade"), SubResource("fl2"), SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3"), SubResource("s2_4"), SubResource("s2_5"), SubResource("s2_6"), SubResource("s2_7"), SubResource("s2_8"), SubResource("s2_9"), SubResource("s2_10"), SubResource("s2_11")])
 BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
 BuyMultiplier = 1.15
 SellFraction = 0.6
@@ -463,7 +483,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv3"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("fl3"), SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3"), SubResource("s3_4"), SubResource("s3_5"), SubResource("s3_6"), SubResource("s3_7"), SubResource("s3_8"), SubResource("s3_9"), SubResource("s3_10"), SubResource("s3_11")])
+Sells = Array[ExtResource("2")]([SubResource("k3_thermite_grenade"), SubResource("fl3"), SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3"), SubResource("s3_4"), SubResource("s3_5"), SubResource("s3_6"), SubResource("s3_7"), SubResource("s3_8"), SubResource("s3_9"), SubResource("s3_10"), SubResource("s3_11")])
 BuyCategories = PackedStringArray("Magazine", "Ammo", "Melee")
 BuyMultiplier = 1.1
 SellFraction = 0.65

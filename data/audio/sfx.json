@@ -39,6 +39,10 @@
     "glass_break":   { "files": ["impact_metal_1", "impact_concrete_1"], "db": 0, "pitch": 0.2, "maxDistance": 120, "unit": 14 },
     "rock_hit":      { "files": ["impact_dirt_1", "impact_concrete_2"], "db": -2, "pitch": 0.15, "maxDistance": 60, "unit": 8 },
     "smoke_hiss":    { "files": ["flare_fire"], "db": -8, "pitch": 0.1, "maxDistance": 80, "unit": 10 },
+    "ear_ring":      { "files": ["ear_ring"], "db": -6, "pitch": 0.0, "bus": "UI" },
+    "cough":         { "files": ["cough_1", "cough_2"], "db": -4, "pitch": 0.1, "maxDistance": 30, "unit": 5 },
+    "fire_crackle":  { "files": ["fire_crackle"], "db": -6, "pitch": 0.05, "maxDistance": 50, "unit": 8 },
+    "stun_bang":     { "files": ["stun_bang"], "db": 0, "pitch": 0.03, "maxDistance": 400, "unit": 40 },
     "ambient_wind": { "files": ["wind_loop"], "db": -14, "pitch": 0.0, "bus": "Ambient" }
   }
 }

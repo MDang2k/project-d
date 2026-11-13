@@ -22,6 +22,44 @@ public partial class Player
 	private float _windS;
 	private float _pinBackLeft;
 
+	private float _gasLevel;
+	private float _coughLeftS;
+
+	/// <summary>Where the camera looks, for effects that depend on facing (the flashbang).</summary>
+	public Vector3 ViewForward => -_camera.GlobalBasis.Z;
+
+	/// <summary>Weapon sway multiplier from tear gas (x2.5 in the thick of it).</summary>
+	public float GasSwayMultiplier => GasModel.SwayMultiplier(_gasLevel);
+
+	/// <summary>A flashbang reached the player: the white-out (looking away halves it) and the ringing deafness.</summary>
+	public void ApplyStun(float strength, float blindS, float deafS)
+	{
+		if (ScreenEffects.Get(this) is not { } fx)
+			return;
+		fx.WhiteOut(Mathf.Clamp(strength * 1.4f, 0.3f, 1f), blindS);
+		fx.Deafen(deafS);
+		GD.Print($"STUN player: strength {strength:0.00}, white-out {blindS:0.0} s, deaf {deafS:0.0} s");
+	}
+
+	/// <summary>Tear gas and fire on the player each physics step: sway, blur, stamina, coughing and the burn edge.</summary>
+	private void UpdateGrenadeStatus(float delta)
+	{
+		var gas = SmokeCloud.GasAt(GlobalPosition + Vector3.Up * 1.5f);
+		_gasLevel = Mathf.MoveToward(_gasLevel, gas, delta * 2f);
+		var fx = ScreenEffects.Get(this);
+		fx?.SetGas(_gasLevel);
+		fx?.SetBurn(Health.IsBurning ? 0.85f : 0f);
+		if (_gasLevel <= 0.05f)
+			return;
+		Legs.Spend(GasModel.StaminaDrainPerS * _gasLevel * delta);
+		if ((_coughLeftS -= delta) <= 0f)
+		{
+			_coughLeftS = 2.5f;
+			NoiseBus.Emit(GlobalPosition, GasModel.CoughNoiseM, "cough", this);
+			Sfx.Play3D(this, "cough", GlobalPosition);
+		}
+	}
+
 	/// <summary>A grenade is in the hand (the gun is put away).</summary>
 	public bool GrenadeInHand => _fuse is not null;
 
@@ -115,7 +153,7 @@ public partial class Player
 			_winding = true;
 			_windUnderhand = aimPressed && !firePressed;
 			_windS = 0f;
-			if (_grenadeSpec.Kind != GrenadeKind.Distraction)
+			if (!_grenadeSpec.ImpactTriggered())
 			{
 				NoiseBus.Emit(GlobalPosition, _cfg.GrenadePinNoiseM, "grenade_pin", this);
 				Sfx.Play3D(this, "grenade_pin", GlobalPosition);
@@ -126,7 +164,7 @@ public partial class Player
 		if (!_winding)
 			return;
 		_windS += delta;
-		if (Input.IsActionJustPressed("reload") && _grenadeSpec.Kind != GrenadeKind.Distraction && _fuse.Cook())
+		if (Input.IsActionJustPressed("reload") && !_grenadeSpec.ImpactTriggered() && _fuse.Cook())
 		{
 			NoiseBus.Emit(GlobalPosition, _cfg.GrenadeSpoonNoiseM, "grenade_spoon", this);
 			Sfx.Play3D(this, "grenade_spoon", GlobalPosition);
@@ -217,6 +255,23 @@ public partial class Player
 	private static void Freeze(AiHuman bot) => AiHuman.Paused = true;
 
 	/// <summary>Dev (--aithrow): the nearest bot throws a frag at the player from 20 m, and a second bot stands by to dodge it.</summary>
+	/// <summary>Dev (--thermitedoor): thermite burns beside the first locked door; prints when it opens.</summary>
+	private async void DevThermiteDoor()
+	{
+		await ToSignal(GetTree().CreateTimer(2.0), SceneTreeTimer.SignalName.Timeout);
+		if (GetTree().GetNodesInGroup("locked_doors").OfType<LockedDoor>().FirstOrDefault() is not { } door || ItemDb.Data("thermite_grenade")?.Payload is not GrenadeData data)
+			return;
+		DebugTeleport(door.GlobalPosition + new Vector3(0f, 0f, 7f));
+		FirePatch.Spawn(this, data.ToSpec(), door.GlobalPosition + new Vector3(0f, -1f, 1.2f));
+		var waited = 0f;
+		while (!door.IsOpen && waited < 30f)
+		{
+			await ToSignal(GetTree().CreateTimer(1.0), SceneTreeTimer.SignalName.Timeout);
+			waited += 1f;
+		}
+		GD.Print($"THERMITE dev: door {door.Name} open={door.IsOpen} after {waited:0} s (proof={door.ThermiteProof})");
+	}
+
 	private async void DevAiThrow()
 	{
 		await ToSignal(GetTree().CreateTimer(2.5), SceneTreeTimer.SignalName.Timeout);
@@ -234,6 +289,11 @@ public partial class Player
 
 	private async void StartGrenadeDev()
 	{
+		if (OS.GetCmdlineUserArgs().Contains("--thermitedoor"))
+		{
+			DevThermiteDoor();
+			return;
+		}
 		if (OS.GetCmdlineUserArgs().Contains("--aithrow"))
 		{
 			DevAiThrow();

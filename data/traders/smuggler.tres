@@ -52,9 +52,69 @@ GiveCounts = PackedInt32Array(2, 1)
 GetId = "prototype_vest_t4"
 GetCount = 1
 
+[sub_resource type="Resource" id="k0_stun_grenade_prototype"]
+script = ExtResource("2")
+ItemId = "stun_grenade_prototype"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k0_tear_gas_grenade"]
+script = ExtResource("2")
+ItemId = "tear_gas_grenade"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k0_molotov_cocktail"]
+script = ExtResource("2")
+ItemId = "molotov_cocktail"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k1_stun_grenade_prototype"]
+script = ExtResource("2")
+ItemId = "stun_grenade_prototype"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k1_tear_gas_grenade"]
+script = ExtResource("2")
+ItemId = "tear_gas_grenade"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k1_molotov_cocktail"]
+script = ExtResource("2")
+ItemId = "molotov_cocktail"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k2_stun_grenade_prototype"]
+script = ExtResource("2")
+ItemId = "stun_grenade_prototype"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k2_tear_gas_grenade"]
+script = ExtResource("2")
+ItemId = "tear_gas_grenade"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k2_molotov_cocktail"]
+script = ExtResource("2")
+ItemId = "molotov_cocktail"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k3_stun_grenade_prototype"]
+script = ExtResource("2")
+ItemId = "stun_grenade_prototype"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k3_tear_gas_grenade"]
+script = ExtResource("2")
+ItemId = "tear_gas_grenade"
+PriceMultiplier = 1.0
+
+[sub_resource type="Resource" id="k3_molotov_cocktail"]
+script = ExtResource("2")
+ItemId = "molotov_cocktail"
+PriceMultiplier = 1.0
+
 [sub_resource type="Resource" id="lv0"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4")])
+Sells = Array[ExtResource("2")]([SubResource("k0_stun_grenade_prototype"), SubResource("k0_tear_gas_grenade"), SubResource("k0_molotov_cocktail"), SubResource("s0_0"), SubResource("s0_1"), SubResource("s0_2"), SubResource("s0_3"), SubResource("s0_4")])
 BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
 BuyMultiplier = 1.25
 SellFraction = 0.3
@@ -103,7 +163,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv1"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3")])
+Sells = Array[ExtResource("2")]([SubResource("k1_stun_grenade_prototype"), SubResource("k1_tear_gas_grenade"), SubResource("k1_molotov_cocktail"), SubResource("s1_0"), SubResource("s1_1"), SubResource("s1_2"), SubResource("s1_3")])
 BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
 BuyMultiplier = 1.2
 SellFraction = 0.35
@@ -152,7 +212,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv2"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3")])
+Sells = Array[ExtResource("2")]([SubResource("k2_stun_grenade_prototype"), SubResource("k2_tear_gas_grenade"), SubResource("k2_molotov_cocktail"), SubResource("s2_0"), SubResource("s2_1"), SubResource("s2_2"), SubResource("s2_3")])
 BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
 BuyMultiplier = 1.15
 SellFraction = 0.4
@@ -201,7 +261,7 @@ GetCount = 1
 
 [sub_resource type="Resource" id="lv3"]
 script = ExtResource("4")
-Sells = Array[ExtResource("2")]([SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3")])
+Sells = Array[ExtResource("2")]([SubResource("k3_stun_grenade_prototype"), SubResource("k3_tear_gas_grenade"), SubResource("k3_molotov_cocktail"), SubResource("s3_0"), SubResource("s3_1"), SubResource("s3_2"), SubResource("s3_3")])
 BuyCategories = PackedStringArray("Weapon", "Armor", "Helmet", "Ammo")
 BuyMultiplier = 1.1
 SellFraction = 0.45

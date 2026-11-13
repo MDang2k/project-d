@@ -1165,7 +1165,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 			_aim.Amount, IsHoldingBreath, _support.RestAmount, _support.BipodDeployed);
 		SwayAmplitudeDeg = HandlingModel.SwayAmplitude(_handling,
 				weapon.Data.SwayBaseDeg * weapon.Stats.SwayMult * ergo.SwayMult(ergonomics), ctx)
-			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier * _pivotModel.SwayBoost * Exposure.SwayMultiplier;
+			* _penalties.SwayMultiplier * Health.Vitals.SwayMultiplier * _pivotModel.SwayBoost * Exposure.SwayMultiplier * GasSwayMultiplier;
 		var sway = _swayModel.Update(delta, SwayAmplitudeDeg);
 		var (posOffset, rotDeg) = UpdateActionPose(delta, weapon);
 		_swayNode.Rotation = new Vector3(Mathf.DegToRad(sway.Y + rotDeg.X), Mathf.DegToRad(sway.X + rotDeg.Y),
@@ -1533,6 +1533,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		UpdateInteract();
 		UpdateQuickUse();
 		UpdateGrenadeInHand(delta);
+		UpdateGrenadeStatus(delta);
 		UpdateWeaponInput();
 		_transition.Update(delta);
 		UpdateMelee(delta);
