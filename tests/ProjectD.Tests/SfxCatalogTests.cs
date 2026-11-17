@@ -75,3 +75,30 @@ public class SfxCatalogTests
 	public void ParseRejectsAnEventWithoutFiles()
 		=> Assert.Throws<FormatException>(() => SfxCatalog.Parse("{\"events\":{\"a\":{\"files\":[]}}}"));
 }
+
+public class ShotSoundsTests
+{
+	[Theory]
+	[InlineData("7.62x39", false, "shot_762x39")]
+	[InlineData("7.62x51", false, "shot_762x51")]
+	[InlineData("7.92x57", false, "shot_762x54r")]
+	[InlineData("280 British", false, "shot_556")]
+	[InlineData("5.56x45", false, "shot_556")]
+	[InlineData(".22LR", false, "shot_22lr")]
+	[InlineData("9x19", true, "shot_pistol")]
+	[InlineData("12 gauge", false, "shot_rifle")]
+	[InlineData(null, false, "shot_rifle")]
+	public void CaliberPicksTheShotSound(string? caliber, bool pistol, string expected)
+		=> Assert.Equal(expected, ShotSounds.EventFor(caliber, pistol));
+
+	[Fact]
+	public void EveryShotEventExistsInTheCatalog()
+	{
+		var dir = new System.IO.DirectoryInfo(System.AppContext.BaseDirectory);
+		while (!System.IO.File.Exists(System.IO.Path.Combine(dir.FullName, "project.godot")))
+			dir = dir.Parent!;
+		var catalog = SfxCatalog.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(dir.FullName, "data/audio/sfx.json")));
+		foreach (var e in new[] { "shot_762x39", "shot_556", "shot_762x51", "shot_762x54r", "shot_22lr", "shot_pistol", "shot_rifle", "mag_out_pistol", "mag_in_pistol", "bolt_rack_pistol", "dry_fire_pistol", "chamber_check", "bipod_deploy", "bipod_fold" })
+			Assert.NotNull(catalog.Event(e));
+	}
+}

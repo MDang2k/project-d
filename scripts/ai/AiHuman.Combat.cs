@@ -510,7 +510,7 @@ public partial class AiHuman
 		// the gun and ammo themselves, in MOA, on top of the shooter's aim
 		dir = Dispersion.Apply(dir, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), () => (float)_rng.NextDouble());
 		_projectiles.Spawn(ammo, position, dir, GetRid(), _ownRids);
-		Sfx.Play3D(this, Weapon?.Item?.Spec.WeaponClass == WeaponClass.Pistol ? "shot_pistol" : "shot_rifle", position);
+		Sfx.Play3D(this, ShotSounds.EventFor(Weapon?.Data.Ammo?.Caliber, Weapon?.Data.Ammo?.Caliber == "9x19" || Weapon?.Item?.Spec.WeaponClass == WeaponClass.Pistol), position);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 	}
 

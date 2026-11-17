@@ -839,7 +839,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		weapon.DryFired += () =>
 		{
 			WeaponMessage?.Invoke(GameText.Get("msg.weapon.click"));
-			Sfx.Play3D(this, "dry_fire", weapon.GlobalPosition);
+			Sfx.Play3D(this, WeaponSfx("dry_fire"), weapon.GlobalPosition);
 			NoiseBus.Emit(weapon.GlobalPosition, PerceptionEnvironment.CueRadius("dry_click"), "dry_click", this);
 		};
 		weapon.Controller.MagChecked += r =>
@@ -852,11 +852,16 @@ public partial class Player : CharacterBody3D, IPerceivable
 		weapon.Controller.ChamberChecked += loaded =>
 		{
 			_skills.ChamberChecked();
+			Sfx.Play3D(this, "chamber_check", weapon.GlobalPosition);
 			WeaponMessage?.Invoke(GameText.Get(loaded ? "msg.chamber.loaded" : "msg.chamber.empty"));
 		};
 		weapon.Controller.MagazineDropped += m => OnMagazineDropped(weapon, m);
 		_body.AttachHeldItem(weapon);
 	}
+
+	/// <summary>A weapon sound event, in its pistol version when the held weapon is a pistol and the catalog has one.</summary>
+	private string WeaponSfx(string baseEvent)
+		=> Weapon?.Item?.Spec.WeaponClass == WeaponClass.Pistol && Sfx.Catalog.Event(baseEvent + "_pistol") is not null ? baseEvent + "_pistol" : baseEvent;
 
 	private void OnShotFired(AmmoType ammo, Vector3 position, Vector3 direction)
 	{
@@ -870,7 +875,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		// the gun itself: bullet dispersion in MOA, tightened or widened by the barrel parts and the ammo
 		direction = Dispersion.Apply(direction, Dispersion.FinalMoa(Weapon?.Stats.Moa ?? 4f, 0f, ammo.Dispersion), GD.Randf);
 		_projectiles?.Spawn(fired, position, direction, GetRid(), _ownRids);
-		Sfx.Play3D(this, Weapon?.Item?.Spec.WeaponClass == WeaponClass.Pistol ? "shot_pistol" : "shot_rifle", position);
+		Sfx.Play3D(this, ShotSounds.EventFor(Weapon?.Data.Ammo?.Caliber, Weapon?.Item?.Spec.WeaponClass == WeaponClass.Pistol), position);
 		NoiseBus.Emit(position, Weapon?.NoiseRadius ?? 150f, "gunshot", this);
 		if (Weapon is { } w)
 		{
@@ -950,6 +955,7 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (_support.BipodDeployed)
 		{
 			_support.FoldBipod();
+			Sfx.Play3D(this, "bipod_fold", weapon.GlobalPosition);
 			weapon.BipodDeployed = false;
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.folded"));
 			return;
@@ -957,7 +963,10 @@ public partial class Player : CharacterBody3D, IPerceivable
 		if (!weapon.HasBipod)
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.none"));
 		else if (_support.TryDeployBipod(true, Stance, _muzzleSurface, Rotation.Y))
+		{
+			Sfx.Play3D(this, "bipod_deploy", weapon.GlobalPosition);
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.deployed"));
+		}
 		else
 			WeaponMessage?.Invoke(GameText.Get("msg.bipod.no_surface"));
 		weapon.BipodDeployed = _support.BipodDeployed;
@@ -1247,13 +1256,13 @@ public partial class Player : CharacterBody3D, IPerceivable
 			switch (phase)
 			{
 				case ReloadPhase.MagDetach:
-					Sfx.Play3D(this, "mag_out", weapon.GlobalPosition);
+					Sfx.Play3D(this, WeaponSfx("mag_out"), weapon.GlobalPosition);
 					break;
 				case ReloadPhase.MagInsert:
-					Sfx.Play3D(this, "mag_in", weapon.GlobalPosition);
+					Sfx.Play3D(this, WeaponSfx("mag_in"), weapon.GlobalPosition);
 					break;
 				case ReloadPhase.BoltRack:
-					Sfx.Play3D(this, "bolt_rack", weapon.GlobalPosition);
+					Sfx.Play3D(this, WeaponSfx("bolt_rack"), weapon.GlobalPosition);
 					break;
 			}
 			_lastReloadPhase = phase;
