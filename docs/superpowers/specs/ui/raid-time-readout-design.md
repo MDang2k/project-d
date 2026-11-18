@@ -38,4 +38,4 @@ Status: approved design, not implemented. Replaces the wristwatch design (charac
 
 ## Open items
 
-- A double press to list known extracts (Tarkov's double O) is not part of this; ask the designer if wanted.
+- A double press to list known extracts (Tarkov's double O) is not part of this; closed 2026-11-18: the paper map item covers learning extracts (`docs/superpowers/specs/maps/paper-maps-chance-extracts-design.md`).

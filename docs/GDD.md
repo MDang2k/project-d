@@ -316,7 +316,7 @@ Each ending needs its own final mission(s). A fourth, hidden ending exists (see 
 
 - **Raid timer:** first map 20 minutes **(tune)**; medium maps 30+ minutes.
 - **Spawns:** random spawn point from a set per map.
-- **Extraction points:** 3–4 per map. Types: always open, conditional (requires item or payment), and possibly chance-based (TBD). Extracting takes a few seconds standing in the zone.
+- **Extraction points:** 3–4 per map. Types: always open, conditional (requires item or payment), and chance-based (rolled at raid start, found out on site; paper maps and chance extracts spec). Extracting takes a few seconds standing in the zone.
 - **Timer expires:** counts as MIA = death outcome.
 - **Reading the time:** no permanent timer. Pressing O (rebindable) shows the raid time left for a few seconds (raid time readout spec, `docs/superpowers/specs/ui/raid-time-readout-design.md`).
 - **Death:** lose everything except secure container contents.
@@ -388,7 +388,7 @@ Audio carries much of the information the HUD does not.
 
 ## 18. UI and HUD
 
-- **In raid:** no ammo counter, no crosshair, no minimap, no compass. Status icons (bleeding, fracture, pain, overweight, hungry, thirsty) appear only when active. Brief indicators when stance or fire mode changes. Orientation comes from landmarks, the sun and extraction knowledge.
+- **In raid:** no ammo counter, no crosshair, no minimap, no compass. Status icons (bleeding, fracture, pain, overweight, hungry, thirsty) appear only when active. Brief indicators when stance or fire mode changes. Orientation comes from landmarks, the sun, extraction knowledge and the paper map item (opened, not on the HUD).
 - **Health screen:** body silhouette with per-limb HP, opened from the inventory.
 - **Hub:** menu screens for stash, traders, quests, insurance, character (skills, reputation).
 - **Readability:** clear item icons; tooltips with weight, size and key stats.
@@ -438,7 +438,7 @@ Zombies; grenades; malfunctions; full gunsmithing; medium maps; story missions; 
 
 - Minimum CPU for the performance target.
 - Do night raids give better rewards?
-- Paper maps as an in-raid item?
-- Chance-based extraction points?
+- ~~Paper maps as an in-raid item?~~ Resolved: `docs/superpowers/specs/maps/paper-maps-chance-extracts-design.md` (one map item per raid map, shows your position and every extract).
+- ~~Chance-based extraction points?~~ Resolved: same spec (rolled at raid start, seen on site through a cue).
 - ~~Economy: prices, sell rates, insurance cost.~~ Resolved: `docs/superpowers/specs/economy/economy-balance-design.md` (the catalog is the price scale; targets in standard loadouts).
 - Alien design.
