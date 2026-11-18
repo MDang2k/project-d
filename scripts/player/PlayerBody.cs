@@ -167,9 +167,18 @@ public partial class PlayerBody : Node3D
 	/// </summary>
 	private Skeleton3D? LoadModelSkeleton(PlayerSide side)
 	{
-		var body = LoadCharacter("player_body");
-		// ponytail: no Soviet outfit model yet, so the Soviet side keeps the placeholder until it exists.
-		var outfit = LoadCharacter($"player_outfit_{side.ToString().ToLowerInvariant()}");
+		var sideId = side.ToString().ToLowerInvariant();
+		// The overlapping-boxes body and its Solidify outfit (tools/export_characters.py) come as a pair per side;
+		// without both, the earlier skinned body is used. The AI looters still use the earlier body.
+		var body = LoadCharacter($"boxes_body_{sideId}");
+		var outfit = body is null ? null : LoadCharacter($"boxes_outfit_{sideId}");
+		if (body is null || outfit is null)
+		{
+			body?.Free();
+			outfit?.Free();
+			body = LoadCharacter("player_body");
+			outfit = LoadCharacter($"player_outfit_{sideId}");
+		}
 		if (body is null || outfit is null)
 		{
 			body?.Free();
