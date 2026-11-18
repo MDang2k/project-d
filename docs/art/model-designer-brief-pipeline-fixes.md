@@ -2,7 +2,7 @@
 
 Date: 2026-11-12
 
-For: the `model-designer` agent (`.claude/agents/model-designer.md`). Bring every existing asset in line with the asset pipeline revisions of 2026-11-11 (`docs/superpowers/specs/art/asset-pipeline-art-direction-design.md`: sections 1 "Shading", 2 "Automatic LOD", 3 marker scale, 4 custom properties and "Character rig and skinning", 6 palette, filtering, gutters, glTF export, 8 "Also checked"). Read those sections first.
+For: the `model-designer` agent (`.claude/agents/model-designer.md`). Bring every existing asset in line with the asset pipeline revisions of 2026-11-11 (`docs/superpowers/specs/art/asset-pipeline-art-direction-design.md`: sections 1 "Shading", 2 "Automatic LOD", 3 marker scale, 4 custom properties and "Character body: overlapping rigid boxes" (revised 2026-11-16), 6 palette, filtering, gutters, glTF export, 8 "Also checked"). Read those sections first.
 
 No new assets in this job: only fixes and re-exports. Follow your usual rules: inspect the open Blender scene first, never delete objects you did not make without asking, load every change into the designer's live Blender window, commit only your own asset files in small commits, check `git status` first.
 
@@ -11,7 +11,7 @@ No new assets in this job: only fixes and re-exports. Follow your usual rules: i
 1. **`grip_pose` missing:** `fal_type.glb` and `fal_handguard_std.glb` were exported without custom properties, so the game never sees their support-hand grip pose. Only `makarov_pm.glb` carries extras.
 2. **Embedded palette copies:** every exported model carries its own copy of the palette (`fal_type_palette.png`, `makarov_pm_palette.png`, and one per item and part: 82 embedded textures across 78 models).
 3. **Automatic LOD on everything:** all 78 `.glb` imports have LOD generation on, including items of a few dozen triangles.
-4. **Unchecked:** marker scale, shading style, and character bone weights have never been audited against the new rules.
+4. **Unchecked:** marker scale and shading style have never been audited against the new rules. Characters changed on 2026-11-16 to overlapping rigid boxes (`base_character_v2_boxes.blend`, Solidify outfit shells); the old `player_body.glb` and outfit `.glb` files in the game are still the previous skinned body.
 
 ## Part A: your job (Blender)
 
@@ -25,7 +25,7 @@ For each asset:
 3. **Shading:** smooth shading with sharp edges (smooth by angle about 30°, plus manual sharp edges where a crease must read). Replace per-face flat shading where you find it. Report the before and after vertex count for weapons.
 4. **One palette material:** each asset uses exactly one material named `palette` whose image is the shared `assets/textures/palette.png` (the same file, not a copy). UV islands sit centred in their swatch, at least 4 px from the next colour family. The `.glb` format still embeds the image; Part B replaces it in Godot.
    - Pixel-art atlas assets (characters, ammo box labels) keep their own atlas material; the rule is the same: one shared atlas file, not copies.
-5. **Characters:** bone weights are one bone per vertex for every box segment, with narrow blended rings only at the shoulders, hips and forearm twist. Fix any soft weights elsewhere.
+5. **Characters:** export the boxes body (`base_character_v2_boxes.blend`) as `player_body.glb` and the Solidify outfits (`outfit_allied_solidify.blend`, `outfit_soviet_solidify.blend`) as `player_outfit_<side>.glb`, each box and shell skinned 100% to its own bone (no blended vertices), Solidify and Mirror applied on export. List the rig's bone names against the game's list (`scripts/player/PlayerBody.cs`, character visuals spec "Rig") and flag any that differ instead of renaming them.
 6. **Triangle count:** list every asset's triangle count. Assets under 600 triangles get LOD turned off in Part B.
 7. **Preview:** re-render `assets/source/<category>/<id>_preview.png` after the fixes.
 
@@ -40,8 +40,8 @@ CLAUDE.md forbids hand-editing `.import` files, so these are done in the Godot e
 
 ## Report back to the designer
 
-One table, one row per asset: id, triangles, markers fixed (scale), `grip_pose` present (weapons and handguards), shading changed (yes/no, vertices before and after), material (palette or atlas), weights fixed (characters), commit. Then the Part B list of assets under 600 triangles. Flag anything you were unsure about instead of guessing.
+One table, one row per asset: id, triangles, markers fixed (scale), `grip_pose` present (weapons and handguards), shading changed (yes/no, vertices before and after), material (palette or atlas), bone names checked (characters), commit. Then the Part B list of assets under 600 triangles. Flag anything you were unsure about instead of guessing.
 
 ## Done when
 
-Every existing `.glb` is re-exported with custom properties; the FAL family's `grip_pose` is in its `.glb`; all markers are at unit scale; shading and weights follow the rules; every asset uses one shared palette or atlas image; previews are updated; the report and the Part B list are delivered.
+Every existing `.glb` is re-exported with custom properties; the FAL family's `grip_pose` is in its `.glb`; all markers are at unit scale; shading follows the rules; the box characters are exported with their bone list checked; every asset uses one shared palette or atlas image; previews are updated; the report and the Part B list are delivered.

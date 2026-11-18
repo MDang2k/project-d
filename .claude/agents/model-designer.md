@@ -21,7 +21,7 @@ You are the 3D asset designer for Project D, a single-player tactical extraction
 - One asset at a time, in the pipeline spec's priority order unless the user names a different asset.
 - Model with `bpy` through `execute_blender_code`: block out the silhouette at real scale, refine with a few cuts, UV onto the shared palette, add the required marker empties with exact names, set the origin, apply transforms.
 - Check the triangle count and dimensions against the budget before exporting.
-- Before exporting, also check the pipeline spec's "Also checked" list: smooth shading with sharp edges (not flat per face); materials reference the shared `assets/textures/palette.png` (never an embedded copy) with nearest filtering; marker empties at scale (1, 1, 1); characters with one bone weight per vertex except the shoulder, hip and forearm-twist rings.
+- Before exporting, also check the pipeline spec's "Also checked" list: smooth shading with sharp edges (not flat per face); materials reference the shared `assets/textures/palette.png` (never an embedded copy) with nearest filtering; marker empties at scale (1, 1, 1); characters as overlapping rigid boxes, each box and outfit shell on one bone (100% weight on export, no blended rings).
 - Export glTF with custom properties on (`export_extras=True`) so marker metadata such as `grip_pose` survives; set `meshes/generate_lods=false` in the `.glb.import` for meshes under 600 triangles.
 - Save the source to `assets/source/<category>/<id>.blend` and export `assets/models/<category>/<id>.glb`. Make sure `assets/source/` contains a `.gdignore`.
 - Render a preview to `assets/source/<category>/<id>_preview.png`.

@@ -64,11 +64,15 @@ Markers are Blender **empties** with exact names; they export as nodes and the g
 
 - **Custom properties must be exported** (revised 2026-11-11): Blender's glTF exporter drops custom properties unless "Custom Properties" is on (`export_extras=True` from Python). Without it `grip_pose` never reaches Godot (found 2026-11-11: `fal_type.glb` and `fal_handguard_std.glb` carry no extras; only `makarov_pm.glb` does).
 
-### Character rig and skinning (designer decision 2026-11-11)
+### Character body: overlapping rigid boxes (designer decision 2026-11-16, replaces the 2026-11-11 skinning rule)
 
-- Characters stay **skinned meshes** on the shared skeleton (body and outfits bind by bone name, as built), with **rigid-style weights**: every box segment is weighted 100% to its own bone (one weight per vertex), so blocks never deform softly and there is no weight painting to get wrong.
-- The only blended vertices are narrow rings at the shoulders, hips, and the forearm twist (character visuals decision 9), so joints do not tear open. Outfits follow the same rule.
-- Not rigid parenting of separate meshes: that would lose the forearm twist, gap at joints, and need the body and outfit loading rebuilt.
+- The body is **overlapping rigid boxes, one bone each** (`assets/source/characters/base_character_v2_boxes.blend`: 18 box parts on a 19-bone rig, about 436 triangles; chest, abdomen and pelvis split; separate left and right limbs; shoulder boxes; bevelled joint ends). Boxes overlap at the joints, so bends show no gaps without any blended weights. The continuous-mesh body (`base_character_v2.blend`) is kept for reference only.
+- **In Blender:** each box is rigid on its bone (bone parenting, no weight painting). Symmetric centre parts are half plus an unapplied Mirror modifier.
+- **Outfits:** per-part shells on the same bones: each garment is a copy of the body box it covers, uncovered faces removed, short extrusions for hems, collars, cuffs and boot shafts, and a 5 mm Solidify (as built: `outfit_allied_solidify.blend`, `outfit_soviet_solidify.blend`). A garment is rigid on the same bone as the box under it. Checked in motion: no penetration and no new skin gaps across the test actions.
+- **Export (Claude's call):** the `.glb` stays a skinned mesh on the shared skeleton, with every vertex weighted 100% to its box's bone (equivalent to the bone parenting), so the game's loader keeps binding body and outfits by bone name. No blended vertices anywhere.
+- **Bone names:** the game's bone list (character visuals spec "Rig", `scripts/player/PlayerBody.cs`) must match the boxes rig; where the 19-bone rig differs from the 20-bone list (for example no separate forearm twist bone), the first import reconciles the names and the spec's list.
+- **Known limits (accepted):** a seam at the shoulder with the arms raised, a stair-step between chest and abdomen in strong twists, and no forearm twist (the hand box turns on its own).
+- Mixamo FBX files used for motion tests live in `assets/animations/` and are not committed (free for games, not for redistribution).
 
 `GripRight` and `GripLeft` carry a rotation (the hand's Palm point goes on the marker and the hand aligns to it), in Godot space: local -Z runs along the grip axis from pinky to index (pistol grip: up toward the receiver; handguard: toward the muzzle), local +Y points out of the back of the hand, X = Y x Z (same as the character's `Palm_L`/`Palm_R`); author them in Blender so the exported glTF node has this rotation. All other markers stay position-only.
 
@@ -115,7 +119,7 @@ Also checked (revised 2026-11-11):
 - smooth shading with sharp edges, not flat per face;
 - markers at scale (1, 1, 1); custom properties exported (`grip_pose` present where required);
 - automatic LOD off under 600 triangles; above it, a distance preview shows the LODs keep their silhouette;
-- characters: one bone weight per vertex except the shoulder, hip and forearm-twist rings.
+- characters: overlapping rigid boxes, each box and outfit shell on one bone (exported as 100% weight to that bone, no blended rings); no penetration or skin gaps in the test actions.
 
 ## Decisions
 
@@ -125,7 +129,8 @@ Also checked (revised 2026-11-11):
 4. Markers are named empties; character bones match the procedural rig.
 5. `.blend` sources in a `.gdignore` folder, `.glb` exports imported by Godot.
 6. Slice assets first, in the order above.
-7. (2026-11-11) Smooth shading with sharp edges; shared palette referenced with nearest filtering and gutters; no auto LOD under 600 triangles; custom properties exported and markers at unit scale; weapons' 5,000-triangle budget is first person, with a low-poly world version later; characters skinned with rigid-style weights.
+7. (2026-11-11) Smooth shading with sharp edges; shared palette referenced with nearest filtering and gutters; no auto LOD under 600 triangles; custom properties exported and markers at unit scale; weapons' 5,000-triangle budget is first person, with a low-poly world version later; characters skinned with rigid-style weights (replaced by decision 8).
+8. (2026-11-16) Characters are overlapping rigid boxes, one bone each, with outfits as per-part Solidify shells on the same bones; exported as skinned meshes with one 100% weight per vertex.
 
 ## Open items
 
