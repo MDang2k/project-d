@@ -185,6 +185,7 @@ The build session edits `docs/design/item_catalog.xlsx` for these rows only, re-
 
 ## 6. Build order (Claude's call)
 
+0. First the faction rules refactor (`docs/superpowers/specs/architecture/faction-rules-design.md`): one faction table, rank rules in actor data; behaviour unchanged.
 1. The merge: enum, hostility, save migration, quest, waves, Vogt's escorts; gangs as squads with leader-death panic and the courage bonus.
 2. `OutfitRoll` and the data-driven `AiBodyVisual` on the box body, with the fallback to today's body; the first wardrobe is the Allied and Soviet riflemen (the player outfits, already built), then each faction as its pieces arrive.
 3. Models in the order of section 5; each faction's wardrobe data added as its pieces arrive.
