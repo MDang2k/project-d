@@ -84,3 +84,17 @@ Work milestone by milestone (details in GDD §Milestones). Do not start systems 
 **Current milestone: M8 — skills, reputation and signature systems.** (M0 code done, weak-machine benchmark still pending; M1 player, M2 weapons, M3 damage, M4 inventory, M5 human AI, M6 raid loop and M7 hub complete. Map 1 is a test blockout; map standard and map 1 revision specs exist in docs/superpowers/specs.)
 
 Definition of done for any task: `dotnet build` has no warnings, xUnit tests for logic pass, GUT smoke passes, and you have told the user what to playtest.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on MDang2k/project-d via the `gh` CLI; design specs stay in `docs/superpowers/specs/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created when needed. See `docs/agents/domain.md`.
