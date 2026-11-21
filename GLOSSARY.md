@@ -39,3 +39,13 @@ _Avoid_: bandit group, looter squad
 **Hostile by default**:
 Whether one faction attacks another before reputation or raid events change anything; raid standing and nemeses can make an otherwise friendly character hostile.
 _Avoid_: enemy faction, relation
+
+## Persistence
+
+**Profile**:
+Everything about the player that survives between raids: stash, side, traders, quests, reputation, skills, knowledge, nemeses and insurance returns. One profile per game, in one autosave slot.
+_Avoid_: account, save game, player data
+
+**Stash**:
+The player's hub storage grid, kept between raids.
+_Avoid_: storage, bank, inventory (the inventory is what the character carries)

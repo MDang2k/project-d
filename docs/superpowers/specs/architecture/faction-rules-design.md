@@ -2,7 +2,7 @@
 
 Date: 2026-11-21
 
-Status: approved design, not implemented. A behaviour-preserving refactor to do **before** the Plünderer merge (`docs/superpowers/specs/factions/faction-looks-pluenderer-design.md`), from the architecture review of 2026-11-21 (candidate 1) and the design session that followed. Terms as in `GLOSSARY.md` (Faction, Faction id, Actor, Rank, Hostile by default). Every decision below was confirmed by the designer.
+Status: approved design, not implemented. A behaviour-preserving refactor to do **after** the save parts refactor (`docs/superpowers/specs/architecture/save-parts-design.md`; the nemesis id change then touches only the nemeses part) and **before** the Plünderer merge (`docs/superpowers/specs/factions/faction-looks-pluenderer-design.md`), from the architecture review of 2026-11-21 (candidate 1) and the design session that followed. Terms as in `GLOSSARY.md` (Faction, Faction id, Actor, Rank, Hostile by default). Every decision below was confirmed by the designer.
 
 ## Intent
 
