@@ -31,7 +31,7 @@ Values marked **(tune)** are starting points to adjust through playtesting. Item
 - **1943:** German engineers find the outer alien ruins beneath central Germany. Crude salvage (prototype armor, power cells, relic weapons) keeps the Reich fighting and stalls the Allies.
 - **1950s:** The dig reaches the inner ruins and the Ewigstein lattice; Project Ewigstein begins. The full truth (the ruins are a prison and Ewigstein is its lock) lives in `docs/superpowers/specs/story/story-core-truth-design.md` and is revealed only through play.
 - **1965 — Event 65**, the disaster. An experiment triggers a chain reaction, similar to Half-Life's resonance cascade. A series of massive explosions devastates central Europe and turns Germany into a wasteland. The war ends.
-- **1965–1970:** The Allies and the Soviet Union jointly declare an exclusion zone. Both send private military contractors in to secure artifacts and research, officially to "contain" the zone. Scavengers, looters and bandits settle in the ruins. The fallout turns some people into zombies, the **Hollowed**. The zone is officially the Sperrgebiet, "the Sperr" to contractors.
+- **1965–1970:** The Allies and the Soviet Union jointly declare an exclusion zone. Both send private military contractors in to secure artifacts and research, officially to "contain" the zone. Scavengers, the **Plünderer**, settle in the ruins; the hardest of them, the **Bandenführer**, lead armed gangs. The fallout turns some people into zombies, the **Hollowed**. The zone is officially the Sperrgebiet, "the Sperr" to contractors.
 - **1970:** The game begins. Late in the story, aliens begin to appear.
 
 ### Tone
@@ -52,8 +52,7 @@ The central plot device.
 
 | Faction | Role | Default attitude to player |
 |---|---|---|
-| Looters | Desperate scavengers, poorly armed, often flee | Hostile, cowardly |
-| Bandits | Organized criminals controlling routes and camps | Hostile |
+| Plünderer | Desperate scavengers, some led by armed Bandenführer who hold camps and routes (faction looks and Plünderer spec) | Hostile; the ragged ones flee, the leaders do not |
 | Allied PMC | Western contractors, NATO gear | Friendly if player chose Allied, else hostile |
 | Soviet PMC | Eastern contractors, Warsaw Pact gear | Friendly if player chose Soviet, else hostile |
 | Zombies (post-slice) | Fallout victims, melee, swarm, sound-driven | Hostile to all humans |
@@ -72,7 +71,7 @@ The central plot device.
 ## 5. Player identity and reputation
 
 - At the start the player chooses a side: **Allied** or **Soviet** contractor. This sets the starting quartermaster and which PMCs are friendly.
-- Reputation is tracked per trader and per faction (Allied PMC, Soviet PMC, Bandits). Range −1.0 to +1.0 **(tune)**.
+- Reputation is tracked per trader and per faction (Allied PMC, Soviet PMC, Plünderer). Range −1.0 to +1.0 **(tune)**.
 - **Opposite quartermaster:** unlocks through quests or reputation later. Working with the other side costs some reputation with your own, but not much — it must be possible to be on good terms with both.
 - **Friendly PMCs in raids:**
   - Do not target the player; fight enemies hostile to both.
@@ -361,12 +360,11 @@ AI uses the same health, armor and weapon systems as the player. Full combat des
 
 ### Hostility matrix (slice)
 
-| | Looters | Bandits | Allied PMC | Soviet PMC |
-|---|---|---|---|---|
-| Looters | Neutral | Hostile | Hostile | Hostile |
-| Bandits | Hostile | Neutral | Hostile | Hostile |
-| Allied PMC | Hostile | Hostile | Friendly | Hostile |
-| Soviet PMC | Hostile | Hostile | Hostile | Friendly |
+| | Plünderer | Allied PMC | Soviet PMC |
+|---|---|---|---|
+| Plünderer | Neutral | Hostile | Hostile |
+| Allied PMC | Hostile | Friendly | Hostile |
+| Soviet PMC | Hostile | Hostile | Friendly |
 
 The player inherits the attitudes of the chosen side, adjusted by reputation (§5).
 

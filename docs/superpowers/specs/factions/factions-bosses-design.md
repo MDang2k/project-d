@@ -10,8 +10,7 @@ Every faction is identifiable at about 50 m by silhouette, colour and one clear 
 
 | Faction | Silhouette and colours | Clear marker | Behaviour |
 |---|---|---|---|
-| Looters | hunched, ragged civilian work jackets, flat caps, scarves, sacks; mismatched browns and greys | no uniform, duffel sack | flee when hurt |
-| Bandits | leather coats, black and dark brown, bandanas, sunglasses, surplus pieces | leather and bandana, no armband | aggressive in groups, hold camps |
+| Plünderer (merged 2026-11-21, `docs/superpowers/specs/factions/faction-looks-pluenderer-design.md`) | followers: hunched, ragged work jackets, caps, scarves, rolled per bot; Bandenführer: long black leather coat, sunglasses, upright | followers: duffel sack; Bandenführer: ochre neckerchief | gangs: a Bandenführer holds ground, followers flee when he dies |
 | Allied PMC | olive and khaki NATO kit, M1956 webbing, M1 helmet with cover, radio packs | **pale blue armband** | disciplined patrols in pairs |
 | Soviet PMC | olive-brown Warsaw Pact kit, chest rigs, SSh-68 helmets | **red armband** | disciplined, flank in pairs |
 | Garrison holdouts | faded patched 1965 Allied uniforms, beards, old M1 helmets, gas masks at the hip | tattered unit patches | defensive, hold buildings |
@@ -91,7 +90,7 @@ One boss per map (8f) plus the roaming Troika (section 4). Full rows in sheet **
 
 ## Decisions
 
-1. Armbands identify the PMC sides (pale blue Allied, red Soviet); bandits drop the red armband.
+1. Armbands identify the PMC sides (pale blue Allied, red Soviet); Bandenführer wear no armband (their mark is the ochre neckerchief).
 2. Gear tier by map ring plus one per act.
 3. Every boss carries a unique or rare signature weapon.
 4. Die Troika roam five maps with an independent 15% roll each and may coexist with a map boss.
