@@ -34,6 +34,7 @@ The order is held by comments; no test covers it.
   1. paid extract cost from carried storage grids (never the secure container);
   2. capture the worn slot of every item about to be lost;
   3. strip gear by the outcome rules;
+  3b. found in raid: flag kept items that were not brought in, and clear `BroughtIn` (inventory transfer spec section 1, added 2026-11-25);
   4. `run.Record`;
   5. skills: end the raid (XP is kept on every outcome);
   6. quests: extraction objectives (extracted only);

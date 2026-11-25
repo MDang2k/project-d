@@ -40,7 +40,7 @@ The Ewigstein delivery quest, exposure, story missions and the journal (M8), a r
 - Quest states: `Locked -> Available -> Active -> ReadyToTurnIn -> Completed`. Prerequisites are re-evaluated on hub entry and after each turn-in.
 - `Available -> Active` on Accept (hub). `Active -> ReadyToTurnIn` when every objective is satisfied. `ReadyToTurnIn -> Completed` on Turn in, which grants rewards.
 - Progress for Eliminate, Locate and Extract accumulates in raids and is kept on death or MIA. Fetch and FindInRaid are checked at turn-in and consume the counted items from the stash or carried grids.
-- `FoundInRaid`: new saved item flag, set when the player takes an item from a container or body during a raid; it stays on the item; never set on bought or issued items.
+- `FoundInRaid`: saved item flag; it stays on the item; never set on bought or issued items. **Revised 2026-11-25:** set at raid end on every kept item that was not the player's at raid start, however it was obtained (`docs/superpowers/specs/architecture/inventory-transfer-design.md` section 1).
 - Raid events fed by thin nodes into the engine:
   - `Killed(faction, weaponClass, mapId)`
   - `ZoneReached(zoneId, mapId)`
@@ -93,7 +93,7 @@ Tests: each objective type's progress and filters (faction, map, weapon class), 
 ## Decisions
 
 1. Progress is immediate and survives death or MIA.
-2. `FoundInRaid` is set on pickup and persists on the item.
+2. `FoundInRaid` persists on the item; since 2026-11-25 it is set at raid end on items not brought in (inventory transfer spec section 1).
 3. Reputation rewards are stored only.
 4. No quest-item flag; `Insurable = false` and `BaseValue = 0`.
 5. The HUD shows one tracked quest and follows the existing HUD flag.

@@ -57,3 +57,11 @@ _Avoid_: result, death type, end state
 **Secure container**:
 The small worn container whose contents the player keeps whatever the raid outcome.
 _Avoid_: safe box, pouch, gamma
+
+**Found in raid**:
+An item that was not the player's when the raid started and that the player kept at its end; some quests accept only such items.
+_Avoid_: FIR item, looted item
+
+**Brought in**:
+An item the player carried into the current raid; it can never become found in raid during that raid.
+_Avoid_: own gear, starting kit
