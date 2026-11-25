@@ -49,3 +49,11 @@ _Avoid_: account, save game, player data
 **Stash**:
 The player's hub storage grid, kept between raids.
 _Avoid_: storage, bank, inventory (the inventory is what the character carries)
+
+**Raid outcome**:
+How a raid ends for the player: extracted, killed, or MIA (the raid timer ran out). Quitting or crashing mid-raid counts as killed.
+_Avoid_: result, death type, end state
+
+**Secure container**:
+The small worn container whose contents the player keeps whatever the raid outcome.
+_Avoid_: safe box, pouch, gamma

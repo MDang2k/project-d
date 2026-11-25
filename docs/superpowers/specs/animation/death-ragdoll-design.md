@@ -70,6 +70,7 @@ Status: approved design, not implemented. The "death and ragdoll" item the anima
 
 - `RagdollConfig` resource (`data/animation/ragdoll.tres`): masses, joint limits, impulse factors (bullet, blast), settle thresholds, cap, active limit, death cam distances and timings.
 - Pure logic with xUnit tests: `BodyCap` (eviction order, sight rule, wait), `SettleDetector` (speed threshold and time-out), `DeathImpulse` (bullet momentum and blast falloff to an impulse per bone), `DeathCamPath` (camera offsets and the yaw toward the hit direction, wall clamp), `KillLine` (faction, weapon, rounded distance, part text).
+- The kill line and the nemesis read one `KillerInfo` record (raid end spec, `docs/superpowers/specs/architecture/raid-end-design.md` section 2), filled once from the hit attribution and the killing hit.
 - Nodes: a `Ragdoll` component on character bodies (player and AI), a `BodyManager` in the raid scene (cap and fades), `DeathCam` on the player.
 - The killing hit's data (direction, impulse, bone, attacker) is recorded on the `HealthComponent` when damage kills, so the ragdoll, the death cam and the kill line all read the same hit. Today `Died` carries only the body part and the attacker lives in `ProjectileManager`'s events, so the hit data is threaded through `ReceiveHit`, `ReceiveExplosion` and melee.
 

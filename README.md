@@ -66,6 +66,7 @@ Each spec has a detailed "Implementation status" table.
 - **Paper maps and chance extracts:** the [spec](docs/superpowers/specs/maps/paper-maps-chance-extracts-design.md) is written, not built (map items wait for catalog rows).
 - **Faction looks and the Plünderer merge:** the [spec](docs/superpowers/specs/factions/faction-looks-pluenderer-design.md) is written, not built (looters and bandits become one faction; detailed outfits for every human faction).
 - **Save parts refactor:** the [spec](docs/superpowers/specs/architecture/save-parts-design.md) is written, not built (do first: fixes a stash leak on load).
+- **Raid end refactor:** the [spec](docs/superpowers/specs/architecture/raid-end-design.md) is written, not built (after save parts, before faction rules).
 - **Faction rules refactor:** the [spec](docs/superpowers/specs/architecture/faction-rules-design.md) is written, not built (do before the Plünderer merge).
 - **Factions:** the code has looters, bandits and both PMC sides. Garrison holdouts, Abteilung Ewig, the Hollowed, Die Wächter and Die Troika are design only.
 - **Characters:** trader portraits are rendered and shown on the trade screen (Weiss's revealed portrait waits for the mission 4 quest id); story characters and mission NPCs are design only.
