@@ -86,22 +86,6 @@ layout()
 # ---------------------------------------------------------------- painting
 
 
-def camo(piece, layers):
-    """Scatters blotches over every region of a piece: (colour, share of the area, width, height) in texels."""
-    for (p, _, view), (rx, ry, w, h) in rects.items():
-        if p != piece:
-            continue
-        region = pixels[ry - 1:ry + h + 1, rx - 1:rx + w + 1]
-        shade = 0.93 if view == "side" else 1.07 if view == "top" else 1.0
-        for color, share, bw, bh in layers:
-            for _ in range(int(region.shape[0] * region.shape[1] * share / (bw * bh)) + 1):
-                x = rng.integers(-bw // 2, region.shape[1])
-                y = rng.integers(-bh // 2, region.shape[0])
-                # two overlapping rectangles make a ragged blotch
-                for dx, dy in ((0, 0), (bw // 2, max(1, bh // 2))):
-                    region[max(y + dy, 0):max(y + dy + bh, 0), max(x + dx, 0):max(x + dx + bw, 0)] = rgb(color) * shade
-
-
 def stripes(piece, color, period=4, thick=2):
     for (p, _, _), (rx, ry, w, h) in rects.items():
         if p != piece:

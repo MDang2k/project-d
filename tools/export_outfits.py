@@ -2,7 +2,7 @@
 
     blender -b assets/source/characters/<file>.blend --python tools/export_outfits.py
 
-for outfits_pluenderer, outfits_pmc_allied, outfits_pmc_soviet (the new pieces) and outfit_allied_solidify,
+for outfits_pluenderer, outfits_pmc_allied, outfits_pmc_soviet, outfits_holdout (the new pieces) and outfit_allied_solidify,
 outfit_soviet_solidify (the player outfits, split into the slots the PMC bots share). Writes
 assets/models/characters/outfit_<name>.glb and copies that file's texture to assets/textures/characters/. The .blend
 is never saved.
@@ -59,6 +59,9 @@ PIECES = {
         "head_beret": "soviet_head_beret",
     },
 }
+PIECES["outfits_holdout"] = {key: "holdout_" + key for key in (
+    "jacket_og107", "jacket_torn", "jacket_poncho", "jacket_sweater", "trousers_og107", "trousers_grey",
+    "boots_black", "hands_cutoff", "head_helmet", "head_hair", "face_beard", "bag_gasmask")}
 # player outfits: exported name -> the prefixes of its part names
 SPLITS = {
     "outfit_allied_solidify": {
@@ -75,6 +78,7 @@ SPLITS = {
 }
 # the texture each source file's pieces share: source image -> name in assets/textures/characters
 TEXTURES = {
+    "outfits_holdout": ("outfits_holdout_tex.png", "outfit_holdout.png"),
     "outfits_pluenderer": ("outfits_pluenderer_tex.png", "outfit_pluenderer.png"),
     "outfits_pmc_allied": ("outfits_pmc_allied_tex.png", "outfit_allied_pmc.png"),
     "outfits_pmc_soviet": ("outfits_pmc_soviet_tex.png", "outfit_soviet_pmc.png"),

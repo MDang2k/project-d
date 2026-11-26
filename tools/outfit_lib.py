@@ -157,12 +157,23 @@ def view_of(n):
     return "side"
 
 
-def plane(view, co):
+SIGNED = set()  # pieces whose parts that cross the centre line map left to right instead of mirrored
+FULL = set()  # (piece, part) made whole instead of mirrored; mark() still takes half coordinates and paints both sides
+
+
+def across(piece, o):
+    """True for a part of a SIGNED piece that reaches both sides of the centre line (a poncho, a beard)."""
+    xs = [v.co.x for v in o.data.vertices]
+    return piece in SIGNED and min(xs) < -0.01 and max(xs) > 0.01
+
+
+def plane(view, co, signed=False):
+    x = co.x if signed else abs(co.x)
     if view in ("front", "back"):
-        return abs(co.x), co.z
+        return x, co.z
     if view == "side":
         return co.y, co.z
-    return abs(co.x), co.y
+    return x, co.y
 
 
 bounds = {}
@@ -180,7 +191,7 @@ def layout():
                 view = view_of(p.normal)
                 b = bounds.setdefault((piece, key, view), [9e9, 9e9, -9e9, -9e9])
                 for vi in p.vertices:
-                    u, v = plane(view, o.data.vertices[vi].co)
+                    u, v = plane(view, o.data.vertices[vi].co, across(piece, o))
                     b[0], b[1], b[2], b[3] = min(b[0], u), min(b[1], v), max(b[2], u), max(b[3], v)
 
     x = y = row = 0
@@ -225,9 +236,13 @@ def mark(piece, key, views, u0, v0, u1, v1, color):
         if (piece, key, view) not in rects:
             continue
         rx, ry, w, h = rects[(piece, key, view)]
-        a, b = int(round(u0 * w)), int(round(u1 * w))
+        spans = [(u0, u1)]
+        if (piece, key) in FULL and view != "side":
+            spans = [(0.5 + u0 / 2, 0.5 + u1 / 2), (0.5 - u1 / 2, 0.5 - u0 / 2)]
         c, d = int(round(v0 * h)), int(round(v1 * h))
-        pixels[ry + c:ry + max(d, c + 1), rx + a:rx + max(b, a + 1)] = rgb(color)
+        for s0, s1 in spans:
+            a, b = int(round(s0 * w)), int(round(s1 * w))
+            pixels[ry + c:ry + max(d, c + 1), rx + a:rx + max(b, a + 1)] = rgb(color)
 
 
 def pocket(piece, key, u0, v0, u1, v1, line, flap):
@@ -244,6 +259,22 @@ def buttons(piece, color, keys=("Chest", "Abdomen"), u=0.07):
     for key in keys:
         for v in (0.2, 0.55, 0.88):
             mark(piece, key, "front", u, v - 0.04, u + 0.07, v + 0.02, color)
+
+
+def camo(piece, layers):
+    """Scatters blotches over every region of a piece: (colour, share of the area, width, height) in texels."""
+    for (p, _, view), (rx, ry, w, h) in rects.items():
+        if p != piece:
+            continue
+        region = pixels[ry - 1:ry + h + 1, rx - 1:rx + w + 1]
+        shade = 0.93 if view == "side" else 1.07 if view == "top" else 1.0
+        for color, share, bw, bh in layers:
+            for _ in range(int(region.shape[0] * region.shape[1] * share / (bw * bh)) + 1):
+                x = rng.integers(-bw // 2, region.shape[1])
+                y = rng.integers(-bh // 2, region.shape[0])
+                # two overlapping rectangles make a ragged blotch
+                for dx, dy in ((0, 0), (bw // 2, max(1, bh // 2))):
+                    region[max(y + dy, 0):max(y + dy + bh, 0), max(x + dx, 0):max(x + dx + bw, 0)] = rgb(color) * shade
 
 
 def finish(prefix, material, lineup_sets, shared=None):
@@ -290,7 +321,7 @@ def finish(prefix, material, lineup_sets, shared=None):
                 b = bounds[(piece, key, view)]
                 rx, ry, w, h = rects[(piece, key, view)]
                 for li in p.loop_indices:
-                    u, v = plane(view, o.data.vertices[o.data.loops[li].vertex_index].co)
+                    u, v = plane(view, o.data.vertices[o.data.loops[li].vertex_index].co, across(piece, o))
                     fu = (u - b[0]) / max(b[2] - b[0], 1e-6)
                     fv = (v - b[1]) / max(b[3] - b[1], 1e-6)
                     uv.data[li].uv = ((rx + 0.05 + fu * (w - 0.1)) / ATLAS, (ry + 0.05 + fv * (h - 0.1)) / ATLAS)
