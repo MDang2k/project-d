@@ -184,8 +184,10 @@ public partial class AiHuman : CharacterBody3D, IPerceivable
 
 	private void BuildBody()
 	{
-		if (Def.Text("body_model") is { Length: > 0 } kind
-			&& AiBodyVisual.Build(kind, _rng, out var look) is { } visual)
+		var visual = AiBodyVisual.BuildFromWardrobe(ActorId, Archetype, _rng, out var look);
+		if (visual is null && Def.Text("body_model") is { Length: > 0 } kind)
+			visual = AiBodyVisual.Build(kind, _rng, out look);
+		if (visual is not null)
 		{
 			LookLabel = look;
 			_rig = visual;

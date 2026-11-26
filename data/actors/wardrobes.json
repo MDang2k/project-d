@@ -1,0 +1,36 @@
+{
+  "textures": {
+    "allied_detail": "outfit_allied_detail.png",
+    "soviet_detail": "outfit_soviet_detail.png",
+    "allied_pmc_detail": "outfit_allied_pmc.png",
+    "soviet_pmc_detail": "outfit_soviet_pmc.png"
+  },
+  "handCovers": ["allied_hands_olive"],
+  "wardrobes": {
+    "allied_pmc": {
+      "operator": [
+        { "name": "rifleman", "weight": 8, "pieces": ["allied_jacket_m65", "allied_trousers_og107", "allied_boots_black", "allied_hands_olive"] },
+        { "name": "marksman_beret", "weight": 1, "pieces": ["allied_jacket_dpm", "allied_head_beret", "allied_trousers_og107", "allied_boots_black", "allied_hands_olive"] },
+        { "name": "marksman_bare", "weight": 1, "pieces": ["allied_jacket_dpm", "allied_trousers_og107", "allied_boots_black", "allied_hands_olive"] }
+      ],
+      "infiltrator": [
+        { "name": "assault", "weight": 1, "pieces": ["allied_jacket_og107", "allied_trousers_og107", "allied_boots_black", "allied_hands_olive"] }
+      ],
+      "rat": [
+        { "name": "flanker", "weight": 1, "pieces": ["allied_jacket_erdl", "allied_head_boonie", "allied_trousers_og107", "allied_boots_black", "allied_hands_olive"] }
+      ]
+    },
+    "soviet_pmc": {
+      "operator": [
+        { "name": "rifleman", "weight": 8, "pieces": ["soviet_jacket_afghanka", "soviet_trousers_olive", "soviet_boots_brown"] },
+        { "name": "marksman", "weight": 2, "pieces": ["soviet_jacket_strichtarn", "soviet_trousers_olive", "soviet_boots_brown"] }
+      ],
+      "infiltrator": [
+        { "name": "assault", "weight": 1, "pieces": ["soviet_jacket_telnyashka", "soviet_head_beret", "soviet_trousers_olive", "soviet_boots_brown"] }
+      ],
+      "rat": [
+        { "name": "flanker", "weight": 1, "pieces": ["soviet_jacket_klmk", "soviet_boots_brown"] }
+      ]
+    }
+  }
+}

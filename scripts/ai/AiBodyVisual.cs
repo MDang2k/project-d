@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace ProjectD;
@@ -28,6 +29,9 @@ public static class AiBodyVisual
 	// Loaded once and kept: a finalized wrapper of a reloaded resource aborts Godot's script bridge in busy scenes.
 	private static readonly Dictionary<string, Resource?> Cache = new();
 
+	private static OutfitWardrobes? _wardrobes;
+	private static OutfitWardrobes? Wardrobes => _wardrobes ??= LoadWardrobes();
+
 	private static T? Load<T>(string path) where T : Resource
 	{
 		if (Cache.TryGetValue(path, out var cached))
@@ -53,33 +57,101 @@ public static class AiBodyVisual
 		var faceTex = Load<Texture2D>(Textures + face + ".png");
 		var outfitTex = Load<Texture2D>(Textures + outfitTexture + ".png");
 
-		var root = new AiBodyRig { Name = "BodyVisual" };
-		var body = bodyScene.Instantiate<Node3D>();
-		var outfit = outfitScene.Instantiate<Node3D>();
-		root.AddChild(body);
-		var skel = (Skeleton3D)body.FindChildren("*", "Skeleton3D", true, false)[0];
-		var outfitSkel = outfit.FindChildren("*", "Skeleton3D", true, false)[0];
-		foreach (var child in outfitSkel.GetChildren())
-		{
-			child.Owner = null;
-			foreach (var sub in child.FindChildren("*", "", true, false))
-				sub.Owner = null;
-			outfitSkel.RemoveChild(child);
-			skel.AddChild(child);
-		}
-		outfit.Free();
-
+		var (root, skel) = NewRig(bodyScene);
+		Wear(skel, outfitScene);
 		foreach (var node in skel.FindChildren("*", "MeshInstance3D", true, false))
 		{
 			var mi = (MeshInstance3D)node;
 			var texture = mi.Name == "HeadMesh" || mi.Name == "Body" ? faceTex : outfitTex;
 			Retexture(mi, texture);
 		}
-			root.SetSkeleton(skel,
-			skel.FindChild("Palm_L", true, false) is Node3D pl ? pl.Transform : Transform3D.Identity,
-			skel.FindChild("Palm_R", true, false) is Node3D pr ? pr.Transform : Transform3D.Identity);
+		SetSkeleton(root, skel);
 		description = $"{face} / {outfitTexture}";
 		return root;
+	}
+
+	/// <summary>
+	/// The box body dressed from the actor's wardrobe, picked by its behaviour type. Null when the actor has no
+	/// wardrobe or a file is missing (the caller then tries the older body, or keeps the capsule).
+	/// </summary>
+	public static AiBodyRig? BuildFromWardrobe(string actorId, string archetype, System.Random rng, out string description)
+	{
+		description = "";
+		if (Wardrobes?.Roll(actorId, archetype, rng) is not { } outfit)
+			return null;
+		// the box body with bare hands (the Soviet file); gloves are pieces that hide them
+		var bodyScene = Load<PackedScene>(Models + "boxes_body_soviet.glb");
+		var pieces = outfit.Pieces.Select(p => Load<PackedScene>($"{Models}outfit_{p}.glb")).ToArray();
+		if (bodyScene is null || pieces.Any(p => p is null))
+			return null;
+
+		var (root, skel) = NewRig(bodyScene);
+		foreach (var piece in pieces)
+			Wear(skel, piece!);
+		foreach (var node in skel.FindChildren("*", "MeshInstance3D", true, false))
+		{
+			var mi = (MeshInstance3D)node;
+			var material = mi.Mesh.SurfaceGetMaterial(0);
+			if (material is not null && Wardrobes.Textures.TryGetValue(material.ResourceName, out var texture))
+				mi.SetSurfaceOverrideMaterial(0, PieceMaterial(texture));
+			else
+				Retexture(mi, null); // the body keeps its own texture, drawn crisp
+			if (mi.Name.ToString().StartsWith("Body_Hand") && Wardrobes.HidesHands(outfit))
+				mi.Visible = false;
+		}
+		SetSkeleton(root, skel);
+		description = $"{outfit.Name} ({archetype})";
+		return root;
+	}
+
+	private static (AiBodyRig Root, Skeleton3D Skeleton) NewRig(PackedScene bodyScene)
+	{
+		var root = new AiBodyRig { Name = "BodyVisual" };
+		var body = bodyScene.Instantiate<Node3D>();
+		root.AddChild(body);
+		return (root, (Skeleton3D)body.FindChildren("*", "Skeleton3D", true, false)[0]);
+	}
+
+	/// <summary>Moves a model's skinned meshes onto the body's skeleton (they bind by bone name).</summary>
+	private static void Wear(Skeleton3D skel, PackedScene scene)
+	{
+		var model = scene.Instantiate<Node3D>();
+		var from = model.FindChildren("*", "Skeleton3D", true, false)[0];
+		foreach (var child in from.GetChildren())
+		{
+			child.Owner = null;
+			foreach (var sub in child.FindChildren("*", "", true, false))
+				sub.Owner = null;
+			from.RemoveChild(child);
+			skel.AddChild(child);
+		}
+		model.Free();
+	}
+
+	private static void SetSkeleton(AiBodyRig root, Skeleton3D skel)
+		=> root.SetSkeleton(skel,
+			skel.FindChild("Palm_L", true, false) is Node3D pl ? pl.Transform : Transform3D.Identity,
+			skel.FindChild("Palm_R", true, false) is Node3D pr ? pr.Transform : Transform3D.Identity);
+
+	/// <summary>One material per shared piece texture, so bots in the same kit batch together.</summary>
+	private static StandardMaterial3D PieceMaterial(string texture)
+	{
+		if (Cache.TryGetValue("material:" + texture, out var cached))
+			return (StandardMaterial3D)cached!;
+		var material = new StandardMaterial3D
+		{
+			AlbedoTexture = Load<Texture2D>(Textures + texture),
+			TextureFilter = BaseMaterial3D.TextureFilterEnum.NearestWithMipmaps,
+			Roughness = 0.9f,
+		};
+		Cache["material:" + texture] = material;
+		return material;
+	}
+
+	private static OutfitWardrobes? LoadWardrobes()
+	{
+		using var file = FileAccess.Open("res://data/actors/wardrobes.json", FileAccess.ModeFlags.Read);
+		return file is null ? null : OutfitWardrobes.Parse(file.GetAsText());
 	}
 
 	/// <summary>A private copy of each surface material with another albedo texture, kept pixel-crisp.</summary>

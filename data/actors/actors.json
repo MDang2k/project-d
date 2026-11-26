@@ -205,8 +205,9 @@
      "0.55"
     ],
     "archetypes": [
-     "operator:75",
-     "infiltrator:25"
+     "operator:55",
+     "infiltrator:25",
+     "rat:20"
     ]
    },
    "stats": {
@@ -252,8 +253,9 @@
      "0.3"
     ],
     "archetypes": [
-     "operator:75",
-     "infiltrator:25"
+     "operator:55",
+     "infiltrator:25",
+     "rat:20"
     ]
    },
    "stats": {

@@ -2,7 +2,7 @@
 
 Date: 2026-11-21
 
-Status: approved design; the Plünderer, Bandenführer, PMC and garrison holdout models are made (section 5 "As built"), no code. Merges the looter and bandit factions into one faction, the **Plünderer**, led by elite **Bandenführer**, and specifies how every human faction and the Hollowed look, at the level of the player outfit table (`docs/superpowers/specs/factions/character-visuals-design.md` section 1). Decisions from the brainstorm on 2026-11-19 to 2026-11-21. Numbers marked **(tune)**. Choices not stated by the designer are marked **(Claude's call)**.
+Status: approved design; the Plünderer, Bandenführer, PMC and garrison holdout models are made (section 5 "As built"); of the code only the PMC wardrobes (section 6 step 2, in part). Merges the looter and bandit factions into one faction, the **Plünderer**, led by elite **Bandenführer**, and specifies how every human faction and the Hollowed look, at the level of the player outfit table (`docs/superpowers/specs/factions/character-visuals-design.md` section 1). Decisions from the brainstorm on 2026-11-19 to 2026-11-21. Numbers marked **(tune)**. Choices not stated by the designer are marked **(Claude's call)**.
 
 ## Intent
 
@@ -193,6 +193,8 @@ The build session edits `docs/design/item_catalog.xlsx` for these rows only, re-
 1. The merge: enum, hostility, save migration, quest, waves, Vogt's escorts; gangs as squads with leader-death panic and the courage bonus.
 2. `OutfitRoll` and the data-driven `AiBodyVisual` on the box body, with the fallback to today's body; the first wardrobe is the Allied and Soviet riflemen (the player outfits, already built), then each faction as its pieces arrive.
 3. Models in the order of section 5; each faction's wardrobe data added as its pieces arrive.
+
+- **Step 2 for the PMCs as built (2026-11-27):** `data/actors/wardrobes.json` lists each PMC's outfits by behaviour type (operator: rifleman and marksman 4 to 1; infiltrator: assault; rat: flanker); `OutfitWardrobes` (pure, tested) rolls one and `AiBodyVisual.BuildFromWardrobe` dresses `boxes_body_soviet.glb`, falling back to the older body or capsule. The Actors sheet's PMC archetypes are now operator 55 / infiltrator 25 / rat 20. Not yet: headwear replaced by a loadout helmet (no helmet mesh on bots), tints, faces, and every other faction. Steps 0 and 1 are still to do.
 
 ## 7. Tests and playtest
 
