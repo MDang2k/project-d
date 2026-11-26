@@ -144,6 +144,7 @@ Rauch keeps his hook: unmasked among masked men.
 ### Faces (Claude's call)
 
 - **Four shared face textures** for all human factions (clean-shaven, stubble, moustache, beard), recoloured for three skin tones **(tune)**, painted new for the box head (the five old looter faces are on the old body's layout and do not carry over). Masked factions skip it. PMCs therefore never all look like the player.
+- **Revised 2026-11-26:** the four faces are base-face cells in one face atlas drawn over a bare face panel by a head shader, with eye and mouth frames for facial animation (`docs/superpowers/specs/animation/facial-animation-design.md` section 2). Face pieces declare whether they hide the eyes, the mouth or both (that spec section 4).
 
 ## 5. Production, data and code
 
