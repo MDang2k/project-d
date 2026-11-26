@@ -2,7 +2,7 @@
 
 Date: 2026-11-21
 
-Status: approved design, not implemented. Merges the looter and bandit factions into one faction, the **Plünderer**, led by elite **Bandenführer**, and specifies how every human faction and the Hollowed look, at the level of the player outfit table (`docs/superpowers/specs/factions/character-visuals-design.md` section 1). Decisions from the brainstorm on 2026-11-19 to 2026-11-21. Numbers marked **(tune)**. Choices not stated by the designer are marked **(Claude's call)**.
+Status: approved design; only the Plünderer and Bandenführer models are made (section 5 "As built"), no code. Merges the looter and bandit factions into one faction, the **Plünderer**, led by elite **Bandenführer**, and specifies how every human faction and the Hollowed look, at the level of the player outfit table (`docs/superpowers/specs/factions/character-visuals-design.md` section 1). Decisions from the brainstorm on 2026-11-19 to 2026-11-21. Numbers marked **(tune)**. Choices not stated by the designer are marked **(Claude's call)**.
 
 ## Intent
 
@@ -153,6 +153,7 @@ Rauch keeps his hook: unmasked among masked men.
 - Every piece is a per-part shell on the 19-bone box body, as the Allied and Soviet player outfits are built (Solidify shells copied from the body boxes). One piece per `.glb` slot file, named `outfit_<faction>_<slot>_<option>.glb` **(Claude's call)**, all sharing the faction's outfit texture atlas; tints are texture variants or a palette-row swap on the atlas.
 - Order: Plünderer and Bandenführer, then the six new PMC outfits, then holdouts, Abteilung Ewig, the Hollowed.
 - Previews per faction: one sheet with three rolled variants side by side, in the A-pose.
+- **As built (2026-11-26):** `tools/build_pluenderer.py` generates `assets/source/characters/outfits_pluenderer.blend` (rebuilding overwrites hand edits) and `tools/export_pluenderer.py` writes 22 files, `assets/models/characters/outfit_pluenderer_<slot>_<option>.glb` and `outfit_bandenfuehrer_<slot>_<option>.glb`. Each is one skinned mesh on the box body's 19 bones. The files embed no image: both ranks share `assets/textures/characters/outfit_pluenderer.png`, which the loading code assigns to the material `pluenderer_detail`. Slots: jacket, trousers, boots, hands, head, face, marker (followers); coat, trousers, boots, hands, head, face, marker (Bandenführer; sunglasses are the face slot, so they combine with the cap). Bare hands, head and face have no file. The leather coat's skirt is the one piece on two bones: its top edge and the back of its hem follow `Hips`, the front of the hem the thigh (every vertex still 100% on one bone). The bare-handed body to dress is `boxes_body_soviet.glb` until a faction-neutral body file exists. Not made: the three tints per piece, the shared faces and skin tones, the hunched posture (animation).
 
 ### Code
 
