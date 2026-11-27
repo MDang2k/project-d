@@ -415,9 +415,8 @@ public class ReputationTests
 		var profile = new GameProfile();
 		profile.Reputation.Add("allied_pmc", -17);
 		profile.Reputation.Add("medic", 8);
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, _ => null, new List<string>());
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
+		var loaded = SaveSerializer.Parse(json, _ => null).Profile;
 		Assert.Equal(-17, loaded.Reputation.Hundredths("allied_pmc"));
 		Assert.Equal(8, loaded.Reputation.Hundredths("medic"));
 	}

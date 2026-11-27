@@ -12,7 +12,7 @@ public partial class GameState : Node
 {
 	public static GameState? Instance { get; private set; }
 
-	public GameProfile Profile { get; } = new();
+	public GameProfile Profile { get; private set; } = new();
 
 	public RunProgress Run => RunState.Current;
 
@@ -29,6 +29,20 @@ public partial class GameState : Node
 		if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--knowcode="))?["--knowcode=".Length..] is { } know)
 			Profile.Knowledge.Unlock(know);
 	}
+
+	/// <summary>A blank profile with the same registered skill and knowledge numbers, for a load to fill.</summary>
+	public GameProfile NewProfile()
+	{
+		var fresh = new GameProfile();
+		foreach (var spec in Profile.Skills.Specs)
+			fresh.Skills.Register(spec);
+		foreach (var spec in Profile.Knowledge.Specs)
+			fresh.Knowledge.Register(spec);
+		return fresh;
+	}
+
+	/// <summary>Swaps in a completely loaded profile.</summary>
+	public void ReplaceProfile(GameProfile profile) => Profile = profile;
 
 	/// <summary>Registers every skill in data/skills with the profile's skill book; bad numbers are skipped with a warning.</summary>
 	private void LoadSkills()

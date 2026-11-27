@@ -22,7 +22,7 @@ public sealed class GameProfile
 
 	public PlayerSide? Side { get; set; }
 
-	public InventoryGrid Stash { get; private set; } = new(StashWidth, StashHeight);
+	public InventoryGrid Stash { get; } = new(StashWidth, StashHeight);
 
 	public bool HasChosenSide => Side is not null;
 
@@ -98,21 +98,6 @@ public sealed class GameProfile
 			state.Id = id;
 			_traders[id] = state;
 		}
-	}
-
-	/// <summary>Replaces the stash (loading a save).</summary>
-	public void ReplaceStash(InventoryGrid stash) => Stash = stash;
-
-	public void Reset()
-	{
-		Side = null;
-		Stash = new InventoryGrid(StashWidth, StashHeight);
-		_traders.Clear();
-		_unlockedTraders.Clear();
-		InsuranceReturns.Clear();
-		Quests.Clear();
-		ExaminedParts.Clear();
-		Presets.Clear();
 	}
 
 	/// <summary>Every item in the stash, nested grids included.</summary>

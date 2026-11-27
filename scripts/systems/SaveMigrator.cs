@@ -10,7 +10,7 @@ public sealed class SaveTooNewException(int found, int supported)
 	: Exception($"save version {found} is newer than supported {supported}");
 
 /// <summary>
-/// Brings an older save up to <see cref="SaveFile.CurrentVersion"/> by running one step per
+/// Brings an older save up to <see cref="SaveSerializer.CurrentVersion"/> by running one step per
 /// version over the raw JSON. Add a step to <see cref="Default"/> whenever the format changes.
 /// </summary>
 public sealed class SaveMigrator
@@ -25,7 +25,7 @@ public sealed class SaveMigrator
 	}
 
 	// Each entry N upgrades a version-N object in place to the shape of N+1; the migrator stamps the version.
-	public static SaveMigrator Default { get; } = new(SaveFile.CurrentVersion, new Dictionary<int, Action<JsonObject>>
+	public static SaveMigrator Default { get; } = new(SaveSerializer.CurrentVersion, new Dictionary<int, Action<JsonObject>>
 	{
 		// 1 -> 2: side and stash arrive with the hub; needsKit is retired (extra properties are ignored on read).
 		[1] = root =>

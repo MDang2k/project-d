@@ -339,9 +339,8 @@ public class WeaponModdingIntegrationTests
 		var inv = new CharacterInventory();
 		inv.TryEquip(rifle, EquipSlot.Primary);
 		var run = new RunProgress();
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(run, new GameProfile(), inv, false));
-		var loaded = new RunProgress();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), loaded, new GameProfile(), Lookup, new List<string>());
+		var json = SaveSerializer.ToJson(run, new GameProfile(), inv, false);
+		var loaded = SaveSerializer.Parse(json, Lookup).Run;
 		var back = loaded.Inventory!.InSlot(EquipSlot.Primary)!;
 		Assert.Equal("scope", back.Parts["dovetail"].Parts["optic"].Spec.Id);
 		Assert.Equal(4f, WeaponBuild.Stats(back).Zoom);
@@ -356,9 +355,7 @@ public class WeaponModdingIntegrationTests
 			{"version":6,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],
 			 "stash":{"width":10,"height":30,"items":[{"x":0,"y":0,"item":{"id":"rifle","parts":{"stock":{"id":"scope"}}}}]}}
 			""";
-		var profile = new GameProfile();
-		var warnings = new List<string>();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), profile, Lookup, warnings);
+		var (_, _, profile, warnings) = SaveSerializer.Parse(json, Lookup);
 		var rifle = profile.Stash.Items.First(i => i.Spec.Id == "rifle");
 		Assert.Contains(warnings, w => w.Contains("no longer fits"));
 		Assert.Contains(profile.Stash.Items, i => i.Spec.Id == "scope");
@@ -373,8 +370,7 @@ public class WeaponModdingIntegrationTests
 			{"version":5,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],
 			 "character":{"slots":{"Primary":{"id":"rifle"}},"pockets":[]}}
 			""";
-		var run = new RunProgress();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), run, new GameProfile(), Lookup, new List<string>());
+		var run = SaveSerializer.Parse(json, Lookup).Run;
 		Assert.NotNull(run.Inventory!.InSlot(EquipSlot.Primary));
 	}
 }
@@ -654,9 +650,8 @@ public class WeaponWorkshopTests
 		var profile = new GameProfile();
 		profile.ExaminedParts.Add("brake");
 		profile.Presets.Add(new PartPreset("sniper", "rifle", new Dictionary<string, string> { ["muzzle"] = "brake" }));
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(run, profile, null, false));
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, Lookup, new List<string>());
+		var json = SaveSerializer.ToJson(run, profile, null, false);
+		var loaded = SaveSerializer.Parse(json, Lookup).Profile;
 		Assert.Contains("brake", loaded.ExaminedParts);
 		Assert.Equal("brake", Assert.Single(loaded.Presets).Parts["muzzle"]);
 	}

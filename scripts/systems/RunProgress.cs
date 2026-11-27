@@ -66,5 +66,5 @@ public sealed class RunProgress
 /// <summary>Process-wide holder of the current run (an autoload GameState replaces it in M7).</summary>
 public static class RunState
 {
-	public static RunProgress Current { get; } = new();
+	public static RunProgress Current { get; set; } = new();
 }

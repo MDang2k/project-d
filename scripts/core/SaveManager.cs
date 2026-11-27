@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -48,18 +47,20 @@ public partial class SaveManager : Node
 	{
 		if (_store is null)
 			return;
-		var file = SaveSerializer.ToFile(RunState.Current, Profile, character, raidInProgress);
-		if (!_store.TryWrite(SaveSerializer.ToJson(file), out var error))
+		var json = SaveSerializer.ToJson(RunState.Current, Profile, character, raidInProgress);
+		if (!_store.TryWrite(json, out var error))
 			GD.PushError($"[Save] could not write the save: {error}");
 	}
 
 	private void Load()
 	{
-		SaveFile? file;
+		LoadedSave? save;
 		SaveSource source;
 		try
 		{
-			(file, source) = _store!.Load(json => SaveSerializer.Parse(json),
+			// All or nothing: the parts fill fresh state, and only a complete result replaces the live one.
+			(save, source) = _store!.Load(
+				json => SaveSerializer.Parse(json, id => ItemDb.Instance?.Registry.Spec(id), GameState.Instance?.NewProfile()),
 				(path, e) => GD.PushWarning($"[Save] unreadable file moved aside ({path}): {e.Message}"));
 		}
 		catch (SaveTooNewException e)
@@ -68,19 +69,19 @@ public partial class SaveManager : Node
 			_store = null;
 			return;
 		}
-		if (file is null)
+		if (save is null)
 		{
 			GD.Print("SAVE none, starting a new profile");
 			return;
 		}
 		if (source == SaveSource.Backup)
 			GD.PushWarning("[Save] main save unreadable, loaded the backup");
-		var warnings = new List<string>();
-		SaveSerializer.Apply(file, RunState.Current, Profile, id => ItemDb.Instance?.Registry.Spec(id), warnings);
-		foreach (var w in warnings)
+		RunState.Current = save.Run;
+		GameState.Instance?.ReplaceProfile(save.Profile);
+		foreach (var w in save.Warnings)
 			GD.PushWarning($"[Save] {w}");
-		GD.Print($"SAVE loaded raids={RunState.Current.Raids} inRaid={file.RaidInProgress}");
-		if (RaidRecovery.Apply(file.RaidInProgress, RunState.Current, lost =>
+		GD.Print($"SAVE loaded raids={RunState.Current.Raids} inRaid={save.RaidInProgress}");
+		if (RaidRecovery.Apply(save.RaidInProgress, RunState.Current, lost =>
 			InsuranceService.OnRaidEnd(RaidOutcome.Killed, lost, Profile, RunState.Current.Inventory, LevelOf, Random.Shared.NextDouble)))
 		{
 			GD.Print("SAVE raid was in progress at launch: counted as death");

@@ -356,12 +356,10 @@ public class NemesisTests
 		var n = Register(profile.Nemeses, kill: Kill(raid: 3, x: 5f, z: 6f)).Nemesis;
 		Register(profile.Nemeses, n.Id, new List<LostItem> { new(I(VestT4), EquipSlot.Vest) }, kill: Kill(raid: 5, x: 7f, z: 8f));
 		n.Gear.InSlot(EquipSlot.Vest)!.Durability = 33f;
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
 		Assert.Contains("\"nemeses\"", json);
 
-		var loaded = new GameProfile();
-		var warnings = new List<string>();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, Lookup, warnings);
+		var (_, _, loaded, warnings) = SaveSerializer.Parse(json, Lookup);
 		Assert.Empty(warnings);
 		var back = loaded.Nemeses.All.Single();
 		Assert.Equal((n.Id, n.Name, n.Nickname, n.Faction, n.MapId), (back.Id, back.Name, back.Nickname, back.Faction, back.MapId));
@@ -378,11 +376,8 @@ public class NemesisTests
 	public void AVersion8SaveLoadsWithNoNemeses()
 	{
 		const string v8 = """{"version":8,"raidInProgress":false,"counters":{"raids":2,"extractions":1,"deaths":1,"mia":0},"quickUse":[]}""";
-		var file = SaveSerializer.Parse(v8);
-		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.True(SaveFile.CurrentVersion >= 9);
-		Assert.NotNull(file.Nemeses);
-		Assert.Empty(file.Nemeses!);
+		Assert.True(SaveSerializer.CurrentVersion >= 9);
+		Assert.Empty(SaveSerializer.Parse(v8, Lookup).Profile.Nemeses.All);
 	}
 
 	[Fact]
@@ -390,10 +385,8 @@ public class NemesisTests
 	{
 		var profile = new GameProfile();
 		Register(profile.Nemeses);
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false)).Replace("\"AlliedPmc\"", "\"Martians\"");
-		var warnings = new List<string>();
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, Lookup, warnings);
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false).Replace("\"AlliedPmc\"", "\"Martians\"");
+		var (_, _, loaded, warnings) = SaveSerializer.Parse(json, Lookup);
 		Assert.Empty(loaded.Nemeses.All);
 		Assert.Single(warnings);
 	}
@@ -403,10 +396,9 @@ public class NemesisTests
 	{
 		var profile = new GameProfile();
 		Register(profile.Nemeses);
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
 		json = System.Text.RegularExpressions.Regex.Replace(json, @"""rank"":\s*1", "\"rank\":99");
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, Lookup, new List<string>());
+		var loaded = SaveSerializer.Parse(json, Lookup).Profile;
 		Assert.Equal(3, loaded.Nemeses.All.Single().Rank);
 	}
 }
