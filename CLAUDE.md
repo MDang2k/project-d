@@ -93,8 +93,8 @@ GitHub Issues on MDang2k/project-d via the `gh` CLI; design specs stay in `docs/
 
 ### Triage labels
 
-Default five: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+Default five: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `C:/Users/minhd/home/docs/agents/triage-labels.md` (Home Repo).
 
 ### Domain docs
 
-Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created when needed. See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created when needed. See `C:/Users/minhd/home/docs/agents/domain.md` (Home Repo).
