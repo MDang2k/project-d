@@ -1,0 +1,363 @@
+{
+  "version": 10,
+  "raidInProgress": true,
+  "counters": {
+    "raids": 3,
+    "extractions": 1,
+    "deaths": 1,
+    "mia": 1
+  },
+  "quickUse": [
+    "bandage",
+    "morphine",
+    null,
+    "water_canteen"
+  ],
+  "character": {
+    "slots": {
+      "Primary": {
+        "id": "rifle",
+        "count": 1,
+        "rotated": false,
+        "durability": -1,
+        "magazine": {
+          "id": "mag",
+          "count": 1,
+          "rotated": false,
+          "durability": -1,
+          "rounds": [
+            "ps",
+            "ps",
+            "bp"
+          ],
+          "insured": false,
+          "foundInRaid": false
+        },
+        "chambered": "ps",
+        "insured": true,
+        "insuredWith": "allied_qm",
+        "foundInRaid": false,
+        "parts": {
+          "stock": {
+            "id": "stock_wood",
+            "count": 1,
+            "rotated": false,
+            "durability": -1,
+            "insured": false,
+            "foundInRaid": false
+          },
+          "handguard": {
+            "id": "hg_wood",
+            "count": 1,
+            "rotated": false,
+            "durability": -1,
+            "insured": false,
+            "foundInRaid": false
+          },
+          "dovetail": {
+            "id": "mount",
+            "count": 1,
+            "rotated": false,
+            "durability": -1,
+            "insured": false,
+            "foundInRaid": false,
+            "parts": {
+              "optic": {
+                "id": "scope",
+                "count": 1,
+                "rotated": false,
+                "durability": -1,
+                "insured": false,
+                "foundInRaid": false
+              }
+            }
+          }
+        }
+      },
+      "Vest": {
+        "id": "vest",
+        "count": 1,
+        "rotated": false,
+        "durability": 12.5,
+        "insured": false,
+        "foundInRaid": false
+      },
+      "Rig": {
+        "id": "rig",
+        "count": 1,
+        "rotated": false,
+        "durability": -1,
+        "grids": [
+          {
+            "width": 4,
+            "height": 3,
+            "items": [
+              {
+                "x": 2,
+                "y": 1,
+                "item": {
+                  "id": "mag",
+                  "count": 1,
+                  "rotated": true,
+                  "durability": -1,
+                  "insured": false,
+                  "foundInRaid": false
+                }
+              }
+            ]
+          }
+        ],
+        "insured": false,
+        "foundInRaid": false
+      }
+    },
+    "pockets": [
+      {
+        "width": 1,
+        "height": 2,
+        "items": [
+          {
+            "x": 0,
+            "y": 0,
+            "item": {
+              "id": "bandage",
+              "count": 2,
+              "rotated": false,
+              "durability": -1,
+              "insured": false,
+              "foundInRaid": true
+            }
+          }
+        ]
+      },
+      {
+        "width": 1,
+        "height": 2,
+        "items": []
+      }
+    ]
+  },
+  "side": "Soviet",
+  "stash": {
+    "width": 10,
+    "height": 30,
+    "items": [
+      {
+        "x": 3,
+        "y": 7,
+        "item": {
+          "id": "ammo",
+          "count": 42,
+          "rotated": false,
+          "durability": -1,
+          "insured": false,
+          "foundInRaid": false
+        }
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "item": {
+          "id": "rifle",
+          "count": 1,
+          "rotated": false,
+          "durability": -1,
+          "insured": false,
+          "foundInRaid": false,
+          "parts": {
+            "stock": {
+              "id": "stock_wood",
+              "count": 1,
+              "rotated": false,
+              "durability": -1,
+              "insured": false,
+              "foundInRaid": false
+            },
+            "handguard": {
+              "id": "hg_wood",
+              "count": 1,
+              "rotated": false,
+              "durability": -1,
+              "insured": false,
+              "foundInRaid": false
+            }
+          }
+        }
+      }
+    ]
+  },
+  "traders": {
+    "medic": {
+      "level": 2,
+      "spent": 1234
+    }
+  },
+  "insuranceReturns": [
+    {
+      "item": {
+        "id": "rifle",
+        "count": 1,
+        "rotated": false,
+        "durability": -1,
+        "insured": false,
+        "foundInRaid": false,
+        "parts": {
+          "stock": {
+            "id": "stock_wood",
+            "count": 1,
+            "rotated": false,
+            "durability": -1,
+            "insured": false,
+            "foundInRaid": false
+          },
+          "handguard": {
+            "id": "hg_wood",
+            "count": 1,
+            "rotated": false,
+            "durability": -1,
+            "insured": false,
+            "foundInRaid": false
+          }
+        }
+      },
+      "raidsRemaining": 1
+    }
+  ],
+  "quests": {
+    "q01": {
+      "state": "Active",
+      "progress": [
+        3,
+        0
+      ]
+    },
+    "q02": {
+      "state": "Completed",
+      "progress": [
+        1
+      ]
+    }
+  },
+  "tracked": "q01",
+  "unlockedTraders": [
+    "allied_qm"
+  ],
+  "pendingRewards": [
+    {
+      "itemId": "bandage",
+      "count": 3
+    }
+  ],
+  "reputation": {
+    "medic": 25,
+    "looters": -40
+  },
+  "examined": [
+    "scope",
+    "mount"
+  ],
+  "presets": [
+    {
+      "name": "Marksman",
+      "weaponId": "rifle",
+      "parts": {
+        "dovetail": "mount",
+        "optic": "scope"
+      }
+    }
+  ],
+  "skills": {
+    "endurance": 260,
+    "strength": 12.75
+  },
+  "nemeses": [
+    {
+      "id": "n3",
+      "name": "Jack Cole",
+      "nickname": "Ghost",
+      "faction": "AlliedPmc",
+      "mapId": "map1",
+      "x": 7.5,
+      "z": -8,
+      "rank": 2,
+      "raidCreated": 3,
+      "friendlyOrigin": true,
+      "kills": [
+        {
+          "raid": 3,
+          "mapId": "map1",
+          "x": 5,
+          "z": 6,
+          "place": "place.tower"
+        },
+        {
+          "raid": 5,
+          "mapId": "map1",
+          "x": 7.5,
+          "z": -8,
+          "place": ""
+        }
+      ],
+      "gear": {
+        "slots": {
+          "Primary": {
+            "id": "rifle",
+            "count": 1,
+            "rotated": false,
+            "durability": -1,
+            "insured": false,
+            "foundInRaid": false,
+            "parts": {
+              "stock": {
+                "id": "stock_wood",
+                "count": 1,
+                "rotated": false,
+                "durability": -1,
+                "insured": false,
+                "foundInRaid": false
+              },
+              "handguard": {
+                "id": "hg_wood",
+                "count": 1,
+                "rotated": false,
+                "durability": -1,
+                "insured": false,
+                "foundInRaid": false
+              },
+              "muzzle": {
+                "id": "scope",
+                "count": 1,
+                "rotated": false,
+                "durability": -1,
+                "insured": false,
+                "foundInRaid": false
+              }
+            }
+          }
+        },
+        "pockets": [
+          {
+            "width": 1,
+            "height": 2,
+            "items": []
+          },
+          {
+            "width": 1,
+            "height": 2,
+            "items": []
+          }
+        ]
+      }
+    }
+  ],
+  "knowledge": {
+    "door_side_room": {
+      "state": "Translated",
+      "raidsLeft": 0
+    },
+    "lab_note_1": {
+      "state": "Translating",
+      "raidsLeft": 2
+    }
+  }
+}

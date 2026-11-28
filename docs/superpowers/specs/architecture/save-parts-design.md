@@ -2,7 +2,7 @@
 
 Date: 2026-11-21
 
-Status: approved design, not implemented. A refactor from the architecture review of 2026-11-21 (candidate 2) and the design session that followed. Every decision below was confirmed by the designer. Do it **first**, before the faction rules refactor (`docs/superpowers/specs/architecture/faction-rules-design.md`) and the Plünderer merge.
+Status: implemented 2026-11-28 (playtest pending). A refactor from the architecture review of 2026-11-21 (candidate 2) and the design session that followed. Every decision below was confirmed by the designer. Do it **first**, before the faction rules refactor (`docs/superpowers/specs/architecture/faction-rules-design.md`) and the Plünderer merge.
 
 ## Intent
 
@@ -16,6 +16,8 @@ Status: approved design, not implemented. A refactor from the architecture revie
 - Changing `SaveMigrator` (it already works on raw JSON, one step per version) or `SaveFileStore` (main file, `.bak`, quarantine).
 
 ## 0. Current state
+
+As it was before the work. The parts are now in `scripts/systems/save/`; `SaveSerializer.Parts` holds the load order, `SaveSerializer.Parse` returns a `LoadedSave`, and `GameState.ReplaceProfile` swaps it in.
 
 | Today | Where |
 |---|---|

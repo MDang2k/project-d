@@ -281,13 +281,13 @@ public class KnowledgeTests
 		profile.Knowledge.Unlock("note2");
 		profile.Knowledge.StartTranslation("note");
 		profile.Knowledge.OnRaidEnded();
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
 		Assert.Contains("\"knowledge\"", json);
 
 		var loaded = new GameProfile();
 		foreach (var s in new[] { Code, Note, Note2 })
 			loaded.Knowledge.Register(s);
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, _ => null, new List<string>());
+		SaveSerializer.Parse(json, _ => null, loaded);
 		Assert.True(loaded.Knowledge.IsActive("code"));
 		Assert.Equal("note", loaded.Knowledge.ActiveTranslation);
 		Assert.Equal(1, loaded.Knowledge.RaidsLeft("note"));
@@ -300,11 +300,8 @@ public class KnowledgeTests
 	public void AVersion9SaveLoadsWithNothingKnown()
 	{
 		const string v9 = """{"version":9,"raidInProgress":false,"counters":{"raids":2,"extractions":1,"deaths":1,"mia":0},"quickUse":[]}""";
-		var file = SaveSerializer.Parse(v9);
-		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.True(SaveFile.CurrentVersion >= 10);
-		Assert.NotNull(file.Knowledge);
-		Assert.Empty(file.Knowledge!);
+		Assert.True(SaveSerializer.CurrentVersion >= 10);
+		Assert.Empty(SaveSerializer.Parse(v9, _ => null).Profile.Knowledge.Snapshot());
 	}
 
 	[Fact]
@@ -325,10 +322,10 @@ public class KnowledgeTests
 		var profile = new GameProfile();
 		profile.Knowledge.Register(Code);
 		profile.Knowledge.Unlock("code");
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false)).Replace("\"Translated\"", "\"Mystery\"");
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false).Replace("\"Translated\"", "\"Mystery\"");
 		var loaded = new GameProfile();
 		loaded.Knowledge.Register(Code);
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, _ => null, new List<string>());
+		SaveSerializer.Parse(json, _ => null, loaded);
 		Assert.True(loaded.Knowledge.IsUnlocked("code"));
 	}
 

@@ -92,9 +92,8 @@ public class NemesisSummaryTests
 	{
 		var profile = new GameProfile();
 		profile.Nemeses.Add(Make());
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, id => null, new List<string>());
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
+		var loaded = SaveSerializer.Parse(json, id => null).Profile;
 		Assert.Equal(new[] { "landmark.tower", "" }, loaded.Nemeses.All.Single().Kills.Select(k => k.Place));
 	}
 

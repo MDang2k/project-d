@@ -230,11 +230,9 @@ public class SaveV4Tests
 		rifle.InsuredWith = "allied_qm";
 		inv.TryEquip(rifle, EquipSlot.Primary);
 		profile.InsuranceReturns.Add(new PendingReturn(ItemInstance.Create(Lookup("ak")!), 1));
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, inv, false));
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, inv, false);
 
-		var loaded = new GameProfile();
-		var run = new RunProgress();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), run, loaded, Lookup, new List<string>());
+		var (_, run, loaded, _) = SaveSerializer.Parse(json, Lookup);
 		var loadedRifle = run.Inventory!.InSlot(EquipSlot.Primary)!;
 		Assert.True(loadedRifle.Insured);
 		Assert.Equal("allied_qm", loadedRifle.InsuredWith);
@@ -246,8 +244,6 @@ public class SaveV4Tests
 	public void V3SaveMigratesWithAnEmptyQueue()
 	{
 		const string v3 = """{"version":3,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"traders":{}}""";
-		var file = SaveSerializer.Parse(v3);
-		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.Empty(file.InsuranceReturns!);
+		Assert.Empty(SaveSerializer.Parse(v3, _ => null).Profile.InsuranceReturns.Entries);
 	}
 }

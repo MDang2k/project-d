@@ -197,12 +197,12 @@ public class SkillTests
 		var profile = new GameProfile();
 		profile.Skills.Register(Spec());
 		profile.Skills.Load(new Dictionary<string, float> { ["endurance"] = 260f });
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
 		Assert.Contains("\"skills\"", json);
 
 		var loaded = new GameProfile();
 		loaded.Skills.Register(Spec());
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, _ => null, new List<string>());
+		SaveSerializer.Parse(json, _ => null, loaded);
 		Assert.Equal(260f, loaded.Skills.Xp("endurance"));
 		Assert.Equal(3, loaded.Skills.Level("endurance"));
 	}
@@ -211,14 +211,8 @@ public class SkillTests
 	public void AVersion7SaveLoadsWithNoSkillXp()
 	{
 		const string v7 = """{"version":7,"raidInProgress":false,"counters":{"raids":2,"extractions":1,"deaths":1,"mia":0},"quickUse":[]}""";
-		var file = SaveSerializer.Parse(v7);
-		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.True(SaveFile.CurrentVersion >= 8);
-		Assert.NotNull(file.Skills);
-		Assert.Empty(file.Skills!);
-		var profile = new GameProfile();
-		SaveSerializer.Apply(file, new RunProgress(), profile, _ => null, new List<string>());
-		Assert.Empty(profile.Skills.Snapshot());
+		Assert.True(SaveSerializer.CurrentVersion >= 8);
+		Assert.Empty(SaveSerializer.Parse(v7, _ => null).Profile.Skills.Snapshot());
 	}
 
 	// ---- effects

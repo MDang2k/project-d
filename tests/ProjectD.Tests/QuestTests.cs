@@ -71,9 +71,8 @@ public class QuestTests
 		var cat = One(q);
 		Activate(cat, profile.Quests, profile);
 		QuestEngine.OnEvent(cat, profile.Quests, new KilledEvent(Faction.Looters, WeaponClass.Primary, "map1"));
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, _ => null, new List<string>());
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
+		var loaded = SaveSerializer.Parse(json, _ => null).Profile;
 		Assert.Equal(1, loaded.Quests.Entry(q).Progress[0]);
 		Assert.Equal(QuestState.Active, loaded.Quests.StateOf(q));
 		Assert.Equal("k", loaded.Quests.TrackedId);
@@ -286,9 +285,8 @@ public class SaveV5Tests
 		profile.UnlockTrader("soviet_qm");
 		profile.Quests.AddPending(new PendingReward("vest", 1));
 		profile.Quests.AddReputation("bandits", 3);
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, id => id == "bandage" ? spec : null, new List<string>());
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
+		var loaded = SaveSerializer.Parse(json, id => id == "bandage" ? spec : null).Profile;
 		Assert.True(loaded.Stash.Items.First().FoundInRaid);
 		Assert.Contains("soviet_qm", loaded.UnlockedTraders);
 		Assert.Single(loaded.Quests.Pending);
@@ -299,10 +297,9 @@ public class SaveV5Tests
 	public void V4SaveMigratesToEmptyQuestState()
 	{
 		const string v4 = """{"version":4,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"insuranceReturns":[]}""";
-		var file = SaveSerializer.Parse(v4);
-		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.Empty(file.Quests!);
-		Assert.Null(file.Tracked);
-		Assert.Empty(file.UnlockedTraders!);
+		var profile = SaveSerializer.Parse(v4, _ => null).Profile;
+		Assert.Empty(profile.Quests.Entries);
+		Assert.Null(profile.Quests.TrackedId);
+		Assert.Empty(profile.UnlockedTraders);
 	}
 }

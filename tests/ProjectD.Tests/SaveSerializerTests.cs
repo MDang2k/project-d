@@ -22,10 +22,10 @@ public class SaveSerializerTests
 
 	private static RunProgress RoundTrip(RunProgress run, CharacterInventory? character, bool raid, List<string> warnings)
 	{
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(run, character, raid));
-		var loaded = new RunProgress();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), loaded, Lookup, warnings);
-		return loaded;
+		var json = SaveSerializer.ToJson(run, new GameProfile(), character, raid);
+		var loaded = SaveSerializer.Parse(json, Lookup);
+		warnings.AddRange(loaded.Warnings);
+		return loaded.Run;
 	}
 
 	[Fact]
@@ -93,9 +93,7 @@ public class SaveSerializerTests
 			 "character":{"slots":{"Primary":{"id":"gone_weapon"},"Melee":{"id":"knife"}},
 			              "pockets":[{"width":1,"height":2,"items":[]}]}}
 			""";
-		var run = new RunProgress();
-		var warnings = new List<string>();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), run, Lookup, warnings);
+		var (_, run, _, warnings) = SaveSerializer.Parse(json, Lookup);
 		Assert.Contains(warnings, w => w.Contains("gone_weapon"));
 		Assert.NotNull(run.Inventory!.InSlot(EquipSlot.Melee));
 		Assert.Null(run.Inventory.InSlot(EquipSlot.Primary));
@@ -110,8 +108,7 @@ public class SaveSerializerTests
 			 "character":{"slots":{"Vest":{"id":"vest"}},
 			              "pockets":[{"width":1,"height":2,"items":[{"x":0,"y":0,"item":{"id":"bandage"}}]}]}}
 			""";
-		var run = new RunProgress();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), run, Lookup, new List<string>());
+		var run = SaveSerializer.Parse(json, Lookup).Run;
 		Assert.Equal(-1f, run.Inventory!.InSlot(EquipSlot.Vest)!.Durability);
 		Assert.Equal(1, run.Inventory.Pockets[0].Items.Single().Count);
 	}
@@ -124,9 +121,7 @@ public class SaveSerializerTests
 			 "counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[null,null,null,null],
 			 "character":{"slots":{},"pockets":[{"width":1,"height":2,"items":[{"x":0,"y":0,"item":{"id":"vest"}}]}]}}
 			""";
-		var run = new RunProgress();
-		var warnings = new List<string>();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), run, Lookup, warnings);
+		var (_, run, _, warnings) = SaveSerializer.Parse(json, Lookup);
 		Assert.Empty(run.Inventory!.Pockets[0].Items);
 		Assert.Single(warnings);
 	}
@@ -138,7 +133,7 @@ public class SaveSerializerTests
 	[InlineData("""{"version":1,"raidInProgress":false,"needsKit":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"character":{"slots":{},"pockets":[{"width":1,"height":2}]}}""")]
 	[InlineData("""{"version":1,"raidInProgress":false,"needsKit":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"character":{"slots":{"Melee":{}},"pockets":[]}}""")]
 	public void IncompleteButValidJsonIsRejectedAtParse(string json)
-		=> Assert.Throws<System.Text.Json.JsonException>(() => SaveSerializer.Parse(json));
+		=> Assert.Throws<System.Text.Json.JsonException>(() => SaveSerializer.Parse(json, Lookup));
 
 	[Fact]
 	public void PocketLayoutComesFromTheCurrentDesignNotTheFile()
@@ -148,9 +143,7 @@ public class SaveSerializerTests
 			 "counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[null,null,null,null],
 			 "character":{"slots":{},"pockets":[{"width":5,"height":5,"items":[{"x":0,"y":0,"item":{"id":"vest"}}]}]}}
 			""";
-		var run = new RunProgress();
-		var warnings = new List<string>();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), run, Lookup, warnings);
+		var (_, run, _, warnings) = SaveSerializer.Parse(json, Lookup);
 		Assert.Equal(CharacterInventory.DefaultPockets.Length, run.Inventory!.Pockets.Count);
 		Assert.Equal(CharacterInventory.DefaultPockets[0].Width, run.Inventory.Pockets[0].Width);
 		Assert.Single(warnings);

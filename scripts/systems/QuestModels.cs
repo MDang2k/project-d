@@ -103,14 +103,6 @@ public sealed class QuestLog
 	public void SetReputation(string target, int value) => _reputation[target] = Math.Clamp(value, ReputationBook.Min, ReputationBook.Max);
 
 	public void NotifyChanged() => Changed?.Invoke();
-
-	public void Clear()
-	{
-		_entries.Clear();
-		_pending.Clear();
-		_reputation.Clear();
-		TrackedId = null;
-	}
 }
 
 /// <summary>Raid events the quest engine reacts to; thin nodes raise them.</summary>

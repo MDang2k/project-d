@@ -45,8 +45,6 @@ public sealed class InsuranceQueue
 	public void Add(PendingReturn entry) => _entries.Add(entry);
 
 	public bool Remove(PendingReturn entry) => _entries.Remove(entry);
-
-	public void Clear() => _entries.Clear();
 }
 
 /// <summary>

@@ -135,9 +135,8 @@ public class SaveV2Tests
 		profile.Stash.TryPlace(stack, 3, 7);
 		profile.Stash.TryPlace(ItemInstance.Create(Items.Rifle), 0, 0);
 
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(run, profile, null, false));
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, Lookup, new List<string>());
+		var json = SaveSerializer.ToJson(run, profile, null, false);
+		var loaded = SaveSerializer.Parse(json, Lookup).Profile;
 
 		Assert.Equal(PlayerSide.Soviet, loaded.Side);
 		Assert.Equal(2, loaded.Stash.ItemCount);
@@ -148,9 +147,8 @@ public class SaveV2Tests
 	[Fact]
 	public void NoSideLoadsAsNull()
 	{
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), new GameProfile(), null, false));
-		var loaded = new GameProfile { Side = PlayerSide.Allied };
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, Lookup, new List<string>());
+		var json = SaveSerializer.ToJson(new RunProgress(), new GameProfile(), null, false);
+		var loaded = SaveSerializer.Parse(json, Lookup, new GameProfile { Side = PlayerSide.Allied }).Profile;
 		Assert.Null(loaded.Side);
 		Assert.False(loaded.HasChosenSide);
 	}
@@ -159,8 +157,7 @@ public class SaveV2Tests
 	public void V1SaveMigratesToAnEmptyStashAndNoSide()
 	{
 		const string v1 = """{"version":1,"raidInProgress":false,"needsKit":true,"counters":{"raids":2,"extractions":1,"deaths":1,"mia":0},"quickUse":[null,null,null,null]}""";
-		var profile = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(v1), new RunProgress(), profile, Lookup, new List<string>());
+		var profile = SaveSerializer.Parse(v1, Lookup).Profile;
 		Assert.Null(profile.Side);
 		Assert.Equal(0, profile.Stash.ItemCount);
 	}
@@ -176,9 +173,7 @@ public class SaveV2Tests
 	public void UnknownStashItemIsDroppedWithAWarning()
 	{
 		const string json = """{"version":2,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"side":"Allied","stash":{"width":10,"height":30,"items":[{"x":0,"y":0,"item":{"id":"ghost"}},{"x":2,"y":0,"item":{"id":"pistol"}}]}}""";
-		var profile = new GameProfile();
-		var warnings = new List<string>();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), profile, Lookup, warnings);
+		var (_, _, profile, warnings) = SaveSerializer.Parse(json, Lookup);
 		Assert.Single(profile.Stash.Items);
 		Assert.Contains(warnings, w => w.Contains("ghost"));
 	}
@@ -192,9 +187,8 @@ public class SaveV3Tests
 		var profile = new GameProfile();
 		profile.Trader("medic").Level = 2;
 		profile.Trader("medic").Spent = 1234;
-		var json = SaveSerializer.ToJson(SaveSerializer.ToFile(new RunProgress(), profile, null, false));
-		var loaded = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), loaded, _ => null, new List<string>());
+		var json = SaveSerializer.ToJson(new RunProgress(), profile, null, false);
+		var loaded = SaveSerializer.Parse(json, _ => null).Profile;
 		Assert.Equal(2, loaded.Trader("medic").Level);
 		Assert.Equal(1234, loaded.Trader("medic").Spent);
 		Assert.Equal(1, loaded.Trader("smuggler").Level);
@@ -204,17 +198,14 @@ public class SaveV3Tests
 	public void V2SaveMigratesWithAnEmptyTraderMap()
 	{
 		const string v2 = """{"version":2,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"side":"Allied","stash":{"width":10,"height":30,"items":[]}}""";
-		var file = SaveSerializer.Parse(v2);
-		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.Empty(file.Traders!);
+		Assert.Empty(SaveSerializer.Parse(v2, _ => null).Profile.Traders);
 	}
 
 	[Fact]
 	public void OutOfRangeTraderLevelIsClamped()
 	{
 		const string json = """{"version":3,"raidInProgress":false,"counters":{"raids":0,"extractions":0,"deaths":0,"mia":0},"quickUse":[],"traders":{"medic":{"level":99,"spent":-5}}}""";
-		var profile = new GameProfile();
-		SaveSerializer.Apply(SaveSerializer.Parse(json), new RunProgress(), profile, _ => null, new List<string>());
+		var profile = SaveSerializer.Parse(json, _ => null).Profile;
 		Assert.Equal(TraderSpec.MaxLevel, profile.Trader("medic").Level);
 		Assert.Equal(0, profile.Trader("medic").Spent);
 	}

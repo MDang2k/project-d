@@ -19,17 +19,17 @@ public class SaveMigratorTests
 	[Fact]
 	public void FrozenV1FixtureStillParses()
 	{
-		var file = SaveSerializer.Parse(V1Fixture);
-		Assert.Equal(SaveFile.CurrentVersion, file.Version);
-		Assert.NotNull(file.Traders);
-		Assert.Empty(file.Traders!);
-		Assert.Null(file.Side);
-		Assert.NotNull(file.Stash);
-		Assert.Empty(file.Stash!.Items);
-		Assert.Equal(GameProfile.StashHeight, file.Stash.Height);
-		Assert.True(file.RaidInProgress);
-		Assert.Equal(4, file.Counters.Raids);
-		Assert.Equal("morphine", file.QuickUse[1]);
+		var root = SaveMigrator.Default.Migrate(V1Fixture);
+		Assert.Equal(SaveSerializer.CurrentVersion, (int)root["version"]!);
+		Assert.Equal(GameProfile.StashHeight, (int)root["stash"]!["height"]!);
+
+		var save = SaveSerializer.Parse(V1Fixture, _ => null);
+		Assert.Empty(save.Profile.Traders);
+		Assert.Null(save.Profile.Side);
+		Assert.Empty(save.Profile.Stash.Items);
+		Assert.True(save.RaidInProgress);
+		Assert.Equal(4, save.Run.Raids);
+		Assert.Equal("morphine", save.Run.QuickUse.IdAt(1));
 	}
 
 	[Fact]

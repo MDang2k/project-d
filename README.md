@@ -50,6 +50,7 @@ Each spec has a detailed "Implementation status" table.
 
 | System | Status | Main things left |
 |---|---|---|
+| [Save parts](docs/superpowers/specs/architecture/save-parts-design.md) (each piece of saved state saves itself; all-or-nothing load) | **Built, playtest pending** | file format unchanged (version 10) |
 | [Composable actors](docs/superpowers/specs/ai/composable-actors-design.md) (AI stats from catalog sheets, F5 inspector) | **Built** | old `AiPreset` oracle removed 2026-11-10; player skills wait for M8a |
 | [AI combat v2](docs/superpowers/specs/ai/ai-combat-v2-design.md) | **Steps 1-7 built, playtest pending** | bot stamina; corner pieing; armor retargeting; marksman behaviour; boss squads; voice barks; flashlight and NVG rules (M9); grenades (post-slice). No light zones, foliage or wall material tags are placed on maps yet |
 | [Animation system](docs/superpowers/specs/animation/animation-system-design.md) | **Partly built** | see below |
@@ -65,8 +66,7 @@ Each spec has a detailed "Implementation status" table.
 - **Story:** acts, lock meter, story missions and endings are design only; the [story mission framework](docs/superpowers/specs/story/story-mission-framework-design.md) is written, not built. Mission 1 First Delivery exists as quest `q07`.
 - **Paper maps and chance extracts:** the [spec](docs/superpowers/specs/maps/paper-maps-chance-extracts-design.md) is written, not built (map items wait for catalog rows).
 - **Faction looks and the Plünderer merge:** the [spec](docs/superpowers/specs/factions/faction-looks-pluenderer-design.md) is written; the Plünderer, Bandenführer, PMC and garrison holdout outfit models are exported; PMC bots now wear their outfits by behaviour type, the rest are not worn yet (looters and bandits becoming one faction, outfit rolls for the ragged factions, Abteilung Ewig and the Hollowed are not built).
-- **Save parts refactor:** the [spec](docs/superpowers/specs/architecture/save-parts-design.md) is written, not built (do first: fixes a stash leak on load).
-- **Raid end refactor:** the [spec](docs/superpowers/specs/architecture/raid-end-design.md) is written, not built (after save parts, before faction rules).
+- **Raid end refactor:** the [spec](docs/superpowers/specs/architecture/raid-end-design.md) is written, not built (before faction rules).
 - **Inventory transfer and found in raid:** the [spec](docs/superpowers/specs/architecture/inventory-transfer-design.md) is written, not built (after raid end; ground pickups now count as found).
 - **Facial animation:** the [spec](docs/superpowers/specs/animation/facial-animation-design.md) is written, not built (after the Plünderer merge; needs the face atlas and a bare face panel on the body textures).
 - **Faction rules refactor:** the [spec](docs/superpowers/specs/architecture/faction-rules-design.md) is written, not built (do before the Plünderer merge).
