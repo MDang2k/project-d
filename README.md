@@ -88,7 +88,7 @@ Each spec has a detailed "Implementation status" table.
 | Art | Done | Still placeholder |
 |---|---|---|
 | Characters | player body, Allied and Soviet outfits, looter outfit with random faces, flat cap | other factions are capsules |
-| Weapons | FAL model with parts; Makarov PM model, not in the game's weapon data yet | other weapons are boxes |
+| Weapons | FAL and AK models with parts (AK built by `tools/build_ak.py`); Makarov PM model, not in the game's weapon data yet | other weapons are boxes |
 | Locomotion | Quaternius CC0 clips for forward stand and crouch movement | sides, diagonals and prone use a generated gait |
 
 ## Needs you
